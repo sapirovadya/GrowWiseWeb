@@ -1,0 +1,24 @@
+# Ignore Python cache files and folders
+__pycache__/
+*.py[cod]
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore virtual environments
+venv/
+env/
+
+# Ignore log files and temp files
+*.log
+*.tmp
+
+# Ignore IDE specific files (e.g., VSCode, PyCharm)
+.vscode/
+.idea/
+
+# Ignore system-specific files
+Thumbs.db
+
+# Ignore vitual-env files
+GrowWiseEnv/
