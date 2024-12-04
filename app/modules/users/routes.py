@@ -1,49 +1,120 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify,session
 import pymongo
+from werkzeug.security import generate_password_hash, check_password_hash
 from modules.users.models import User
+from modules.users.manager.models import Manager  # וודא שזה הנתיב הנכון למחלקה Manager
+from modules.users.employee.models import Employee
 
+# הגדרת ה-Blueprint
 users_bp_main = Blueprint('users_bp_main', __name__)
-client = pymongo.MongoClient("mongodb+srv://111sapir1115:SM123456!@growwise.3xwf5.mongodb.net/?retryWrites=true&w=majority&appName=growwise")
+
+# התחברות ל-MongoDB
+client = pymongo.MongoClient("mongodb+srv://111sapir1115:SM123456!@growwise.3xwf5.mongodb.net/?retryWrites=true&w=majority&tls=true")
 db = client.get_database("dataGrow")
 
-@users_bp_main.route("/home", methods=['GET'])
-def Home():
-    return render_template("index.html")
-
-@users_bp_main.route("/signup", methods=['GET'])
-def signup_form():
-    return redirect(url_for("users_bp_main.Home"))
-
-# @users_bp_main.route("/signup", methods=['POST'])
-# def signup():
-#     # קבלת נתונים מהטופס
-#     username = request.form.get("username")
-#     password = request.form.get("password")
-
-#     # if not username or not password:
-#     #     flash("Both username and password are required.", "error")
-#     #     return redirect(url_for("users_bp_main.signup_form"))
-
-#     # # בדיקה אם המשתמש כבר קיים
-#     # existing_user = db.users.find_one({"username": username})
-#     # if existing_user:
-#     #     flash("Username already exists. Please choose another.", "error")
-#     #     return redirect(url_for("users_bp_main.signup_form"))
-
-#     # הוספת המשתמש לבסיס הנתונים
-#     db.users.insert_one({"username": username, "password": password})
-#     flash("Signup successful!", "success")
-#     return redirect(url_for("users_bp_main.Home"))
-
+# הצגת טופס ההרשמה
+@users_bp_main.route("/register", methods=['GET'])
+def register():
+    return render_template("Register.html")
 
 @users_bp_main.route("/signup", methods=['POST'])
 def signup():
-    # קבלת נתונים מהטופס
-    username = request.form.get("username")
-    password = request.form.get("password")
+    try:
+        # קבלת נתונים מהטופס
+        data = request.get_json()  # קבלת הנתונים כ-JSON
+        first_name = data.get("first_name")
+        last_name = data.get("last_name")
+        email = data.get("email")
+        password = data.get("password")
+        role = data.get("role")
+        manager_email = data.get("manager_email")
 
-    # שמירת המשתמש בבסיס הנתונים
-    db.users.insert_one({"username": username, "password": password})
+        # בדיקות שדות חובה
+        if not all([first_name, last_name, email, password, role]):
+            return jsonify({"message": "All fields are required!"}), 400
 
-    # חזרה לעמוד הנוכחי
-    return redirect(url_for("home")) 
+        if db.manager.find_one({"email": email}) or db.employee.find_one({"email": email}):
+            return jsonify({"message": "Email already exists. Please use a different email."}), 400
+
+        # הצפנת סיסמה
+        hashed_password = generate_password_hash(password)
+
+        if role == "manager":
+            user = Manager().signup(data)
+            user["password"] = hashed_password
+            db.manager.insert_one(user)
+            return jsonify({"message": "Manager registered successfully!"}), 200
+
+        elif role == "employee":
+            if not manager_email:
+                return jsonify({"message": "Manager email is required for workers!"}), 400
+
+            manag = db.manager.find_one({"email": manager_email, "role": "manager"})
+            if not manag:
+                return jsonify({"message": "Manager email not found. Please provide a valid manager email."}), 400
+
+            # הוספת האימייל של העובד לרשימת העובדים של המנהל
+            db.manager.update_one({"email": manager_email}, {"$addToSet": {"workers": email}})
+
+            user = Employee().signup(data)
+            user["password"] = hashed_password
+            db.employee.insert_one(user)
+            return jsonify({"message": "Employee registered successfully!"}), 200
+
+        return jsonify({"message": "Invalid role provided."}), 400
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"message": "Failed to register user. Please try again later."}), 500
+
+
+@users_bp_main.route("/login", methods=['POST'])
+def login():
+    try:
+        # קבלת נתוני התחברות
+        data = request.get_json()
+        email = data.get("email")
+        password = data.get("password")
+
+        # בדיקה אם המשתמש קיים ב-collection של מנהלים
+        manager = db.manager.find_one({"email": email})
+        if manager:
+            # בדיקת סיסמה
+            if not check_password_hash(manager["password"], password):
+                return jsonify({"message": "אחד מהפרטים שגויים"}), 400
+            
+            # מנהל נמצא ומאושר
+            session['email'] = email
+            session['name'] = manager.get('first_name')
+            return jsonify({
+                "message": "התחברת בהצלחה",
+                "role": "manager",
+                "redirect_url": url_for('manager_bp.manager_home_page')
+            }), 200
+
+        # בדיקה אם המשתמש קיים ב-collection של עובדים
+        employee = db.employee.find_one({"email": email})
+        if employee:
+            # בדיקת סיסמה
+            if not check_password_hash(employee["password"], password):
+                return jsonify({"message": "אחד מהפרטים שגויים"}), 400
+
+            # בדיקה אם העובד מאושר
+            if employee["is_approved"] == 0:
+                return jsonify({"message": "המשתמש שלך עדיין חסום"}), 400
+
+            # עובד נמצא ומאושר
+            session['email'] = email
+            session['name'] = employee.get('first_name')
+            return jsonify({
+                "message": "התחברת בהצלחה",
+                "role": "employee",
+                "redirect_url": url_for('employee_bp.employee_home_page')
+            }), 200
+
+        # אם המשתמש לא נמצא בשום collection
+        return jsonify({"message": "לא קיים משתמש כזה במערכת"}), 400
+
+    except Exception as e:
+        print(f"Login error: {e}")
+        return jsonify({"message": "שגיאה במהלך ההתחברות. נסה שוב מאוחר יותר."}), 500

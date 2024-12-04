@@ -128,7 +128,7 @@
         height: 100px;
     }
 
-    .navbar .navbar-nav .nav-link  {
+    .navbar .navbar-nav .nav-link {
         margin-right: 0;
         padding: 10px 0;
     }
@@ -190,7 +190,7 @@
         position: relative;
         min-height: 450px;
     }
-    
+
     #header-carousel .carousel-item img {
         position: absolute;
         width: 100%;
@@ -503,4 +503,19 @@
 
 .copyright a:hover {
     color: #FFFFFF !important;
+}
+
+body {
+    direction: rtl;
+    text-align: right;
+    font-family: 'Alef', sans-serif;
+}
+
+.form-floating label {
+    right: 0;
+    left: auto;
+}
+
+.form-control {
+    text-align: right;
 }
