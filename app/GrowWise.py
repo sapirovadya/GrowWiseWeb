@@ -1,16 +1,20 @@
 from flask import Flask,render_template, request, url_for, redirect,session
 import pymongo
+from dotenv import load_dotenv
+import os
 from modules.users.routes import users_bp_main
 from modules.users.employee.routes import employee_bp
 from modules.users.manager.routes import manager_bp
 
 
-
+load_dotenv()
 app = Flask(__name__)
-client = pymongo.MongoClient("mongodb+srv://111sapir1115:SM123456!@growwise.3xwf5.mongodb.net/?retryWrites=true&w=majority&appName=growwise")
+
+mongo_key = os.getenv("MONGO_KEY")
+client = pymongo.MongoClient(mongo_key)
 db = client.get_database("dataGrow")
 
-app.secret_key = "GrowWise_by_Sapir_And_May_the_best_website!"
+app.secret_key = os.getenv("APP_SECRET")
 
 app.register_blueprint(users_bp_main, url_prefix='/users')
 app.register_blueprint(employee_bp, url_prefix='/employee')

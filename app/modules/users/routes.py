@@ -1,16 +1,23 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify,session
 import pymongo
+from dotenv import load_dotenv
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from modules.users.models import User
 from modules.users.manager.models import Manager  # וודא שזה הנתיב הנכון למחלקה Manager
 from modules.users.employee.models import Employee
 
+
+load_dotenv()
+
 # הגדרת ה-Blueprint
 users_bp_main = Blueprint('users_bp_main', __name__)
 
 # התחברות ל-MongoDB
-client = pymongo.MongoClient("mongodb+srv://111sapir1115:SM123456!@growwise.3xwf5.mongodb.net/?retryWrites=true&w=majority&tls=true")
+mongo_key = os.getenv("MONGO_KEY")
+client = pymongo.MongoClient(mongo_key)
 db = client.get_database("dataGrow")
+
 
 # הצגת טופס ההרשמה
 @users_bp_main.route("/register", methods=['GET'])
