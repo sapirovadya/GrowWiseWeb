@@ -6,6 +6,41 @@
     --dark: #252C30;
 }
 
+/* הגדרת ברירת מחדל לגופן עבור כל האתר */
+body {
+    font-family: 'Playfair Display', sans-serif;
+}
+
+/* עבור כותרות */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Playfair Display', sans-serif;
+}
+
+/* עבור קישורים */
+a {
+    font-family: inherit;
+    /* ירש מהגופן הכללי של ההורה */
+}
+
+/* עבור כפתורים */
+button,
+.btn {
+    font-family: inherit;
+    /* ירש מהגופן הכללי */
+}
+
+/* תיבת קלט או טקסט */
+input,
+textarea {
+    font-family: inherit;
+    /* ירש את ההגדרה הכללית */
+}
+
 .back-to-top {
     position: fixed;
     display: none;
@@ -106,6 +141,10 @@
     font-weight: 600;
     text-transform: uppercase;
     outline: none;
+    font-family: 'Playfair Display', sans-serif;
+    /* גופן Arial */
+    font-size: 20px;
+    /* גודל כתב 20 */
 }
 
 .navbar .navbar-nav .nav-link:hover,
@@ -508,7 +547,7 @@
 body {
     direction: rtl;
     text-align: right;
-    font-family: 'Alef', sans-serif;
+    font-family: 'Playfair Display', sans-serif;
 }
 
 .form-floating label {
@@ -518,4 +557,212 @@ body {
 
 .form-control {
     text-align: right;
+}
+
+.navbar-brand img {
+    max-height: 85px;
+    max-width: 230px;
+    background: none !important;
+    margin: 0 auto;
+    margin-left: 80px;
+    /* הזזת הלוגו ימינה */
+    box-shadow: none !important;
+    display: block;
+    border: none;
+    padding: 80px;
+    height: 190px;
+}
+
+.navbar-brand {
+    background: none;
+    /* הסרת רקע לא רצוי */
+    margin-right: 20px;
+}
+
+.navbar-brand img {
+    padding: 10px;
+}
+
+.navbar-brand img {
+    height: 150px;
+    /* לדוגמה, ניתן לשנות לפי הצורך */
+}
+
+
+.navbar .fa-search {
+    display: none !important;
+    /* הסתרת הזכוכית המגדלת */
+}
+
+.fa-search {
+    display: none !important;
+}
+
+.carousel-inner img {
+    max-height: 650px;
+    /* מקסימום גובה של התמונה */
+    object-fit: cover;
+    /* מבטיח שהתמונה תישאר פרופורציונלית */
+    width: 100%;
+    /* שומר על הרוחב המלא */
+}
+
+/* עיצוב הסלוגן */
+.carousel-caption h1 {
+    font-family: 'Playfair Display', serif;
+    /* גופן מסוגנן */
+    color: #ffffff;
+    /* טקסט לבן */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    /* צללית לטקסט */
+}
+
+/* עיצוב החתימה */
+.carousel-caption p {
+    font-family: 'Playfair Display', sans-serif;
+    /* גופן פשוט ונקי */
+    font-size: 1.5rem;
+    /* גודל טקסט גדול */
+    font-style: italic;
+    /* סגנון נטוי */
+    color: #f8f9fa;
+    /* טקסט בהיר */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    /* צללית עדינה */
+}
+
+/* עיצוב כפתורים */
+.carousel-caption .btn {
+    font-size: 20px;
+    /* גודל טקסט גדול יותר */
+    font-weight: bold;
+    /* טקסט מודגש */
+}
+
+.carousel-caption .btn:hover {
+    background-color: #8fb23e;
+    /* צבע רקע ירוק בהיר במעבר עכבר */
+    color: #fff;
+    /* טקסט לבן */
+}
+
+#signature {
+    display: inline-block;
+    overflow: hidden;
+    /* חותך את הטקסט */
+    white-space: nowrap;
+    /* שומר על הטקסט בשורה אחת */
+    animation: typing 3s steps(30, end);
+    /* רק אפקט הקלדה */
+}
+
+/* אפקט הקלדה */
+@keyframes typing {
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
+/* אפקט מצמוץ של הסמן */
+@keyframes blink-caret {
+    from {
+        border-color: rgba(255, 255, 255, 0.75);
+    }
+
+    to {
+        border-color: transparent;
+    }
+}
+
+/* עיצוב לכפתורים */
+.button-custom {
+    font-size: 20px;
+    /* גודל הטקסט */
+    font-weight: bold;
+    /* טקסט מודגש */
+    padding: 10px 30px;
+    /* שולט על גובה ורוחב הכפתור */
+    margin-right: 0;
+    /* רווח בין הכפתורים */
+    width: 150px;
+    /* שולט על רוחב הכפתור */
+    text-align: center;
+    /* ממרכז את הטקסט */
+}
+
+.button-custom:last-child {
+    margin-right: 15px;
+    /* מסיר את הרווח מהכפתור האחרון */
+}
+
+/* עיצוב כותרת מעבר מהיר */
+.col-lg-3 .text-primary {
+    margin-bottom: 0.5rem;
+    margin-left: 10px;
+
+    /* מוסיף ריווח קטן בין הכותרת לקישורים */
+    text-align: right;
+    /* מיישר את הכותרת לימין */
+}
+
+/* עיצוב הקישורים */
+.col-lg-3 .btn-link {
+    display: inline-block;
+    /* שומר על גובה קבוע */
+    margin-bottom: 0.5rem;
+    /* יוצר ריווח בין כל קישור */
+    text-align: right;
+    /* יישור לימין */
+    color: var(--primary);
+    /* צבע קישורים */
+    font-size: 16px;
+    /* גודל טקסט */
+    font-weight: 500;
+    /* משקל טקסט */
+    text-decoration: none;
+    /* מבטל קו תחתון */
+}
+
+/* אפקט במעבר עכבר */
+.col-lg-3 .btn-link:hover {
+    color: var(--light);
+    /* משנה צבע במעבר */
+}
+
+.page-header h1 {
+    font-family: 'Playfair Display', sans-serif;
+    font-weight: 800;
+    /* אופציונלי: הדגשה */
+    font-size: 5rem;
+    /* אופציונלי: שליטה בגודל */
+}
+
+h1 {
+    font-family: 'Playfair Display', sans-serif;
+}
+
+/* עיצוב הכפתור X */
+.modal-header .custom-close {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 10px;
+    z-index: 1051;
+    /* לוודא שהוא מעל הכל */
+}
+
+/* יישור הכותרת להתחברות לקצה הימני */
+.modal-header .modal-title {
+    margin-right: auto;
+    /* דוחף את הכותרת לקצה הימני */
+    margin-left: 0;
+    /* מבטל מרווח שמאלי */
+    text-align: right;
+    /* מוודא שהטקסט מיושר לימין */
+    flex-grow: 1;
+    /* שומר על רוחב דינמי */
 }

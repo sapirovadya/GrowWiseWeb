@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from modules.users.models import User
 from modules.users.manager.models import Manager  # וודא שזה הנתיב הנכון למחלקה Manager
 from modules.users.employee.models import Employee
+from modules.users.co_manager.models import Co_Manager
 
 
 load_dotenv()
@@ -53,7 +54,7 @@ def signup():
             db.manager.insert_one(user)
             return jsonify({"message": "Manager registered successfully!"}), 200
 
-        elif role == "employee":
+        elif role == "employee" or role == "co_manager":
             if not manager_email:
                 return jsonify({"message": "Manager email is required for workers!"}), 400
 
@@ -61,14 +62,20 @@ def signup():
             if not manag:
                 return jsonify({"message": "Manager email not found. Please provide a valid manager email."}), 400
 
-            # הוספת האימייל של העובד לרשימת העובדים של המנהל
-            db.manager.update_one({"email": manager_email}, {"$addToSet": {"workers": email}})
-
-            user = Employee().signup(data)
-            user["password"] = hashed_password
-            db.employee.insert_one(user)
-            return jsonify({"message": "Employee registered successfully!"}), 200
-
+            if role == "employee":
+                db.manager.update_one({"email": manager_email}, {"$addToSet": {"workers": email}})
+                user = Employee().signup(data)
+                user["password"] = hashed_password
+                db.employee.insert_one(user)
+                return jsonify({"message": "Employee registered successfully!"}), 200
+            
+            if role == "co_manager":
+                db.manager.update_one({"email": manager_email}, {"$addToSet": {"co_managers": email}})
+                user = Co_Manager().signup(data)
+                user["password"] = hashed_password
+                db.co_manager.insert_one(user)
+                return jsonify({"message": "Co-manager registered successfully!"}), 200
+            
         return jsonify({"message": "Invalid role provided."}), 400
 
     except Exception as e:
@@ -100,6 +107,25 @@ def login():
                 "role": "manager",
                 "redirect_url": url_for('manager_bp.manager_home_page')
             }), 200
+        
+        co_manager = db.co_manager.find_one({"email": email})
+        if co_manager:
+            # בדיקת סיסמה
+            if not check_password_hash(co_manager["password"], password):
+                return jsonify({"message": "one of the detail is incorrect"}), 400
+            
+            if co_manager["is_approved"] == 0:
+                return jsonify({"message": "user is not approved"}), 400
+
+            # מנהל נמצא ומאושר
+            session['email'] = email
+            session['name'] = co_manager.get('first_name')
+            return jsonify({
+                "message": "login successfuly",
+                "role": "manager",
+                "redirect_url": url_for('manager_bp.manager_home_page')
+            }), 200
+
 
         # בדיקה אם המשתמש קיים ב-collection של עובדים
         employee = db.employee.find_one({"email": email})
