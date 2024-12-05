@@ -7,6 +7,7 @@ from modules.users.employee.routes import employee_bp
 from modules.users.manager.routes import manager_bp
 from modules.users.co_manager.routes import co_manager_bp
 
+import json
 
 load_dotenv()
 app = Flask(__name__)
@@ -41,6 +42,44 @@ app.register_blueprint(co_manager_bp, url_prefix='/co_manager')
 
 
 
+def update_crops_data():
+    collection = app.db["crops_options"]
+    
+    try:
+        # קריאת הקובץ
+        with open('app/static/data/crops_data.json', 'r', encoding='utf-8') as file:
+            crops_data = json.load(file)
+
+        # מחיקת הנתונים הקיימים
+        deleted_count = collection.delete_many({}).deleted_count
+        print(f"{deleted_count} documents deleted from MongoDB.")
+
+        # הוספת הנתונים המעודכנים
+        for category in crops_data:
+            collection.insert_one(category)
+        print("New data loaded successfully into MongoDB!")
+    except Exception as e:
+        print(f"Error occurred while updating crops: {str(e)}")
+
+def update_crops_data():
+    collection = app.db["crops_options"]
+    
+    try:
+        # קריאת הקובץ
+        with open('app/static/data/crops_data.json', 'r', encoding='utf-8') as file:
+            crops_data = json.load(file)
+
+        # מחיקת הנתונים הקיימים
+        deleted_count = collection.delete_many({}).deleted_count
+        print(f"{deleted_count} documents deleted from MongoDB.")
+
+        # הוספת הנתונים המעודכנים
+        for category in crops_data:
+            collection.insert_one(category)
+        print("New data loaded successfully into MongoDB!")
+    except Exception as e:
+        print(f"Error occurred while updating crops: {str(e)}")
+
 
 @app.route('/')
 def home():
@@ -48,4 +87,5 @@ def home():
 
 if __name__ == '__main__':
     
+    #update_crops_data()
     app.run(debug=True)
