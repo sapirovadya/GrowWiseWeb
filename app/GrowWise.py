@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 mongo_key = os.getenv("MONGO_KEY")
 client = pymongo.MongoClient(mongo_key)
-db = client.get_database("dataGrow")
+app.db = client.get_database("dataGrow")
 
 app.secret_key = os.getenv("APP_SECRET")
 

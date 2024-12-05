@@ -49,7 +49,6 @@
                     <div class="navbar-nav ms-auto">
                         <a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
                         <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
-
                     </div>
                 </div>
             </nav>
@@ -71,25 +70,21 @@
             <div class="row justify-content-center">
                 <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.1s">
                     <h3 class="mb-4 text-center">יצירת משתמש</h3>
-                    <form id="registerForm" action="/users/signup" method="POST">
+                    <form id="registerForm" action="/users/signup" method="POST" novalidate>
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="first_name" name="first_name"
-                                placeholder="שם פרטי" required>
+                            <input type="text" class="form-control" id="first_name" name="first_name" placeholder="שם פרטי" required pattern="^[א-תA-Za-z]+$" title="יש להכניס רק אותיות באנגלית או בעברית.">
                             <label for="first_name">שם פרטי</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="last_name" name="last_name"
-                                placeholder="שם משפחה" required>
+                            <input type="text" class="form-control" id="last_name" name="last_name" placeholder="שם משפחה" required pattern="^[א-תA-Za-z]+$" title="יש להכניס רק אותיות באנגלית או בעברית.">
                             <label for="last_name">שם משפחה</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="email" name="email" placeholder="אי-מייל"
-                                required>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="אי-מייל" required pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="יש להזין מייל חוקי, לדוגמה: name@example.com">
                             <label for="email">אי-מייל</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="password" name="password"
-                                placeholder="סיסמא" required>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="סיסמא" required pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$" title="על הסיסמה להכיל 8-16 תווים, לפחות אות אחת באנגלית, מספר אחד, וסימן מיוחד.">
                             <label for="password">סיסמא</label>
                         </div>
                         <div class="form-floating mb-3">
@@ -100,8 +95,7 @@
                             <label for="role">תפקיד</label>
                         </div>
                         <div class="form-floating mb-3" id="manager_email_field" style="display: none;">
-                            <input type="email" class="form-control" id="manager_email" name="manager_email"
-                                placeholder="אי-מייל המנהל">
+                            <input type="email" class="form-control" id="manager_email" name="manager_email" placeholder="אי-מייל המנהל" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="יש להזין מייל חוקי, לדוגמה: name@example.com">
                             <label for="manager_email">אי-מייל המנהל</label>
                         </div>
                         <button class="btn btn-primary w-100 py-3" type="submit">הרשמה</button>
@@ -121,16 +115,6 @@
                     <p class="mb-2"><i class="fa fa-map-marker-alt text-primary me-3"></i>123 Street, New York, USA</p>
                     <p class="mb-2"><i class="fa fa-phone-alt text-primary me-3"></i>+012 345 67890</p>
                     <p class="mb-2"><i class="fa fa-envelope text-primary me-3"></i>GrowWise@gmail.com</p>
-                    <!-- <div class="d-flex pt-3">
-                        <a class="btn btn-square btn-primary rounded-circle me-2" href=""><i
-                                class="fab fa-twitter"></i></a>
-                        <a class="btn btn-square btn-primary rounded-circle me-2" href=""><i
-                                class="fab fa-facebook-f"></i></a>
-                        <a class="btn btn-square btn-primary rounded-circle me-2" href=""><i
-                                class="fab fa-youtube"></i></a>
-                        <a class="btn btn-square btn-primary rounded-circle me-2" href=""><i
-                                class="fab fa-linkedin-in"></i></a>
-                    </div> -->
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <h4 class="text-primary mb-4">מעבר מהיר</h4>
@@ -138,15 +122,6 @@
                     <a class="btn btn-link" href="">יצירת קשר</a>
                     <a class="btn btn-link" href="">השירותים שלנו</a>
                 </div>
-                <!-- <div class="col-lg-3 col-md-6">
-                    <h4 class="text-primary mb-4">Business Hours</h4>
-                    <p class="mb-1">Monday - Friday</p>
-                    <h6 class="text-light">09:00 am - 07:00 pm</h6>
-                    <p class="mb-1">Saturday</p>
-                    <h6 class="text-light">09:00 am - 12:00 pm</h6>
-                    <p class="mb-1">Sunday</p>
-                    <h6 class="text-light">Closed</h6>
-                </div> -->
             </div>
         </div>
     </div>
@@ -161,25 +136,91 @@
     <script src="/static/lib/owlcarousel/owl.carousel.min.js"></script>
 
     <!-- Template Javascript -->
-    <script src="/static/js/main.js"></script>
-
     <script>
-        // Display manager email field based on role selection
+        // בדיקת שם פרטי ושם משפחה (רק אותיות)
+        const validateNameInput = (input) => {
+            input.addEventListener("input", (event) => {
+                const value = event.target.value;
+                const validValue = value.replace(/[^a-zA-Zא-ת\s]/g, ""); // הסרת תווים שאינם אותיות
+                if (value !== validValue) {
+                    event.target.value = validValue;
+                }
+    
+                // בדיקה אם השדה ריק
+                if (validValue === "") {
+                    input.setCustomValidity("יש להזין שם המכיל רק אותיות.");
+                } else {
+                    input.setCustomValidity("");
+                }
+            });
+        };
+    
+        validateNameInput(document.getElementById("first_name"));
+        validateNameInput(document.getElementById("last_name"));
+    
+        // בדיקת תבנית אימייל עם הגבלה בזמן אמת
+        const validateEmailInput = (input) => {
+            input.addEventListener("input", (event) => {
+                const value = event.target.value;
+                const emailPattern = /^[a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]*$/;
+                
+                // הסרת תווים לא חוקיים בזמן ההקלדה
+                if (!emailPattern.test(value)) {
+                    event.target.value = value.replace(/[^a-zA-Z0-9._%+-@]/g, "");
+                }
+    
+                // בדיקה אם הפורמט הכללי נכון
+                const fullPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (!fullPattern.test(value) && value !== "") {
+                    input.setCustomValidity("כתובת האימייל אינה תקינה.");
+                } else {
+                    input.setCustomValidity("");
+                }
+            });
+        };
+    
+        validateEmailInput(document.getElementById("email"));
+        validateEmailInput(document.getElementById("manager_email"));
+    
+        // בדיקת סיסמה
+        const validatePasswordInput = (input) => {
+            input.addEventListener("input", (event) => {
+                const value = event.target.value;
+    
+                // מניעת אותיות בעברית
+                const validValue = value.replace(/[\u0590-\u05FF]/g, ""); // הסרת אותיות בעברית
+                if (value !== validValue) {
+                    event.target.value = validValue;
+                }
+    
+                // דרישות סיסמה: לפחות אות אחת, מספר אחד, וסימן מיוחד, באורך 8-16 תווים
+                const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
+    
+                if (!passwordPattern.test(validValue)) {
+                    input.setCustomValidity("הסיסמה חייבת לכלול בין 8-16 תווים, לפחות אות אחת באנגלית, מספר אחד וסימן מיוחד.");
+                } else {
+                    input.setCustomValidity("");
+                }
+            });
+        };
+    
+        validatePasswordInput(document.getElementById("password"));
+    
+        // הצגת שדה אימייל מנהל אם התפקיד הוא עובד
         document.getElementById("role").addEventListener("change", function () {
             const role = this.value;
             const managerEmailField = document.getElementById("manager_email_field");
             managerEmailField.style.display = role === "employee" ? "block" : "none";
         });
-
-
-        // Submit the form
+    
+        // וידוא טופס לפני שליחה
         document.getElementById("registerForm").addEventListener("submit", async function (event) {
             event.preventDefault();
-
+    
             const formData = new FormData(this);
             const data = {};
             formData.forEach((value, key) => (data[key] = value));
-
+    
             try {
                 const response = await fetch("/users/signup", {
                     method: "POST",
@@ -188,7 +229,7 @@
                     },
                     body: JSON.stringify(data),
                 });
-
+    
                 const result = await response.json();
                 if (response.ok) {
                     alert(result.message);
@@ -201,8 +242,10 @@
                 alert("An error occurred. Please try again later.");
             }
         });
-
     </script>
+    
+    
+    
 </body>
 
 </html>

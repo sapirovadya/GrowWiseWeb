@@ -18,8 +18,6 @@ class User:
             "email": data.get("email"),
             "password": hashed_password,
             "role": data.get("role"),  # מנהל או עובד
-            # "manager_email": data.get("manager_email") if data.get("role") == "worker" else None,
-            # "is_approved": 0  # ברירת מחדל: לא מאושר
         }
 
         return user

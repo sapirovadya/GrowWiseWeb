@@ -1,0 +1,12 @@
+# flask related libs
+Flask
+Flask-PyMongo 
+pytest
+pytest-cov
+pytest-html
+mongomock
+python-dotenv
+Flask-Session
+pytest-mock
+
+
