@@ -102,6 +102,9 @@ def login():
             # מנהל נמצא ומאושר
             session['email'] = email
             session['name'] = manager.get('first_name')
+            session['role'] = 'manager'
+            
+
             return jsonify({
                 "message": "login successfuly",
                 "role": "manager",
@@ -120,10 +123,13 @@ def login():
             # מנהל נמצא ומאושר
             session['email'] = email
             session['name'] = co_manager.get('first_name')
+            session['role'] = 'co_manager'
+            session['manager_email'] = co_manager.get('manager_email')
+
             return jsonify({
                 "message": "login successfuly",
                 "role": "manager",
-                "redirect_url": url_for('manager_bp.manager_home_page')
+                "redirect_url": url_for('co_manager_bp.co_manager_home_page')
             }), 200
 
 
@@ -140,6 +146,7 @@ def login():
 
             # עובד נמצא ומאושר
             session['email'] = email
+            session['role'] = 'employee'
             session['name'] = employee.get('first_name')
             return jsonify({
                 "message": "login successfuly",
@@ -153,3 +160,4 @@ def login():
     except Exception as e:
         print(f"Login error: {e}")
         return jsonify({"message": "שגיאה במהלך ההתחברות. נסה שוב מאוחר יותר."}), 500
+
