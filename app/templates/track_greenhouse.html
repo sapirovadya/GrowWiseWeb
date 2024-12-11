@@ -3,12 +3,473 @@
 
 <head>
     <meta charset="utf-8">
-    <title>מעקב חממות</title>
+    <title>GrowWise</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/static/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Playfair+Display:wght@700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS Libraries -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/static/css/style.css" rel="stylesheet">
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-dialog {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        #singleView {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>דף מעקב חממות</h1>
+    <!-- Navbar Start -->
+    <div class="container-fluid bg-white sticky-top">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
+                <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
+                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                </a>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <div class="navbar-nav ms-auto">
+                        <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
+
+                        <!-- Dropdown של דפים -->
+                        <div class="nav-item dropdown position-relative">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
+                            <div class="dropdown-menu bg-light rounded-0 m-0">
+                                <a href="{{ url_for('manager_bp.track_greenhouse') }}" class="dropdown-item">מעקב
+                                    חלקות/חממות</a>
+                                <a href="404.html" class="dropdown-item">404 Page</a>
+                            </div>
+                        </div>
+
+                        <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
+                        <a href="contact.html" class="nav-item nav-link">צור קשר</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Navbar End -->
+
+    <!-- פס חוצץ -->
+    <hr class="section-divider">
+    <!-- כפתור הוספת חלקה/חממה -->
+    <div class="container-fluid bg-white sticky-top secondary-navbar">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
+                <button id="addPlotButton" class="btn button-circle">
+                    <img src="/static/img/plus_icon.png" alt="הוסף חלקה/חממה">
+                </button>
+                <!-- כפתור מעבר בין פריסות -->
+                <div class="container-fluid bg-white sticky-top">
+                    <div class="container d-flex justify-content-end align-items-center mt-3">
+                        <span class="me-2" style="white-space: nowrap;">פריסת דף</span>
+                        <div id="toggleViewButton" class="toggle-button" style="cursor: pointer;">
+                            <div class="toggle-circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container mt-4 plots-container">
+        <div id="plotsContainer">
+            <!-- כאן יוזנו החלקות באופן דינאמי -->
+        </div>
+    </div>
+
+    <!-- חלון סוג חלקה -->
+    <div id="selectTypeModal" class="modal" onclick="closeModal(event, 'selectTypeModal')">
+        <div class="modal-dialog" onclick="event.stopPropagation()">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">בחר סוג חלקה</h5>
+                    <button type="button" class="btn-close" aria-label="Close"
+                        onclick="closeModal(null, 'selectTypeModal')"></button>
+                </div>
+                <div class="modal-body">
+                    <button class="btn btn-secondary" onclick="openPlotForm('חלקה')">חלקה</button>
+                    <button class="btn btn-secondary" onclick="openPlotForm('חממה')">חממה</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- חלון הגדרת חלקה/חממה -->
+    <div id="plotFormModal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">הגדרת חממה/חלקה</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="plotForm">
+                        <input type="hidden" name="plot_type" id="plotType">
+
+                        <div class="mb-3">
+                            <label for="plotName" class="form-label">שם החלקה</label>
+                            <input type="text" id="plotName" name="plot_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="length" class="form-label">אורך</label>
+                            <input type="number" id="length" name="length" class="form-control" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="width" class="form-label">רוחב</label>
+                            <input type="number" id="width" name="width" class="form-control" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cropCategory" class="form-label">סוג הגידול</label>
+                            <select id="cropCategory" name="crop_category" class="form-select" onchange="loadCrops()">
+                                <option value="none">ללא</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="cropDiv" style="display: none;">
+                            <label for="crop" class="form-label">גידול</label>
+                            <select id="crop" name="crop" class="form-select">
+                                <option value="none">ללא</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="sowDateDiv" style="display: none;">
+                            <label for="sowDate" class="form-label">תאריך זריעה</label>
+                            <input type="date" id="sowDate" name="sow_date" class="form-control">
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="savePlot()">שמירה</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- תצוגת פריסה בודדת -->
+    <div id="singleView" class="single-view mt-4 text-center">
+        <!-- הכותרת מעל התמונה -->
+        <h3 id="plotTitle" class="fw-bold mb-4"></h3>
+        <div class="plot-circle mx-auto mt-3">
+            <img id="plotImage" src="" alt="תמונה">
+        </div>
+        <div class="navigation-container">
+
+            <button id="prevButton" class="btn btn-light rounded-circle">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+
+            <!-- הפרטים מתחת לתמונה -->
+            <div id="plotDetails" class="text-center mt-4">
+                <p><strong>צורת גידול: </strong> <span id="plottype"></span></p>
+                <p><strong>אורך(מטר): </strong> <span id="plotLength"></span></p>
+                <p><strong>רוחב(מטר): </strong> <span id="plotWidth"></span></p>
+                <p><strong>גידול: </strong> <span id="plotCrop"></span></p>
+                <p><strong>תאריך זריעה: </strong> <span id="sowdate"></span></p>
+                <p><strong>תאריך השקיה אחרון: </strong> <span id="lastIrrigationDate"></span></p>
+                <p><strong>כמות השקיה כוללת: </strong> <span id="totalIrrigationAmount"></span></p>
+            </div>
+            <button id="nextButton" class="btn btn-light rounded-circle">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark footer mt-3 py-3 wow fadeIn" data-wow-delay="0.1s">
+        <div class="container py-4">
+            <div class="row g-5">
+                <div class="col-lg-3 col-md-6">
+                    <h4 class="text-primary mb-4">המשרד שלנו</h4>
+                    <p class="mb-2"><i class="fa fa-map-marker-alt text-primary me-3"></i> באר שבע, ישראל</p>
+                    <p class="mb-2"><i class="fa fa-phone-alt text-primary me-3"></i> 52-8744379 972+ </p>
+                    <p class="mb-2"><i class="fa fa-envelope text-primary me-3"></i>GrowWiseWeb@gmail.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
+            class="bi bi-arrow-up"></i></a>
+
+    <!-- JavaScript -->
+    <script>
+
+        document.getElementById('addPlotButton').addEventListener('click', () => {
+            document.getElementById('selectTypeModal').style.display = 'flex';
+        });
+
+        function openPlotForm(type) {
+            const plotTypeInput = document.getElementById('plotType');
+            const selectTypeModal = document.getElementById('selectTypeModal');
+            const plotFormModal = document.getElementById('plotFormModal');
+
+            plotTypeInput.value = type;
+            selectTypeModal.style.display = 'none';
+            plotFormModal.style.display = 'flex';
+            loadCategories();
+        }
+
+        async function loadCategories() {
+            const response = await fetch('/users/manager/get_crop_categories');
+            const data = await response.json();
+            const categorySelect = document.getElementById('cropCategory');
+            categorySelect.innerHTML = '<option value="none">ללא</option>';
+            data.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        async function loadCrops() {
+            const cropCategory = document.getElementById('cropCategory').value;
+            const cropSelect = document.getElementById('crop');
+            const cropDiv = document.getElementById('cropDiv');
+            const sowDateDiv = document.getElementById('sowDateDiv');
+
+            // אם הקטגוריה היא "none", הסתר את השדות הנוספים
+            if (cropCategory === "none") {
+                cropDiv.style.display = 'none';
+                sowDateDiv.style.display = 'none';
+                cropSelect.innerHTML = '<option value="none">ללא</option>'; // איפוס
+                return;
+            }
+
+            try {
+                // קריאה לשרת לשליפת הגידולים
+                const response = await fetch(`/users/manager/get_crops?category=${cropCategory}`);
+                if (!response.ok) {
+                    throw new Error(`שגיאה בטעינת הגידולים: ${response.status}`);
+                }
+
+                const data = await response.json();
+                cropSelect.innerHTML = '<option value="none">ללא</option>'; // איפוס
+
+                // הוספת הגידולים מהשרת לרשימה
+                data.crops.forEach(crop => {
+                    const option = document.createElement('option');
+                    option.value = crop;
+                    option.textContent = crop;
+                    cropSelect.appendChild(option);
+                });
+
+                // הצגת שדה הגידול
+                cropDiv.style.display = 'block';
+
+                // עדכון תצוגת שדה תאריך זריעה לפי בחירה
+                cropSelect.addEventListener('change', () => {
+                    if (cropSelect.value !== 'none') {
+                        sowDateDiv.style.display = 'block';
+                    } else {
+                        sowDateDiv.style.display = 'none';
+                    }
+                });
+            } catch (error) {
+                console.error(error.message);
+                alert("שגיאה בטעינת הגידולים מהשרת.");
+            }
+        }
+
+        async function savePlot() {
+            const plotName = document.getElementById('plotName').value.trim();
+            const length = document.getElementById('length').value.trim();
+            const width = document.getElementById('width').value.trim();
+            const cropCategory = document.getElementById('cropCategory').value;
+            const crop = document.getElementById('crop').value;
+            const sowDate = document.getElementById('sowDate').value;
+
+            if (!plotName || !length || !width) {
+                alert('יש למלא את השדות: שם החלקה, אורך ורוחב.');
+                return;
+            }
+
+            if (cropCategory !== 'none' && (!crop || !sowDate)) {
+                alert('נא למלא את השדות גידול ותאריך זריעה.');
+                return;
+            }
+
+            const formData = new FormData(document.getElementById('plotForm'));
+            const response = await fetch('/users/manager/save_plot', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                alert('החלקה נשמרה בהצלחה!');
+                location.reload();
+            } else {
+                const errorData = await response.json();
+                alert(`שגיאה: ${errorData.error}`);
+            }
+        }
+
+        function closeModal(event, modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+
+        let currentView = "multiple"; // מצב התצוגה (מרובה או בודד)
+        const toggleButton = document.getElementById("toggleViewButton");
+        const multipleView = document.querySelector(".plots-container");
+        const singleView = document.getElementById("singleView");
+
+        toggleButton.addEventListener("click", () => {
+            toggleButton.classList.toggle("active");
+            if (currentView === "multiple") {
+                currentView = "single";
+                multipleView.style.display = "none";
+                singleView.style.display = "block";
+                updateSingleView(); // טוען את המידע לחלקה הראשונה
+            } else {
+                currentView = "multiple";
+                multipleView.style.display = "block";
+                singleView.style.display = "none";
+            }
+        });
+
+        // דפדוף בין החלקות בפריסה בודדת
+        const plots = []; // מערך של החלקות שנטען מבסיס הנתונים
+        let currentPlotIndex = 0;
+
+        async function loadPlots() {
+            try {
+                const response = await fetch('/users/manager/get_plots');
+                if (!response.ok) {
+                    throw new Error('שגיאה בטעינת החלקות.');
+                }
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                plots.push(...data.plots);
+                renderMultipleView();
+            } catch (error) {
+                console.error(error.message);
+                alert(error.message); // הצגת השגיאה למשתמש
+            }
+        }
+
+        function renderMultipleView() {
+            const container = document.getElementById("plotsContainer");
+            container.innerHTML = ""; // איפוס
+
+            plots.forEach(plot => {
+                const plotContainer = document.createElement("div");
+                plotContainer.classList.add("plot-container");
+                plotContainer.style.cursor = "pointer"; // הפיכת האלמנט ללחיץ
+
+                // הוספת אירוע לחיצה
+                plotContainer.onclick = () => {
+                    window.location.href = `/users/manager/plot_details?id=${plot._id}`; // העברה לדף חדש עם ה-ID
+                };
+
+                const circleDiv = document.createElement("div");
+                circleDiv.classList.add("plot-circle");
+
+                const img = document.createElement("img");
+                img.src = plot.plot_type === "חלקה" ? "/static/img/plot.png" : "/static/img/green_house.png";
+                circleDiv.appendChild(img);
+
+                const nameDiv = document.createElement("div");
+                nameDiv.classList.add("plot-name");
+                nameDiv.textContent = plot.plot_name;
+
+                plotContainer.appendChild(circleDiv);
+                plotContainer.appendChild(nameDiv);
+                container.appendChild(plotContainer);
+            });
+        }
+
+        function updateSingleView() {
+            if (plots.length === 0) return;
+
+            const plot = plots[currentPlotIndex];
+
+            // עדכון שם החלקה
+            document.getElementById("plotTitle").textContent = plot.plot_name;
+
+            // עדכון תמונת החלקה לפי סוג
+            document.getElementById("plotImage").src =
+                plot.plot_type === "חלקה" ? "/static/img/plot.png" : "/static/img/green_house.png";
+
+            // עדכון השדות לפי הערכים מהבסיס נתונים
+            document.getElementById("plottype").textContent = plot.plot_type || "לא זמין";
+
+            document.getElementById("plotLength").textContent = plot.length || "לא זמין";
+            document.getElementById("plotWidth").textContent = plot.width || "לא זמין";
+
+            // בדיקה עבור plotCrop
+            document.getElementById("plotCrop").textContent =
+                plot.crop === "none" ? " טרם נבחר גידול" : (plot.crop || "לא זמין");
+
+            // בדיקה עבור sowdate
+            document.getElementById("sowdate").textContent =
+                plot.sow_date === "" ? "טרם בוצעה זריעה" : (plot.sow_date || "לא זמין");
+
+            // בדיקה עבור lastIrrigationDate
+            document.getElementById("lastIrrigationDate").textContent =
+                plot.Last_irrigation_date == null ? "טרם בוצעה השקייה" : plot.Last_irrigation_date;
+
+            // בדיקה עבור totalIrrigationAmount
+            document.getElementById("totalIrrigationAmount").textContent =
+                plot.Total_irrigation_amount == null ? "0" : plot.Total_irrigation_amount;
+        }
+
+        document.getElementById("prevButton").addEventListener("click", () => {
+            if (currentPlotIndex > 0) {
+                currentPlotIndex--;
+                updateSingleView();
+            }
+        });
+
+        document.getElementById("nextButton").addEventListener("click", () => {
+            if (currentPlotIndex < plots.length - 1) {
+                currentPlotIndex++;
+                updateSingleView();
+            }
+        });
+
+        // קריאה לטעינת החלקות
+        document.addEventListener("DOMContentLoaded", loadPlots);
+
+    </script>
 </body>
 
 </html>

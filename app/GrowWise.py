@@ -20,7 +20,7 @@ app.secret_key = os.getenv("APP_SECRET")
 
 app.register_blueprint(users_bp_main, url_prefix='/users')
 app.register_blueprint(employee_bp, url_prefix='/employee')
-app.register_blueprint(manager_bp, url_prefix='/manager')
+app.register_blueprint(manager_bp, url_prefix='/users/manager')
 app.register_blueprint(co_manager_bp, url_prefix='/co_manager')
 
 
