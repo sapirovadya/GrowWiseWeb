@@ -508,7 +508,6 @@ textarea {
 
 .footer .btn.btn-link {
     display: block;
-    margin-bottom: 5px;
     padding: 0;
     text-align: left;
     color: #B0B9AE;
@@ -765,4 +764,286 @@ h1 {
     /* מוודא שהטקסט מיושר לימין */
     flex-grow: 1;
     /* שומר על רוחב דינמי */
+}
+
+.button-circle {
+    background-color: #8fb23e;
+    /* צבע רקע ירוק */
+    border: none;
+    /* הסרת גבול */
+    border-radius: 50%;
+    /* להפוך לעיגול */
+    width: 50px;
+    /* גודל הכפתור */
+    height: 50px;
+    /* גובה הכפתור */
+    display: flex;
+    /* למרכז את התמונה */
+    align-items: center;
+    /* למרכז אנכית */
+    justify-content: center;
+    /* למרכז אופקית */
+    cursor: pointer;
+    /* סמן עכבר */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* הוספת צל */
+    transition: all 0.3s ease;
+    /* אנימציה */
+}
+
+.button-circle:hover {
+    background-color: #218838;
+    /* גוון כהה יותר בירוק במעבר עכבר */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    /* חיזוק הצל */
+}
+
+.button-circle img {
+    width: 28px;
+    /* גודל התמונה */
+    height: 28px;
+    /* גובה התמונה */
+}
+
+
+.modal-content {
+    border: none;
+    /* מסיר את המסגרת */
+    box-shadow: none;
+    /* מסיר צל */
+}
+
+.plot-circle {
+    background-color: #8fb23e;
+    /* צבע רקע ירוק */
+    border: none;
+    /* הסרת גבול */
+    border-radius: 50%;
+    /* להפוך לעיגול */
+    width: 140px;
+    /* גודל העיגול */
+    height: 140px;
+    /* גובה העיגול */
+    display: flex;
+    /* למרכז את התמונה */
+    align-items: center;
+    /* למרכז אנכית */
+    justify-content: center;
+    /* למרכז אופקית */
+    cursor: pointer;
+    /* סמן עכבר */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* הוספת צל */
+    margin: 0 auto;
+    /* למרכז אופקית */
+}
+
+.plot-circle img {
+    width: 90px;
+    /* גודל התמונה */
+    height: 90px;
+    /* גובה התמונה */
+    object-fit: contain;
+}
+
+.plot-name {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-top: 10px;
+    /* רווח בין העיגול לשם */
+}
+
+.plot-container {
+    text-align: center;
+    /* למרכז את כל התוכן */
+    margin-bottom: 30px;
+    /* רווח בין כל עיגול לשורה הבאה */
+    margin-top: 50px;
+}
+
+#plotsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    /* מתחיל מצד ימין */
+    gap: 30px;
+    /* רווח בין העיגולים */
+}
+
+/* עיצוב כפתור המעבר */
+.toggle-button {
+    background-color: #e0e0e0;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 80px;
+    height: 40px;
+    padding: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-circle {
+    background-color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.toggle-button.active {
+    background-color: #8fb23e;
+}
+
+.toggle-button.active .toggle-circle {
+    transform: translateX(40px);
+}
+
+/* פריסה של דף אחד */
+.single-view {
+    display: none;
+}
+
+/* מרווחי תוכן בפריסה בודדת */
+#plotDetails p strong {
+    font-size: 20px;
+    /* גודל הכותרות */
+    font-weight: bold;
+    /* הדגשה לכותרות */
+}
+
+#plotDetails p span {
+    font-size: 16px;
+    /* גודל המידע */
+    font-weight: normal;
+    /* ללא הדגשה */
+}
+
+/* כפתורי דפדוף */
+.navigation-buttons button {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    display: flex;
+    font-weight: bold;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ddd;
+    background-color: #8fb23e;
+    /* ירוק */
+    color: rgb(255, 255, 255);
+    /* טקסט לבן */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    border-radius: 50%;
+    /* עיגול */
+
+}
+
+.navigation-buttons button:hover {
+    background-color: #6c9d38;
+    /* ירוק כהה יותר */
+}
+
+.navigation-buttons {
+    position: relative;
+    top: 0;
+    /* מתאים לגובה המלל */
+    display: flex;
+    justify-content: space-between;
+    /* כפתורים בצדדים */
+    align-items: center;
+    width: 100%;
+    /* מקביל לכל רוחב המלל */
+    max-width: 600px;
+    /* גודל קבוע אם נדרש */
+    margin: 0 auto;
+    margin-top: 100px;
+    /* למרכז את התוכן */
+}
+
+
+.plot-details {
+    margin-top: 50px;
+}
+
+.d-flex {
+    justify-content: center;
+    gap: 30px;
+}
+
+#toggleViewButton {
+    margin-left: 10px;
+}
+
+
+span.me-2 {
+    font-size: 17px;
+    font-weight: bold;
+    white-space: nowrap;
+    margin-left: 20px;
+    /* מרחק מהכפתור */
+    display: inline-block;
+}
+
+.navigation-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0;
+    /* רווח בין הכפתורים לתוכן */
+}
+
+.navigation-container #plotDetails {
+    flex: 1;
+    text-align: center;
+}
+
+.navigation-container button {
+
+
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ddd;
+    background-color: #8fb23e;
+    /* ירוק */
+    color: #fff;
+    /* טקסט לבן */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    border-radius: 50%;
+    /* צורת עיגול */
+}
+
+.navigation-container button:hover {
+    background-color: #6c9d38;
+    /* ירוק כהה יותר */
+}
+
+.section-divider {
+    border: none;
+    /* מסיר את הקו הדיפולטי */
+    border-top: 3px solid #8fb23e;
+    /* פס עליון דק בצבע הרצוי */
+    margin-top: 10px;
+    /* הסר רווחים מעל ומתחת לפס */
+}
+
+.secondary-navbar {
+    margin-top: 20px;
+    /* מרחק מה-Navbar העליון */
+    z-index: 999;
+    /* הבטחה שהסרגל יופיע מעל אלמנטים אחרים */
+}
+
+/* מרווח מתחת לפס ההפרדה */
+.section-divider {
+    margin-bottom: 20px;
 }
