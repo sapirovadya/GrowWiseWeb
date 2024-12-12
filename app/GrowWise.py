@@ -6,7 +6,7 @@ from modules.users.routes import users_bp_main
 from modules.users.employee.routes import employee_bp
 from modules.users.manager.routes import manager_bp
 from modules.users.co_manager.routes import co_manager_bp
-
+from modules.Plots.routes import plot_bp
 import json
 
 load_dotenv()
@@ -22,24 +22,7 @@ app.register_blueprint(users_bp_main, url_prefix='/users')
 app.register_blueprint(employee_bp, url_prefix='/employee')
 app.register_blueprint(manager_bp, url_prefix='/users/manager')
 app.register_blueprint(co_manager_bp, url_prefix='/co_manager')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+app.register_blueprint(plot_bp, url_prefix='/Plots')
 
 
 def update_crops_data():

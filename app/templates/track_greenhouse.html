@@ -66,7 +66,7 @@
                         <div class="nav-item dropdown position-relative">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
                             <div class="dropdown-menu bg-light rounded-0 m-0">
-                                <a href="{{ url_for('manager_bp.track_greenhouse') }}" class="dropdown-item">מעקב
+                                <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
                                     חלקות/חממות</a>
                                 <a href="404.html" class="dropdown-item">404 Page</a>
                             </div>
@@ -243,7 +243,7 @@
         }
 
         async function loadCategories() {
-            const response = await fetch('/users/manager/get_crop_categories');
+            const response = await fetch('/Plots/get_crop_categories');
             const data = await response.json();
             const categorySelect = document.getElementById('cropCategory');
             categorySelect.innerHTML = '<option value="none">ללא</option>';
@@ -271,7 +271,7 @@
 
             try {
                 // קריאה לשרת לשליפת הגידולים
-                const response = await fetch(`/users/manager/get_crops?category=${cropCategory}`);
+                const response = await fetch(`/Plots/get_crops?category=${cropCategory}`);
                 if (!response.ok) {
                     throw new Error(`שגיאה בטעינת הגידולים: ${response.status}`);
                 }
@@ -323,7 +323,7 @@
             }
 
             const formData = new FormData(document.getElementById('plotForm'));
-            const response = await fetch('/users/manager/save_plot', {
+            const response = await fetch('/Plots/save_plot', {
                 method: 'POST',
                 body: formData
             });
@@ -370,7 +370,7 @@
 
         async function loadPlots() {
             try {
-                const response = await fetch('/users/manager/get_plots');
+                const response = await fetch('/Plots/get_plots');
                 if (!response.ok) {
                     throw new Error('שגיאה בטעינת החלקות.');
                 }
@@ -397,7 +397,7 @@
 
                 // הוספת אירוע לחיצה
                 plotContainer.onclick = () => {
-                    window.location.href = `/users/manager/plot_details?id=${plot._id}`; // העברה לדף חדש עם ה-ID
+                    window.location.href = `/Plots/plot_details?id=${plot._id}`; // העברה לדף חדש עם ה-ID
                 };
 
                 const circleDiv = document.createElement("div");
@@ -445,11 +445,11 @@
 
             // בדיקה עבור lastIrrigationDate
             document.getElementById("lastIrrigationDate").textContent =
-                plot.Last_irrigation_date == null ? "טרם בוצעה השקייה" : plot.Last_irrigation_date;
+                plot.last_irrigation_date == null ? "טרם בוצעה השקייה" : plot.last_irrigation_date;
 
             // בדיקה עבור totalIrrigationAmount
             document.getElementById("totalIrrigationAmount").textContent =
-                plot.Total_irrigation_amount == null ? "0" : plot.Total_irrigation_amount;
+                plot.total_irrigation_amount == null ? "0" : plot.total_irrigation_amount;
         }
 
         document.getElementById("prevButton").addEventListener("click", () => {

@@ -66,7 +66,7 @@
                         <div class="nav-item dropdown position-relative">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
                             <div class="dropdown-menu bg-light rounded-0 m-0">
-                                <a href="{{ url_for('manager_bp.track_greenhouse') }}" class="dropdown-item">מעקב
+                                <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
                                     חלקות/חממות</a>
                                 <a href="404.html" class="dropdown-item">404 Page</a>
                             </div>
@@ -87,7 +87,7 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center">
             <h1 class="text-center flex-grow-1 text-center">פרטי החלקה</h1>
-            <a href="{{ url_for('manager_bp.track_greenhouse') }}" class="btn btn-primary">חזרה לדף החלקות</a>
+            <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="btn btn-primary">חזרה לדף החלקות</a>
         </div>
         <hr style="border: 1px solid #8fb23e;">
         <h2>{{ plot.plot_name }}</h2>
@@ -117,29 +117,68 @@
             {% endif %}
         </p>
         <p><strong>תאריך השקיה אחרון:</strong>
-            {% if plot.last_irrigation_date == null %}
+            {% if plot.last_irrigation_date == None %}
             טרם בוצעה השקייה
             {% else %}
             {{ plot.last_irrigation_date }}
             {% endif %}
         </p>
         <p><strong>כמות השקיה כוללת:</strong>
-            {% if plot.total_irrigation_amount == null %}
+            {% if plot.total_irrigation_amount == None %}
             0
             {% else %}
-            {{ plot.total_irrigation_amount }} ליטר
+            {{ plot.total_irrigation_amount }} קוב
             {% endif %}
         </p>
 
-        <div class="text-center mt-4">
-            <button id="updateIrrigationButton" class="btn btn-success" onclick="checkAndOpenIrrigationModal()">כמה
-                השקיתי</button>
-        </div>
+        <!-- {% if plot.crop_category == "none" %}
+        <button id="updateCropCategory" class="btn btn-success" onclick="UpdateCropCategoryModal('{{ plot._id }}')">עדכון פרטי חלקה</button>
+        {% endif %} -->
+
+        {% if plot.crop_category == "none" %}
+        <button id="updateCropCategory" class="btn btn-success" onclick="openUpdateModal('{{ plot._id }}')">עדכון פרטי חלקה</button>
+        {% endif %}
+    
+
+        {% if plot.crop_category != "none" %}
+        <button id="updateIrrigationButton" class="btn btn-success" onclick="checkAndOpenIrrigationModal('{{ plot._id }}')">השקיה</button>
+        {% endif %}
 
     </div>
 
-    <!-- חלון קופץ עם טופס -->
-    <!-- חלון קופץ -->
+    <!-- Update crop window-->
+    <div id="updateModal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">עדכון פרטי חלקה</h5>
+                    <button type="button" class="btn-close" onclick="closeUpdateModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="updatePlotForm">
+                        <div class="mb-3">
+                            <label for="cropCategory" class="form-label">סוג גידול</label>
+                            <input type="text" id="cropCategory" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="crop" class="form-label">גידול</label>
+                            <input type="text" id="crop" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sowDate" class="form-label">תאריך זריעה</label>
+                            <input type="date" id="sowDate" class="form-control" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="submitUpdate()">עדכון</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">סגור</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- irrigation window-->
     <div id="irrigationModal" class="modal">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -148,7 +187,7 @@
                     <button type="button" class="btn-close" onclick="closeIrrigationModal()"></button>
                 </div>
                 <div class="modal-body">
-                    <label for="irrigationAmount">כמות (בק"ב):</label>
+                    <label for="irrigationAmount">כמות (בק״ב):</label>
                     <input type="number" id="irrigationAmount" class="form-control" min="1" required>
                 </div>
                 <div class="modal-footer">
@@ -157,6 +196,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Footer Start -->
     <div class="container-fluid bg-dark footer mt-3 py-3 wow fadeIn" data-wow-delay="0.1s">
@@ -179,36 +219,36 @@
 
     <!-- JavaScript -->
     <script>
-        function checkAndOpenIrrigationModal() {
-            const cropCategory = "{{ plot.crop_category }}";
-            const crop = "{{ plot.crop }}";
-            const sowDate = "{{ plot.sow_date }}";
-
-            if (cropCategory === "none" || crop === "none" || sowDate === "") {
-                alert("אי אפשר לעדכן השקייה טרם בוצעה זריעה, אנא עדכן את החלקה ולאחר מכן עדכן את ההשקייה");
-                return;
-            }
-
+        //Update the irrigation amount
+        function checkAndOpenIrrigationModal(plotId) {
+            document.getElementById('irrigationModal').setAttribute('data-plot-id', plotId);
             document.getElementById('irrigationModal').style.display = 'flex';
         }
 
         function closeIrrigationModal() {
-            document.getElementById('irrigationModal').style.display = 'none';
+            const modal = document.getElementById('irrigationModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.getElementById('irrigationAmount').value = '';
+            }
         }
 
         async function updateIrrigation() {
             const irrigationAmount = document.getElementById('irrigationAmount').value;
+            const plotId = document.getElementById('irrigationModal').getAttribute('data-plot-id');
 
             if (!irrigationAmount || isNaN(irrigationAmount) || irrigationAmount <= 0) {
                 alert('נא להזין כמות השקיה תקינה.');
                 return;
             }
 
-            const irrigationData = new FormData(document.getElementById('irrigationAmount'));
             try {
-                const response = await fetch(`/users/manager/update_irrigation/{{ plot._id }}`, {
+                const response = await fetch(`/Plots/update_irrigation/${plotId}`, {
                     method: 'POST',
-                    body: irrigationData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ irrigation_amount: parseFloat(irrigationAmount) })
                 });
 
                 if (response.ok) {
@@ -224,7 +264,56 @@
                 alert('שגיאה בעת שליחת הבקשה לשרת.');
             }
         }
+    
+
+    //Update the crops
+    function openUpdateModal(plotId) {
+    document.getElementById('updateModal').setAttribute('data-plot-id', plotId);
+    document.getElementById('updateModal').style.display = 'flex';
+}
+
+function closeUpdateModal() {
+    const modal = document.getElementById('updateModal');
+    modal.style.display = 'none';
+    document.getElementById('updatePlotForm').reset();
+}
+
+async function submitUpdate() {
+    const cropCategory = document.getElementById('cropCategory').value.trim();
+    const crop = document.getElementById('crop').value.trim();
+    const sowDate = document.getElementById('sowDate').value.trim();
+    const plotId = document.getElementById('updateModal').getAttribute('data-plot-id');
+
+    if (!cropCategory || !crop || !sowDate) {
+        alert('נא למלא את כל השדות!');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/Plots/update_plot/${plotId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ crop_category: cropCategory, crop: crop, sow_date: sowDate })
+        });
+
+        if (response.ok) {
+            alert('החלקה עודכנה בהצלחה!');
+            closeUpdateModal();
+            location.reload();
+        } else {
+            const errorData = await response.json();
+            alert(`שגיאה: ${errorData.error}`);
+        }
+    } catch (error) {
+        console.error(error);
+        alert('שגיאה בעת שליחת הבקשה לשרת.');
+    }
+}
+
     </script>
+
 </body>
 
 </html>
