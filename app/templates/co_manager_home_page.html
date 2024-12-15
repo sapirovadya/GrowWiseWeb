@@ -137,7 +137,7 @@
         <!-- עיגולים -->
         <div class="circle-container">
             <div class="circle">
-                <a href="{{ url_for('manager_bp.track_greenhouse')}}" onclick="setSessionData()">
+                <a href="{{ url_for('plot_bp.track_greenhouse')}}" onclick="setSessionData()">
                     <span>מעקב חלקות/חממות</span>
                 </a>
             </div>
@@ -157,7 +157,7 @@
                 </a>
             </div>
             <div class="circle">
-                <a href="#">
+                <a href="{{ url_for('manager_bp.get_employees_list')}}">
                     <span>הצוות שלי</span>
                 </a>
             </div>
