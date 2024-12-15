@@ -1047,3 +1047,139 @@ span.me-2 {
 .section-divider {
     margin-bottom: 20px;
 }
+
+/* הסרה של קווי הטבלה */
+.list-container {
+    list-style: none;
+    padding: 0;
+}
+
+.list-item {
+    margin-bottom: 30px;
+    font-size: 20px;
+    /* ריווח בין שורות */
+}
+
+.name-field {
+    display: inline-block;
+}
+
+.name-field span {
+    margin-right: 2px;
+    /* רווח קטן בין השם הפרטי לשם המשפחה */
+}
+
+.btn-task {
+    margin-right: 2px;
+    background-color: #8fb23e;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-task:hover {
+    background-color: #6c9d38;
+}
+
+#taskModal {
+    display: none;
+    position: fixed;
+    z-index: 600;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    align-items: center;
+    justify-content: center;
+}
+
+#taskModalContent {
+    background-color: white;
+    margin: auto;
+    padding: 20px;
+    border-radius: 5px;
+    width: 50%;
+    text-align: right;
+}
+
+.notification-modal {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    width: 300px;
+    transform: translateX(-20%);
+    /* כדי להזיז מעט למרכז */
+
+}
+
+.notification-item {
+    font-size: 14px;
+    margin: 5px 0;
+    color: #333;
+}
+
+/* עיצוב כללי לאלרט */
+.alert-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--light);
+    /* צבע רקע */
+    color: var(--dark);
+    /* צבע טקסט */
+    padding: 20px 30px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--primary);
+    /* צבע גבול */
+    border-radius: 10px;
+    text-align: center;
+    z-index: 1050;
+    display: none;
+    /* מוסתר כברירת מחדל */
+    width: 350px;
+}
+
+/* כותרת האלרט */
+.alert-box .alert-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-family: 'Playfair Display', serif;
+    color: var(--primary);
+    /* צבע הכותרת */
+}
+
+/* טקסט ההודעה */
+.alert-box .alert-message {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+    font-family: 'Open Sans', sans-serif;
+}
+
+/* כפתור סגירה */
+.alert-box .alert-close {
+    background-color: var(--primary);
+    color: var(--light);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Open Sans', sans-serif;
+    transition: background-color 0.3s ease;
+}
+
+.alert-box .alert-close:hover {
+    background-color: var(--secondary);
+}
