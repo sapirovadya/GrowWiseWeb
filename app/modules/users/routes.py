@@ -1,12 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify,session,current_app
 import pymongo
 from dotenv import load_dotenv
+from datetime import datetime
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from modules.users.models import User
 from modules.users.manager.models import Manager  # וודא שזה הנתיב הנכון למחלקה Manager
 from modules.users.employee.models import Employee
 from modules.users.co_manager.models import Co_Manager
+from modules.task.models import task
 
 
 load_dotenv()
@@ -148,6 +150,8 @@ def login():
             session['email'] = email
             session['role'] = 'employee'
             session['name'] = employee.get('first_name')
+            session['manager_email'] = employee.get('manager_email')
+
             return jsonify({
                 "message": "login successfuly",
                 "role": "employee",
@@ -161,3 +165,163 @@ def login():
         print(f"Login error: {e}")
         return jsonify({"message": "שגיאה במהלך ההתחברות. נסה שוב מאוחר יותר."}), 500
 
+@users_bp_main.route('/profile', methods=['GET'])
+def profile_page():
+    # נשלוף את נתוני המשתמש מהסשן או מבסיס הנתונים
+    user_email = session.get('email')
+    role = session.get('role')
+    if role == "manager":
+        user = db.manager.find_one({"email": user_email})
+        print(user_email)  # נתוני המשתמש
+        if user:
+            return render_template('profile.html', user=user)
+        else:
+            return redirect(url_for('manager_bp.manager_home_page'))
+    elif role == "co_manager":
+        user = db.co_manager.find_one({"email": user_email})  # נתוני המשתמש
+        if user:
+            return render_template('profile.html', user=user)
+        else:
+            return redirect(url_for('co_manager_bp.co_manager_home_page'))
+    else:
+        user = db.employee.find_one({"email": user_email})  # נתוני המשתמש
+        if user:
+            return render_template('profile.html', user=user)
+        else:
+            return redirect(url_for('employee_bp.employee_home_page'))
+
+@users_bp_main.route('/save_profile', methods=['POST'])
+def save_profile():
+    # עדכון נתוני המשתמש
+    role = session.get('role')
+    user_email = session.get('email')
+    first_name = request.form.get('firstName')
+    last_name = request.form.get('lastName')
+    email = request.form.get('email')
+    if role == "manager":
+        try:
+            db.manager.update_one({"email": user_email}, {"$set": {
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email
+            }})
+              # עדכון השדות "manager_email" ב-co_managers וב-workers
+            db.co_manager.update_many({"manager_email": user_email}, {"$set": {"manager_email": email}})
+            db.employee.update_many({"manager_email": user_email}, {"$set": {"manager_email": email}})
+            
+            session['email'] = email  # עדכון סשן אם האימייל השתנה
+            return jsonify({"message": "הפרטים עודכנו בהצלחה."})
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "שגיאה בעדכון הפרטים."}), 500
+    elif role == "co_manager":
+        try:
+            db.co_manager.update_one({"email": user_email}, {"$set": {
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email
+            }})
+            db.manager.update_many({"co_managers": user_email}, {"$set": {"co_managers": email}})
+
+            session['email'] = email  # עדכון סשן אם האימייל השתנה
+            return jsonify({"message": "הפרטים עודכנו בהצלחה."})
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "שגיאה בעדכון הפרטים."}), 500
+    else: 
+        try:
+            db.employee.update_one({"email": user_email}, {"$set": {
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email
+            }})
+            db.manager.update_many({"workers": user_email}, {"$set": {"workers": email}})
+
+            session['email'] = email  # עדכון סשן אם האימייל השתנה
+            return jsonify({"message": "הפרטים עודכנו בהצלחה."})
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "שגיאה בעדכון הפרטים."}), 500
+
+
+@users_bp_main.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    if request.method == 'POST':
+        # לוגיקה לשינוי סיסמה
+        pass
+    return render_template('change_password.html')
+
+@users_bp_main.route("/get_notifications", methods=["GET"])
+def get_notifications():
+    role = session.get("role")
+    notifications = []
+
+    try:
+        # המרת תאריך נוכחי לפורמט ISO
+        today = datetime.now().isoformat()[:10]  # תאריך בפורמט "YYYY-MM-DD"
+
+        if role == "manager":
+            email = session.get("email")  # מייל המנהל המחובר
+            
+            # שליפת עובדים לא מאושרים
+            employees = db.employee.find({"manager_email": email, "is_approved": 0})
+            for employee in employees:
+                notifications.append(f"עובד בשם {employee['first_name']} {employee['last_name']} מחכה לאישור.")
+            
+            # שליפת שותפים לא מאושרים
+            co_managers = db.co_manager.find({"manager_email": email, "is_approved": 0})
+            for co_manager in co_managers:
+                notifications.append(f"שותף בשם {co_manager['first_name']} {co_manager['last_name']} מחכה לאישור.")
+            
+            # שליפת משימות שפג תוקפן
+            overdue_tasks = db.task.find({
+                "giver_email": email,  # משימות שניתנו ע"י המנהל המחובר
+                "status": "in_progress",
+                "due_date": {"$lt": today}  # השוואת מחרוזות של תאריך
+            })
+            for task in overdue_tasks:
+               notifications.append(f"ישנה משימה שטרם בוצעה ועבר התאריך המוגדר לביצועה\n"
+                         f"נושא: {task['task_name']}.\n"
+                         f"מייל העובד: {task['employee_email']}.")
+
+        elif role == "co_manager":
+            manager_email = session.get("manager_email")
+            # שליפת עובדים לא מאושרים
+            employees = db.employee.find({"manager_email": manager_email, "is_approved": 0})
+            for employee in employees:
+                notifications.append(f"עובד בשם {employee['first_name']} {employee['last_name']} מחכה לאישור.")
+            
+            # שליפת שותפים לא מאושרים
+            co_managers = db.co_manager.find({"manager_email": manager_email, "is_approved": 0})
+            for co_manager in co_managers:
+                notifications.append(f"שותף בשם {co_manager['first_name']} {co_manager['last_name']} מחכה לאישור.")
+            
+            # שליפת משימות שפג תוקפן
+            overdue_tasks = db.task.find({
+                "giver_email": manager_email,
+                "status": "in_progress",
+                "due_date": {"$lt": today}
+            })
+            for task in overdue_tasks:
+                notifications.append(f"ישנה משימה שטרם בוצעה ועבר התאריך המוגדר לביצועה\n"
+                         f"נושא: {task['task_name']}.\n"
+                         f"מייל העובד: {task['employee_email']}.")
+        
+        elif role == "employee":
+            email = session.get("email")  # מייל העובד המחובר
+
+            # שליפת משימות שהוקצו לעובד זה
+            assigned_tasks = db.task.find({
+                "employee_email": email,
+                "status": "in_progress"
+            })
+            for task in assigned_tasks:
+                notifications.append(f"נוספה לך משימה חדשה\n"
+                                     f"נושא: {task['task_name']}.")
+
+        
+        return jsonify({"notifications": notifications}), 200
+
+    except Exception as e:
+        print(f"Error fetching notifications: {e}")
+        return jsonify({"notifications": [], "message": "שגיאה בטעינת ההתראות."}), 500

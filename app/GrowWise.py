@@ -7,6 +7,7 @@ from modules.users.employee.routes import employee_bp
 from modules.users.manager.routes import manager_bp
 from modules.users.co_manager.routes import co_manager_bp
 from modules.Plots.routes import plot_bp
+from modules.task.routes import task_bp
 import json
 
 load_dotenv()
@@ -23,6 +24,7 @@ app.register_blueprint(employee_bp, url_prefix='/employee')
 app.register_blueprint(manager_bp, url_prefix='/users/manager')
 app.register_blueprint(co_manager_bp, url_prefix='/co_manager')
 app.register_blueprint(plot_bp, url_prefix='/Plots')
+app.register_blueprint(task_bp, url_prefix='/task')
 
 
 def update_crops_data():
@@ -63,7 +65,25 @@ def update_crops_data():
     except Exception as e:
         print(f"Error occurred while updating crops: {str(e)}")
 
+def update_israel_cities():
+    collection = app.db["israel_cities"]  # שם האוסף לערים בישראל
 
+    try:
+        # קריאת הקובץ JSON עם רשימת הערים
+        with open('app/static/data/israel_cities.json', 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            cities = data["israel_cities"]  # גישה לרשימת הערים בקובץ JSON
+
+        # מחיקת הנתונים הקיימים (אם קיימים)
+        deleted_count = collection.delete_many({}).deleted_count
+        print(f"{deleted_count} documents deleted from MongoDB.")
+
+        # הכנסה של כל הערים לטבלה
+        collection.insert_one({"cities": cities})
+        print("Israel cities updated successfully in MongoDB!")
+
+    except Exception as e:
+        print(f"Error occurred while updating Israel cities: {str(e)}")
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -71,4 +91,5 @@ def home():
 if __name__ == '__main__':
     
     #update_crops_data()
+    #update_israel_cities()
     app.run(debug=True)
