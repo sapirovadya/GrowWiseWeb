@@ -1,12 +1,19 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify,session
 import pymongo
 from datetime import datetime
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
 from modules.Plots.models import Plot
+import openai
+from datetime import datetime
 
+load_dotenv(find_dotenv())
 
-load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+# Configuration for OpenAI
+MODEL = "gpt-4o"
+TEMPERATURE = 1
+MAX_TOKENS = 350
 
 plot_bp = Blueprint('plot_bp', __name__)
 
@@ -14,6 +21,48 @@ mongo_key = os.getenv("MONGO_KEY")
 client = pymongo.MongoClient(mongo_key)
 db = client.get_database("dataGrow")
 
+@plot_bp.route("/growth_forecast", methods=["POST"])
+def growth_forecast():
+
+    crop = request.json.get("crop")
+    plot_type = request.json.get("plot_type")
+    city = "באר שבע"
+    sow_date = request.json.get("sow_date")
+    input_date = datetime.strptime(sow_date, '%Y-%m-%d')
+    today_date = datetime.now()
+    days_passed = (today_date - input_date).days
+
+
+
+    prompt = f"כיצד אמור להיראות שתיל של {crop}, לאחר {days_passed} ימים מהשתילה, הגדל בעיר {city} באופן גידול  {plot_type}? תאר לי בעזרת גובה (במספרים), צבע (של גבעולים ועלים) ותפוקת יבול."
+
+    try:
+        response = openai.ChatCompletion.create(
+            model=MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content":(
+                        "אתה אגרונום, הנותן תחזית מדוייקת לחקלאים לפי מיקום ותנאי אקלים בארץ ישראל."
+                    )
+                },
+                {"role": "user", "content": prompt}
+            ],
+            temperature=TEMPERATURE,
+            max_tokens=MAX_TOKENS,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0
+        )
+
+        forecast = response['choices'][0]['message']['content']
+        return jsonify({"forecast": forecast}), 200
+
+    except openai.error.OpenAIError as e:
+        return jsonify({"error": f"שגיאה ב-API של OpenAI: {e}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"שגיאה כללית: {e}"}), 500
+    
 
 @plot_bp.route("/track_greenhouse", methods=['GET'])
 def track_greenhouse():
@@ -121,13 +170,6 @@ def get_plots():
     return jsonify({"plots": plots}), 200
 
 
-
-
-
-
-
-
-
 @plot_bp.route('/plot_details', methods=['GET'])
 def plot_details():
     plot_id = request.args.get('id')  # קבלת ה-ID מה-URL
@@ -141,6 +183,42 @@ def plot_details():
 
     # המרת הנתונים לפורמט JSON או העברת המידע לעמוד HTML
     return render_template('plot_details.html', plot=plot)
+
+
+@plot_bp.route('/update_plot/<plot_id>', methods=['POST'])
+def update_plot(plot_id):
+    try:
+        # קבלת הנתונים שנשלחו בבקשה
+        data = request.get_json()
+
+        # בדיקה האם כל הנתונים הדרושים נשלחו
+        required_fields = ['crop_category', 'crop', 'sow_date']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing field: {field}"}), 400
+
+        # בדיקת קיום החלקה ב-DB
+        plot = db.plots.find_one({"_id": plot_id})
+        if not plot:
+            return jsonify({"error": "Plot not found"}), 404
+
+        # עדכון החלקה ב-DB
+        db.plots.update_one(
+            {"_id": plot_id},
+            {
+                "$set": {
+                    "crop_category": data['crop_category'],
+                    "crop": data['crop'],
+                    "sow_date": data['sow_date']
+                }
+            }
+        )
+
+        return jsonify({"message": "Plot updated successfully"}), 200
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
 @plot_bp.route('/update_irrigation/<plot_id>', methods=['POST'])
