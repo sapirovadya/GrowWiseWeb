@@ -144,39 +144,46 @@
         <button id="updateIrrigationButton" class="btn btn-success" onclick="checkAndOpenIrrigationModal('{{ plot._id }}')">השקיה</button>
         {% endif %}
 
+        <button id="growthForecastButton" class="btn btn-info">תחזית גדילה</button>
+
+
     </div>
 
-    <!-- Update crop window-->
-    <div id="updateModal" class="modal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">עדכון פרטי חלקה</h5>
-                    <button type="button" class="btn-close" onclick="closeUpdateModal()"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="updatePlotForm">
-                        <div class="mb-3">
-                            <label for="cropCategory" class="form-label">סוג גידול</label>
-                            <input type="text" id="cropCategory" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="crop" class="form-label">גידול</label>
-                            <input type="text" id="crop" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="sowDate" class="form-label">תאריך זריעה</label>
-                            <input type="date" id="sowDate" class="form-control" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" onclick="submitUpdate()">עדכון</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">סגור</button>
-                </div>
+    <!-- Update crop window -->
+<div id="updateModal" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">עדכון פרטי חלקה</h5>
+                <button type="button" class="btn-close" onclick="closeUpdateModal()"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updatePlotForm">
+                    <div class="mb-3">
+                        <label for="cropCategory" class="form-label">סוג גידול</label>
+                        <select id="cropCategory" name="crop_category" class="form-select" onchange="loadCrops()">
+                            <option value="none">ללא</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="cropDiv" style="display: none;">
+                        <label for="crop" class="form-label">גידול</label>
+                        <select id="crop" name="crop" class="form-select">
+                            <option value="none">ללא</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sowDate" class="form-label">תאריך זריעה</label>
+                        <input type="date" id="sowDate" name="sow_date" class="form-control" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="submitUpdate()">עדכון</button>
+                <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">סגור</button>
             </div>
         </div>
     </div>
+</div>
 
     <!-- irrigation window-->
     <div id="irrigationModal" class="modal">
@@ -197,6 +204,22 @@
         </div>
     </div>
 
+    <div id="growthForecastModal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content" style="max-width:1500px;">
+                <div class="modal-header">
+                    <h5 class="modal-title">תחזית גדילה</h5>
+                    <button type="button" class="btn-close" onclick="closeGrowthForecastModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="growthForecastText">טוען תחזית...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeGrowthForecastModal()">סגור</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer Start -->
     <div class="container-fluid bg-dark footer mt-3 py-3 wow fadeIn" data-wow-delay="0.1s">
@@ -219,6 +242,8 @@
 
     <!-- JavaScript -->
     <script>
+
+
         //Update the irrigation amount
         function checkAndOpenIrrigationModal(plotId) {
             document.getElementById('irrigationModal').setAttribute('data-plot-id', plotId);
@@ -267,50 +292,187 @@
     
 
     //Update the crops
-    function openUpdateModal(plotId) {
-    document.getElementById('updateModal').setAttribute('data-plot-id', plotId);
-    document.getElementById('updateModal').style.display = 'flex';
-}
+    async function openUpdateModal(plotId) {
+        document.getElementById('updateModal').setAttribute('data-plot-id', plotId);
+        document.getElementById('updateModal').style.display = 'flex';
 
-function closeUpdateModal() {
-    const modal = document.getElementById('updateModal');
-    modal.style.display = 'none';
-    document.getElementById('updatePlotForm').reset();
-}
+    // טען את רשימת הקטגוריות
+        await loadCategories();
+        // שלוף את הפרטים של החלקה הקיימת
+        const response = await fetch(`/Plots/get_plot_details/${plotId}`);
+        const plot = await response.json();
 
-async function submitUpdate() {
-    const cropCategory = document.getElementById('cropCategory').value.trim();
-    const crop = document.getElementById('crop').value.trim();
-    const sowDate = document.getElementById('sowDate').value.trim();
-    const plotId = document.getElementById('updateModal').getAttribute('data-plot-id');
-
-    if (!cropCategory || !crop || !sowDate) {
-        alert('נא למלא את כל השדות!');
-        return;
-    }
-
-    try {
-        const response = await fetch(`/Plots/update_plot/${plotId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ crop_category: cropCategory, crop: crop, sow_date: sowDate })
-        });
-
-        if (response.ok) {
-            alert('החלקה עודכנה בהצלחה!');
-            closeUpdateModal();
-            location.reload();
-        } else {
-            const errorData = await response.json();
-            alert(`שגיאה: ${errorData.error}`);
+        // קבע ערכים ברירת מחדל
+        document.getElementById('cropCategory').value = plot.crop_category || "none";
+        if (plot.crop_category && plot.crop_category !== "none") {
+            await loadCrops(plot.crop_category); // טען גידולים בהתאם לקטגוריה שנשמרה
+            document.getElementById('crop').value = plot.crop || "none";
         }
-    } catch (error) {
-        console.error(error);
-        alert('שגיאה בעת שליחת הבקשה לשרת.');
-    }
+        document.getElementById('sowDate').value = plot.sow_date || "";
 }
+
+    async function loadCategories() {
+        const categorySelect = document.getElementById('cropCategory');
+        categorySelect.innerHTML = '<option value="none">ללא</option>'; // איפוס
+
+        try {
+            // קריאת הקטגוריות מהשרת
+            const response = await fetch('/Plots/get_crop_categories');
+            if (!response.ok) {
+                throw new Error(`שגיאה בטעינת קטגוריות: ${response.status}`);
+            }
+
+            const data = await response.json();
+            data.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
+
+            // הוספת אירוע לשינוי הקטגוריה
+            categorySelect.addEventListener('change', () => {
+                const selectedCategory = categorySelect.value;
+                loadCrops(selectedCategory); // קריאה לטעינת גידולים בעת שינוי קטגוריה
+            });
+        } catch (error) {
+            console.error('שגיאה בטעינת קטגוריות:', error);
+            alert('שגיאה בעת טעינת הקטגוריות.');
+        }
+    }
+
+    async function loadCrops(cropCategory) {
+        const cropSelect = document.getElementById('crop');
+        const cropDiv = document.getElementById('cropDiv');
+
+        // אם הקטגוריה היא "none", הסתר את השדות
+        if (!cropCategory || cropCategory === "none") {
+            cropDiv.style.display = 'none';
+            cropSelect.innerHTML = '<option value="none">ללא</option>';
+            return;
+        }
+
+        try {
+            // קריאת הגידולים מהשרת
+            cropSelect.innerHTML = '<option value="">טוען...</option>'; // מצב טוען
+            const response = await fetch(`/Plots/get_crops?category=${cropCategory}`);
+            if (!response.ok) {
+                throw new Error(`שגיאה בטעינת גידולים: ${response.status}`);
+            }
+
+            const data = await response.json();
+            cropSelect.innerHTML = '<option value="none">ללא</option>'; // איפוס
+            data.crops.forEach(crop => {
+                const option = document.createElement('option');
+                option.value = crop;
+                option.textContent = crop;
+                cropSelect.appendChild(option);
+            });
+
+            cropDiv.style.display = 'block'; // הצגת שדה הגידולים
+        } catch (error) {
+            console.error('שגיאה בטעינת גידולים:', error);
+            alert('שגיאה בעת טעינת הגידולים.');
+        }
+    }
+
+    function resetCropField() {
+        const cropSelect = document.getElementById('crop');
+        const cropDiv = document.getElementById('cropDiv');
+        cropDiv.style.display = 'none';
+        cropSelect.innerHTML = '<option value="none">ללא</option>'; // איפוס
+    }
+
+
+    async function submitUpdate() {
+        const cropCategory = document.getElementById('cropCategory').value;
+        const crop = document.getElementById('crop').value;
+        const sowDate = document.getElementById('sowDate').value;
+        const plotId = document.getElementById('updateModal').getAttribute('data-plot-id');
+
+        // בדיקות תקינות
+        if (!cropCategory || cropCategory === "none") {
+            alert('נא לבחור סוג גידול.');
+            return;
+        }
+
+        const payload = {
+            crop_category: cropCategory,
+            crop: crop || "none",
+            sow_date: sowDate || ""
+        };
+
+        try {
+            // שליחת עדכון לשרת
+            const response = await fetch(`/Plots/update_plot/${plotId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert('פרטי החלקה עודכנו בהצלחה!');
+                closeUpdateModal();
+                location.reload();
+            } else {
+                const error = await response.json();
+                alert(`שגיאה: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('שגיאה בעת עדכון:', error);
+            alert('שגיאה בעת שליחת הבקשה לשרת.');
+        }
+    }
+
+
+    function closeUpdateModal() {
+        const modal = document.getElementById('updateModal');
+        modal.style.display = 'none';
+        document.getElementById('updatePlotForm').reset();
+    }
+
+
+
+    //תחזית גדילה
+document.getElementById("growthForecastButton").addEventListener("click", async () => {
+        const modal = document.getElementById("growthForecastModal");
+        const forecastText = document.getElementById("growthForecastText");
+
+        // הצגת הודעת טעינה
+        forecastText.textContent = "טוען תחזית...";
+        modal.style.display = "flex";
+        
+        try {
+            console.log("ggggggggggggggg");
+            // קריאה ל-API עם פרטים לדוגמה (ניתן לשלב את השדות הדינמיים מהחלקה)
+            const response = await fetch("/Plots/growth_forecast", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    sow_date: "{{ plot.sow_date }}",  
+                    crop: "{{ plot.crop }}",
+                    plot_type: "{{ plot.plot_type}}"
+                    //city
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("שגיאה בטעינת התחזית");
+            }
+
+            const data = await response.json();
+            forecastText.textContent = data.forecast || "שגיאה בקבלת התחזית.";
+        } catch (error) {
+            forecastText.textContent = "שגיאה: " + error.message;
+        }
+    });
+
+    function closeGrowthForecastModal() {
+        const modal = document.getElementById("growthForecastModal");
+        modal.style.display = "none";
+    }
 
     </script>
 
