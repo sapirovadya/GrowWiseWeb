@@ -814,53 +814,51 @@ h1 {
 }
 
 .plot-circle {
-    background-color: #8fb23e;
-    /* צבע רקע ירוק */
+    background-color: none;
+    /* מסיר את צבע הרקע */
     border: none;
-    /* הסרת גבול */
-    border-radius: 50%;
-    /* להפוך לעיגול */
-    width: 140px;
-    /* גודל העיגול */
-    height: 140px;
-    /* גובה העיגול */
-    display: flex;
-    /* למרכז את התמונה */
-    align-items: center;
-    /* למרכז אנכית */
-    justify-content: center;
-    /* למרכז אופקית */
-    cursor: pointer;
-    /* סמן עכבר */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    /* הוספת צל */
+    /* מסיר את הגבול */
+    box-shadow: none;
+    /* מסיר את הצל */
+    width: auto;
+    /* התאמה לרוחב התמונה */
+    height: auto;
+    /* התאמה לגובה התמונה */
     margin: 0 auto;
-    /* למרכז אופקית */
 }
 
 .plot-circle img {
     width: 90px;
-    /* גודל התמונה */
+    /* גודל התמונה נשאר קבוע */
     height: 90px;
-    /* גובה התמונה */
     object-fit: contain;
+    /* שומר על יחס פרופורציות */
+    border-radius: 0;
+    /* מסיר עיגול התמונה */
+    margin: 0;
+    /* התאמה למיקום */
 }
 
 .plot-name {
+    font-family: 'Playfair Display', sans-serif;
+
     text-align: center;
-    font-size: 16px;
+    /* שמירה על מיקום מרכזי */
+    font-size: 20px;
+    /* הגדלת גודל הטקסט */
     font-weight: bold;
-    color: #333;
-    margin-top: 10px;
-    /* רווח בין העיגול לשם */
+    color: #8fb23e;
+    margin-top: 20px;
+    /* רווח גדול יותר בין התמונה לכותרת */
 }
 
 .plot-container {
     text-align: center;
     /* למרכז את כל התוכן */
-    margin-bottom: 30px;
-    /* רווח בין כל עיגול לשורה הבאה */
+    margin-bottom: 50px;
+    /* רווח גדול יותר בין השורות */
     margin-top: 50px;
+    /* רווח גדול יותר מעל */
 }
 
 #plotsContainer {
@@ -868,7 +866,7 @@ h1 {
     flex-wrap: wrap;
     justify-content: flex-start;
     /* מתחיל מצד ימין */
-    gap: 30px;
+    gap: 50px;
     /* רווח בין העיגולים */
 }
 

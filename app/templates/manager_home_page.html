@@ -27,7 +27,7 @@
     <style>
         body {
             font-family: "Open Sans", sans-serif;
-            background: #d8e7c1;
+            background: #ffffff;
             margin: 0;
             padding: 0;
         }
@@ -46,13 +46,13 @@
         .greeting {
             font-size: 36px;
             font-weight: bold;
-            color: #4CAF50;
+            color: #8fb23e;
             margin-bottom: 40px;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
 
-        /* מיכל לעיגולים */
-        .circle-container {
+        /* מיכל לעיגולים/עלים */
+        .leaf-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 50px;
@@ -61,66 +61,42 @@
             max-width: 1200px;
         }
 
-        /* עיצוב העיגול */
-        .circle {
+        /* עיצוב העלה */
+        .leaf {
             width: 180px;
             height: 180px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 6px double #388e3c;
             position: relative;
-            box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.2), inset 0px 4px 8px rgba(255, 255, 255, 0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            overflow: hidden;
-        }
-
-        /* אפקט מעבר על עיגול */
-        .circle:hover {
-            background: #bcd4a1;
-            transform: scale(1.05);
             cursor: pointer;
         }
 
-        /* קישור בתוך העיגול */
-        .circle a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .leaf img {
             width: 100%;
             height: 100%;
-            text-decoration: none;
-            color: inherit;
-            position: absolute;
-            top: 0;
-            left: 0;
-            border-radius: 50%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
         }
 
-        /* טקסט בתוך הקישור */
-        .circle a span {
+        .leaf:hover img {
+            transform: scale(1.1);
+        }
+
+        /* טקסט תחת העלה */
+        .leaf span {
+            display: block;
+            text-align: center;
             font-size: 16px;
             font-weight: bold;
-            color: #2e7d32;
-            z-index: 1;
+            color: #8fb23e;
+            margin-top: 10px;
+            font-family: 'Playfair Display', sans-serif;
+
         }
 
-        /* אפקט לפני */
-        .circle:before {
-            content: "";
-            position: absolute;
-            width: 200%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            top: 50%;
-            left: -100%;
-            transform: translateY(-50%) scale(0.5);
-            transition: all 0.4s ease-in-out;
-        }
-
-        .circle:hover:before {
-            left: 0;
-            transform: translateY(-50%) scale(1.5);
+        /* הנפשה בעת לחיצה */
+        .leaf:active img {
+            transform: scale(0.7) rotate(15deg);
+            transition: transform 0.2s ease-out;
         }
     </style>
 </head>
@@ -130,81 +106,109 @@
     <div class="container-fluid bg-white sticky-top">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
-                <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
-                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                </a>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <div class="navbar-nav ms-auto">
-                        <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <div class="notification-icon" style="position: relative; display: inline-block;">
+                        <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
+                            height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
 
-                        <!-- Dropdown של דפים -->
-                        <div class="nav-item dropdown position-relative">
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
-                            <div class="dropdown-menu bg-light rounded-0 m-0">
-                                <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
-                                    חלקות/חממות</a>
-
-                                <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
-                                    שלי</a>
+                        <div id="notificationModal" class="notification-modal"
+                            style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
+                            <div style="padding: 15px;">
+                                <h5 style="margin-bottom: 10px;">התראות</h5>
+                                <hr class="section-divider">
+                                <div id="notifications-list">
+                                    <p>טוען התראות...</p>
+                                </div>
+                                <hr class="section-divider">
+                                <button type="button" class="btn btn-sm btn-danger" style="margin-top: 10px;"
+                                    onclick="closeNotifications()">סגור</button>
                             </div>
                         </div>
-
-                        <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
-                        <a href="contact.html" class="nav-item nav-link">צור קשר</a>
                     </div>
+                    <div class="user" style="position: relative; display: inline-block;">
+                        <a href="{{ url_for('users_bp_main.profile_page') }}">
+                            <img id="userIcon" src="/static/img/user.png" alt="User Icon" height="30" width="30"
+                                style="cursor: pointer;">
+                        </a>
+                    </div>
+
+
+                    <div class="collapse navbar-collapse" id="navbarCollapse">
+                        <div class="navbar-nav ms-auto">
+                            <!-- כפתור "בית" מותאם לפי role -->
+                            {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                            <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
+                            {% elif session['role'] == "employee" %}
+                            <a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
+                            {% endif %}
+                            <!-- Dropdown של דפים -->
+                            <div class="nav-item dropdown position-relative">
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
+                                <div class="dropdown-menu bg-light rounded-0 m-0">
+                                    <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
+                                        חלקות/חממות</a>
+                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                                    <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
+                                        שלי</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
+                            <a href="contact.html" class="nav-item nav-link">צור קשר</a>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
                 </div>
             </nav>
         </div>
     </div>
 
+
     <!-- Navbar End -->
 
     <!-- Main Content Start -->
+    <hr class="section-divider">
+
     <div class="main-content">
         <!-- כותרת -->
         <h1 class="greeting">שלום, {{ name }}</h1>
 
-        <!-- עיגולים -->
-        <div class="circle-container">
-            <div class="circle">
-                <a href="{{ url_for('plot_bp.track_greenhouse') }}">
-                    <span>מעקב חלקות/חממות</span>
-                </a>
+        <!-- עלים -->
+        <div class="leaf-container">
+            <div class="leaf" onclick="navigateTo('track_greenhouse')">
+                <img src="/static/img/leaf.png" alt="מעקב">
+                <span>מעקב חלקות/חממות</span>
             </div>
-            <div class="circle">
-                <a href="#">
-                    <span>ארכיון חלקות/חממות</span>
-                </a>
+            <div class="leaf" onclick="navigateTo('archive')">
+                <img src="/static/img/leaf.png" alt="ארכיון">
+                <span>ארכיון חלקות/חממות</span>
             </div>
-            <div class="circle">
-                <a href="#">
-                    <span>ניהול חלקות אופטימלי</span>
-                </a>
+            <div class="leaf" onclick="navigateTo('optimal_management')">
+                <img src="/static/img/leaf.png" alt="ניהול">
+                <span>ניהול חלקות אופטימלי</span>
             </div>
-            <div class="circle">
-                <a href="#">
-                    <span>דו"חות</span>
-                </a>
+            <div class="leaf" onclick="navigateTo('reports')">
+                <img src="/static/img/leaf.png" alt="דו" חות">
+                <span>דו"חות</span>
             </div>
-            <div class="circle">
-                <a href="{{ url_for('manager_bp.get_employees_list') }}">
-                    <span>הצוות שלי</span>
-                </a>
+            <div class="leaf" onclick="navigateTo('team')">
+                <img src="/static/img/leaf.png" alt="צוות">
+                <span>הצוות שלי</span>
             </div>
-            <div class="circle">
-                <a href="#">
-                    <span>מחשבון הוצאות</span>
-                </a>
+            <div class="leaf" onclick="navigateTo('calculator')">
+                <img src="/static/img/leaf.png" alt="מחשבון">
+                <span>מחשבון הוצאות</span>
             </div>
-            <div class="circle">
-                <a href="#">
-                    <span>אספקה ומלאי</span>
-                </a>
+            <div class="leaf" onclick="navigateTo('inventory')">
+                <img src="/static/img/leaf.png" alt="מלאי">
+                <span>אספקה ומלאי</span>
             </div>
-            <div class="circle">
-                <a href="#">
-                    <span>חנות אונליין</span>
-                </a>
+            <div class="leaf" onclick="navigateTo('shop')">
+                <img src="/static/img/leaf.png" alt="חנות">
+                <span>חנות אונליין</span>
             </div>
         </div>
     </div>
@@ -214,8 +218,77 @@
             class="bi bi-arrow-up"></i></a>
 
     <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
     <script>
+        function navigateTo(page) {
+            const urls = {
+                'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
+                'archive': '#',
+                'optimal_management': '#',
+                'reports': '#',
+                'team': '{{ url_for("manager_bp.get_employees_list") }}',
+                'calculator': '#',
+                'inventory': '#',
+                'shop': '#'
+            };
+
+            if (urls[page]) {
+                window.location.href = urls[page];
+            }
+        }
+        function toggleNotifications() {
+            const modal = document.getElementById("notificationModal");
+
+            if (modal.style.display === "none" || modal.style.display === "") {
+                modal.style.display = "block";
+
+                // שליפת התראות מהשרת
+                fetch("/users/get_notifications")
+                    .then(response => response.json())
+                    .then(data => {
+                        const notificationsList = document.getElementById("notifications-list");
+                        if (data.notifications.length > 0) {
+                            notificationsList.innerHTML = data.notifications
+                                .map(notification => `<p class="notification-item">${notification}</p>`)
+                                .join("");
+                        } else {
+                            notificationsList.innerHTML = "<p>אין התראות חדשות.</p>";
+                        }
+                    })
+                    .catch(error => {
+                        const notificationsList = document.getElementById("notifications-list");
+                        console.error("Error fetching notifications:", error);
+                        notificationsList.innerHTML = "<p>שגיאה בטעינת התראות.</p>";
+                    });
+
+                // מאזין סגירה על לחיצה מחוץ לחלון
+                document.addEventListener("click", closeOnOutsideClick);
+            } else {
+                closeNotifications();
+            }
+        }
+
+        function closeNotifications() {
+            const modal = document.getElementById("notificationModal");
+            modal.style.display = "none";
+
+            // הסרת המאזין
+            document.removeEventListener("click", closeOnOutsideClick);
+        }
+
+        function closeOnOutsideClick(event) {
+            const modal = document.getElementById("notificationModal");
+            const notificationIcon = document.getElementById("notificationIcon");
+
+            // בדיקה אם הלחיצה התבצעה מחוץ לחלון ומחוץ לאייקון
+            if (!modal.contains(event.target) && event.target !== notificationIcon) {
+                closeNotifications();
+            }
+        }
+
     </script>
+
 
 </body>
 
