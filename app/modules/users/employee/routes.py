@@ -4,9 +4,12 @@ from dotenv import load_dotenv
 import os
 from modules.users.employee.models import Employee
 
+
+
 load_dotenv()
 
 employee_bp = Blueprint('employee_bp', __name__)
+
 
 # התחברות ל-MongoDB
 mongo_key = os.getenv("MONGO_KEY")
@@ -20,3 +23,5 @@ def employee_home_page():
     
     name = session.get('name')  # קבלת שם המנהל מה-session
     return render_template("employee_home_page.html", name=name)
+
+

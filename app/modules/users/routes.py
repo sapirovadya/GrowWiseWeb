@@ -15,6 +15,7 @@ load_dotenv()
 
 # הגדרת ה-Blueprint
 users_bp_main = Blueprint('users_bp_main', __name__)
+logout_bp = Blueprint('logout_bp', __name__)
 
 # התחברות ל-MongoDB
 mongo_key = os.getenv("MONGO_KEY")
@@ -325,3 +326,14 @@ def get_notifications():
     except Exception as e:
         print(f"Error fetching notifications: {e}")
         return jsonify({"notifications": [], "message": "שגיאה בטעינת ההתראות."}), 500
+    
+@logout_bp.route('/logout')
+def logout():
+    # ניקוי הנתונים מה-Session
+    session.clear()
+    # חזרה לדף הראשי והגדרת כותרות למניעת חזרה אחורה
+    response = redirect(url_for('home'))  # נניח שהדף הראשי מוגדר ב-'main_bp.home'
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
