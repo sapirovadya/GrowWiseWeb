@@ -79,6 +79,11 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
                 <div class="d-flex justify-content-between align-items-center w-100">
+                    <div class="logout-icon" style="display: inline-block;">
+                        <a href="#" onclick="logoutAndPreventBack();">
+                            <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
+                        </a>
+                    </div>
                     <div class="notification-icon" style="position: relative; display: inline-block;">
                         <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
                             height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
@@ -240,6 +245,26 @@
             }
         }
 
+        function logoutAndPreventBack() {
+        window.location.href = "/logout";
+
+        setTimeout(() => {
+            window.location.replace("/"); 
+            history.replaceState(null, null, '/'); 
+        }, 0);
+
+        // מניעת חזרה אחורה לחלוטין
+        window.onpopstate = function () {
+            history.replaceState(null, null, '/');
+        };
+    }
+
+    (function preventBack() {
+        history.replaceState(null, null, '/'); 
+        window.onpopstate = function () {
+            history.replaceState(null, null, '/');
+        };
+    })();
     </script>
 </body>
 

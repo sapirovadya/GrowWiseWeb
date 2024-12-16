@@ -55,31 +55,76 @@
     <div class="container-fluid bg-white sticky-top">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
-                <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
-                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                </a>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <div class="navbar-nav ms-auto">
-                        <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <div class="logout-icon" style="display: inline-block;">
+                        <a href="#" onclick="logoutAndPreventBack();">
+                            <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
+                        </a>
+                    </div>
+                    <div class="notification-icon" style="position: relative; display: inline-block;">
+                        <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
+                            height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
 
-                        <!-- Dropdown של דפים -->
-                        <div class="nav-item dropdown position-relative">
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
-                            <div class="dropdown-menu bg-light rounded-0 m-0">
-                                <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
-                                    חלקות/חממות</a>
-                                <a href="404.html" class="dropdown-item">404 Page</a>
+                        <div id="notificationModal" class="notification-modal"
+                            style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
+                            <div style="padding: 15px;">
+                                <h5 style="margin-bottom: 10px;">התראות</h5>
+                                <hr class="section-divider">
+                                <div id="notifications-list">
+                                    <p>טוען התראות...</p>
+                                </div>
+                                <hr class="section-divider">
+                                <button type="button" class="btn btn-sm btn-danger" style="margin-top: 10px;"
+                                    onclick="closeNotifications()">סגור</button>
                             </div>
                         </div>
-
-                        <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
-                        <a href="contact.html" class="nav-item nav-link">צור קשר</a>
                     </div>
+                    <div class="user" style="position: relative; display: inline-block;">
+                        <a href="{{ url_for('users_bp_main.profile_page') }}">
+                            <img id="userIcon" src="/static/img/user.png" alt="User Icon" height="30" width="30"
+                                style="cursor: pointer;">
+                        </a>
+                    </div>
+
+
+                    <div class="collapse navbar-collapse" id="navbarCollapse">
+                        <div class="navbar-nav ms-auto">
+                            <!-- כפתור "בית" מותאם לפי role -->
+                            {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                            <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
+                            {% elif session['role'] == "employee" %}
+                            <a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
+                            {% endif %}
+                            <!-- Dropdown של דפים -->
+                            <div class="nav-item dropdown position-relative">
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
+                                <div class="dropdown-menu bg-light rounded-0 m-0">
+                                    <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
+                                        חלקות/חממות</a>
+                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                                    <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
+                                        שלי</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
+                            <a href="contact.html" class="nav-item nav-link">צור קשר</a>
+                        </div>
+                    </div>
+                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% elif session['role'] == "employee" %}
+                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% endif %}
                 </div>
             </nav>
         </div>
     </div>
-
     <!-- Navbar End -->
 
     <!-- פס חוצץ -->
@@ -474,6 +519,26 @@ document.getElementById("growthForecastButton").addEventListener("click", async 
         modal.style.display = "none";
     }
 
+    function logoutAndPreventBack() {
+        window.location.href = "/logout";
+
+        setTimeout(() => {
+            window.location.replace("/"); 
+            history.replaceState(null, null, '/'); 
+        }, 0);
+
+        // מניעת חזרה אחורה לחלוטין
+        window.onpopstate = function () {
+            history.replaceState(null, null, '/');
+        };
+    }
+
+    (function preventBack() {
+        history.replaceState(null, null, '/'); 
+        window.onpopstate = function () {
+            history.replaceState(null, null, '/');
+        };
+    })();
     </script>
 
 </body>

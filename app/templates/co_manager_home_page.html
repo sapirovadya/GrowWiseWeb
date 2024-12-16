@@ -117,16 +117,73 @@
 
 <body>
     <!-- Navbar Start -->
-    <nav class="navbar">
-        <a href="{{ url_for('home') }}" class="navbar-brand">
-            <img src="/static/img/logo.png" alt="GrowWise" style="height: 40px;">
-        </a>
-        <ul style="list-style: none; display: flex; gap: 20px; margin: 0; padding: 0;">
-            <li><a href="about.html">אודות</a></li>
-            <li><a href="store.html">חנות</a></li>
-            <li><a href="contact.html">צור קשר</a></li>
-        </ul>
-    </nav>
+    <div class="container-fluid bg-white sticky-top">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <div class="logout-icon" style="display: inline-block;">
+                        <a href="#" onclick="logoutAndPreventBack();">
+                            <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
+                        </a>
+                    </div>
+                    <div class="notification-icon" style="position: relative; display: inline-block;">
+                        <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
+                            height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
+
+                        <div id="notificationModal" class="notification-modal"
+                            style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
+                            <div style="padding: 15px;">
+                                <h5 style="margin-bottom: 10px;">התראות</h5>
+                                <hr class="section-divider">
+                                <div id="notifications-list">
+                                    <p>טוען התראות...</p>
+                                </div>
+                                <hr class="section-divider">
+                                <button type="button" class="btn btn-sm btn-danger" style="margin-top: 10px;"
+                                    onclick="closeNotifications()">סגור</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="user" style="position: relative; display: inline-block;">
+                        <a href="{{ url_for('users_bp_main.profile_page') }}">
+                            <img id="userIcon" src="/static/img/user.png" alt="User Icon" height="30" width="30"
+                                style="cursor: pointer;">
+                        </a>
+                    </div>
+
+
+                    <div class="collapse navbar-collapse" id="navbarCollapse">
+                        <div class="navbar-nav ms-auto">
+                            <!-- כפתור "בית" מותאם לפי role -->
+                            {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                            <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
+                            {% elif session['role'] == "employee" %}
+                            <a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
+                            {% endif %}
+                            <!-- Dropdown של דפים -->
+                            <div class="nav-item dropdown position-relative">
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
+                                <div class="dropdown-menu bg-light rounded-0 m-0">
+                                    <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
+                                        חלקות/חממות</a>
+                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                                    <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
+                                        שלי</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
+                            <a href="contact.html" class="nav-item nav-link">צור קשר</a>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
     <!-- Navbar End -->
 
     <!-- Main Content Start -->
@@ -196,6 +253,26 @@
             }).catch(error => console.error('Error updating session:', error));
         }
 
+        function logoutAndPreventBack() {
+        window.location.href = "/logout";
+
+        setTimeout(() => {
+            window.location.replace("/"); 
+            history.replaceState(null, null, '/'); 
+        }, 0);
+
+        // מניעת חזרה אחורה לחלוטין
+        window.onpopstate = function () {
+            history.replaceState(null, null, '/');
+        };
+    }
+
+    (function preventBack() {
+        history.replaceState(null, null, '/'); 
+        window.onpopstate = function () {
+            history.replaceState(null, null, '/');
+        };
+    })();
     </script>
 </body>
 
