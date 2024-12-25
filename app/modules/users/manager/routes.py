@@ -106,16 +106,35 @@ def get_employees_list():
         # שליחת הנתונים לדף ה-HTML
         return render_template('my_team.html', employees=combined_list)
 
-# פונקציה לשינוי is_approved ל-1
+
 @manager_bp.route('/approve_user/<user_id>', methods=['POST'])
 def approve_user(user_id):
     try:
-        # עדכון שדה is_approved ל-1
-        result = db.employee.update_one({'_id': ObjectId(user_id)}, {'$set': {'is_approved': 1}})
-        if result.matched_count > 0:
-            return jsonify({'message': 'המשתמש אושר בהצלחה'}), 200
-        else:
-            return jsonify({'message': 'שגיאה: משתמש לא נמצא'}), 404
+        # בדיקת תקינות ה-ID
+        if not ObjectId.is_valid(user_id):
+            return jsonify({'message': 'שגיאה: ID לא תקין'}), 400
+
+        # ניסיון לעדכן ב-collection "employee"
+        result_employee = db.employee.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$set': {'is_approved': 1}}
+        )
+
+        if result_employee.matched_count > 0:
+            return jsonify({'message': 'המשתמש ב-employee אושר בהצלחה'}), 200
+
+        # ניסיון לעדכן ב-collection "co_manager"
+        result_co_manager = db.co_manager.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$set': {'is_approved': 1}}
+        )
+
+        if result_co_manager.matched_count > 0:
+            return jsonify({'message': 'המשתמש ב-co_manager אושר בהצלחה'}), 200
+
+        # אם לא נמצא בשום מקום
+        return jsonify({'message': 'שגיאה: משתמש לא נמצא בשום collection'}), 404
+
     except Exception as e:
         return jsonify({'message': 'שגיאה בשרת', 'error': str(e)}), 500
 
@@ -123,12 +142,23 @@ def approve_user(user_id):
 @manager_bp.route('/reject_user/<user_id>', methods=['DELETE'])
 def reject_user(user_id):
     try:
-        # מחיקת משתמש מבסיס הנתונים
-        result = db.employee.delete_one({'_id': ObjectId(user_id)})
-        if result.deleted_count > 0:
-            return jsonify({'message': 'המשתמש הוסר בהצלחה'}), 200
-        else:
-            return jsonify({'message': 'שגיאה: משתמש לא נמצא'}), 404
+        # בדיקת תקינות ה-ID
+        if not ObjectId.is_valid(user_id):
+            return jsonify({'message': 'שגיאה: ID לא תקין'}), 400
+
+        # ניסיון למחוק מה-collection "employee"
+        result_employee = db.employee.delete_one({'_id': ObjectId(user_id)})
+        if result_employee.deleted_count > 0:
+            return jsonify({'message': 'המשתמש הוסר בהצלחה מ-employee'}), 200
+
+        # ניסיון למחוק מה-collection "co_manager"
+        result_co_manager = db.co_manager.delete_one({'_id': ObjectId(user_id)})
+        if result_co_manager.deleted_count > 0:
+            return jsonify({'message': 'המשתמש הוסר בהצלחה מ-co_manager'}), 200
+
+        # אם המשתמש לא נמצא בשום collection
+        return jsonify({'message': 'שגיאה: משתמש לא נמצא בשום collection'}), 404
+
     except Exception as e:
         return jsonify({'message': 'שגיאה בשרת', 'error': str(e)}), 500
 

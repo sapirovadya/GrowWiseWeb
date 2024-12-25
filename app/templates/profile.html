@@ -72,7 +72,7 @@
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <div class="logout-icon" style="display: inline-block;">
-                        <a href="#" onclick="logoutAndPreventBack();">
+                        <a href="#" onclick="">
                             <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
                         </a>
                     </div>
@@ -158,6 +158,13 @@
                     <label for="role">תפקיד</label>
                     <input type="text" class="form-control" id="role" name="role" value="{{ user.role }}" readonly>
                 </div>
+                <label for="location">מיקום המשק</label>
+                <div class="form-floating mb-3" id="location_field" style="display: none;">
+                    <input list="cities_list" class="form-control" id="location" name="location" placeholder="בחר עיר"
+                        required>
+                    <datalist id="cities_list"></datalist>
+                </div>
+
                 <div class="d-flex justify-content-between">
                     <button type="button" class="btn btn-primary" onclick="saveChanges()">שמירת שינויים</button>
                     <button type="button" class="btn btn-danger" onclick="changePassword()">שינוי סיסמה</button>
@@ -260,26 +267,60 @@
             }
         }
 
-        function logoutAndPreventBack() {
-        window.location.href = "/logout";
+        // בדיקת תפקיד והצגת שדה המיקום
+        document.addEventListener("DOMContentLoaded", async () => {
+            const userRole = "{{ user.role }}"; // תפקיד המשתמש מהשרת
+            const userLocation = "{{ user.location }}"; // המיקום הנוכחי של המשתמש
 
-        setTimeout(() => {
-            window.location.replace("/"); 
-            history.replaceState(null, null, '/'); 
-        }, 0);
+            if (userRole === "manager") {
+                // הצגת השדה
+                const locationField = document.getElementById("location_field");
+                locationField.style.display = "block";
 
-        // מניעת חזרה אחורה לחלוטין
-        window.onpopstate = function () {
-            history.replaceState(null, null, '/');
-        };
-    }
+                // טעינת ערים מבסיס הנתונים
+                try {
+                    const response = await fetch('/users/get_cities');
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch cities: ${response.status}`);
+                    }
 
-    (function preventBack() {
-        history.replaceState(null, null, '/'); 
-        window.onpopstate = function () {
-            history.replaceState(null, null, '/');
-        };
-    })();
+                    const cities = await response.json();
+                    const citiesList = document.getElementById('cities_list');
+
+                    // הוספת הערים לרשימת ה-datalist
+                    citiesList.innerHTML = '';
+                    cities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city; // שם העיר כערך
+                        citiesList.appendChild(option);
+                    });
+
+                    // הגדרת המיקום הנוכחי בשדה הטקסט
+                    const locationInput = document.getElementById('location');
+                    locationInput.value = userLocation;
+
+                    // הוספת פונקציית חיפוש
+                    locationInput.addEventListener('input', function () {
+                        const searchTerm = this.value.trim().toLowerCase();
+                        const filteredCities = cities.filter(city =>
+                            city.toLowerCase().startsWith(searchTerm)
+                        );
+
+                        // עדכון ה-datalist עם תוצאות הסינון
+                        citiesList.innerHTML = '';
+                        filteredCities.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city;
+                            citiesList.appendChild(option);
+                        });
+                    });
+                } catch (error) {
+                    console.error("Error loading cities:", error.message);
+                    alert("שגיאה בטעינת רשימת הערים.");
+                }
+            }
+        });
+
     </script>
 </body>
 
