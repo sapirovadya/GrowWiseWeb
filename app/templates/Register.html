@@ -100,9 +100,11 @@
                         </div>
                         <div class="form-floating mb-3">
                             <select class="form-control" id="role" name="role" required>
+                                <option value="">בחר</option>
                                 <option value="manager">מנהל</option>
                                 <option value="co_manager">מנהל שותף</option>
                                 <option value="employee">עובד</option>
+                                <option value="job_seeker">מחפש עבודה/התנדבות</option>
                             </select>
                             <label for="role">תפקיד</label>
                         </div>
@@ -112,6 +114,13 @@
                                 title="יש להזין מייל חוקי, לדוגמה: name@example.com">
                             <label for="manager_email">אי-מייל המנהל</label>
                         </div>
+                        <div class="form-floating mb-3" id="location_field" style="display: none;">
+                            <input list="cities_list" class="form-control" id="location" name="location"
+                                placeholder="בחר עיר" required>
+                            <datalist id="cities_list"></datalist>
+                            <label for="location">מיקום המשק</label>
+                        </div>
+
                         <button class="btn btn-primary w-100 py-3" type="submit">הרשמה</button>
                     </form>
                 </div>
@@ -260,7 +269,85 @@
                 alert("An error occurred. Please try again later.");
             }
         });
+        const loadCities = async () => {
+            try {
+                const response = await fetch('/users/get_cities');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch cities: ${response.status}`);
+                }
+                const cities = await response.json();
+                const citiesList = document.getElementById('cities_list');
 
+                // ניקוי האפשרויות הקודמות
+                citiesList.innerHTML = '';
+
+                // הוספת הערים לרשימה
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city; // כל עיר מתווספת כרשומה
+                    citiesList.appendChild(option);
+                });
+
+                // הוספת פונקציונליות חיפוש
+                const locationInput = document.getElementById('location');
+                locationInput.addEventListener('input', function () {
+                    const searchTerm = this.value.trim().toLowerCase();
+                    const filteredCities = cities.filter(city =>
+                        city.toLowerCase().startsWith(searchTerm)
+                    );
+
+                    // עדכון הרשימה המוצגת
+                    citiesList.innerHTML = '';
+                    filteredCities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city;
+                        citiesList.appendChild(option);
+                    });
+                });
+
+            } catch (error) {
+                console.error("Error loading cities:", error.message);
+                alert("שגיאה בטעינת רשימת הערים.");
+            }
+        };
+
+        // טיפול בשינוי תפקיד
+        document.getElementById("role").addEventListener("change", function () {
+            const role = this.value;
+            const locationField = document.getElementById("location_field");
+
+            if (role === "manager") {
+                locationField.style.display = "block";
+                loadCities(); // טעינת הערים אם התפקיד הוא מנהל
+            } else {
+                locationField.style.display = "none";
+                document.getElementById('location').value = ""; // ניקוי בחירה קודמת
+            }
+        });
+
+
+        // בדיקת טופס לפני שליחה
+        document.getElementById("registerForm").addEventListener("submit", function (event) {
+            const role = document.getElementById("role").value;
+            const location = document.getElementById("location").value;
+
+            if (!role) {
+                event.preventDefault();
+                alert("נא לבחור תפקיד.");
+            } else if (role === "manager" && !location) {
+                event.preventDefault();
+                alert("נא לבחור את מקום המשק.");
+            }
+        });
+
+        // קריאה ראשונית אם התפקיד כבר נבחר
+        document.addEventListener("DOMContentLoaded", () => {
+            const role = document.getElementById("role").value;
+            if (role === "manager") {
+                document.getElementById("location_field").style.display = "block";
+                loadCities();
+            }
+        });
     </script>
 
 
