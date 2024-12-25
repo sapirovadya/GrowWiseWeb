@@ -113,6 +113,8 @@ def save_plot():
             crop_category=data.get("crop_category", "none"),
             crop=data.get("crop", "none"),
             sow_date=data.get("sow_date"),
+            quantity_planted=data.get("quantity_planted"),
+
         )
 
         # שמירה ל-DB
@@ -152,20 +154,22 @@ def get_plots():
 
     if not role or not email:
         return jsonify({"error": "User is not logged in or missing role."}), 403
+    query = {"harvest_date": None}  # סינון חלקות עם harvest_date == None
 
     if role == "manager":
-        plots = list(db.plots.find({"manager_email": email}))
+        query["manager_email"] = email
     elif role in ["employee", "co_manager"]:
         manager_email = session.get("manager_email")
         if not manager_email:
             return jsonify({"error": "Manager email not found for user."}), 403
-        plots = list(db.plots.find({"manager_email": manager_email}))
+        query["manager_email"] = manager_email
     else:
         return jsonify({"error": "Invalid role."}), 403
 
-    # המרת החלקות לרשימה ניתנת לשליחה ל-JSON
+    plots = list(db.plots.find(query))
+    # המרת ObjectId למחרוזת
     for plot in plots:
-        plot["_id"] = str(plot["_id"])  # המרת ObjectId למחרוזת
+        plot["_id"] = str(plot["_id"])
 
     return jsonify({"plots": plots}), 200
 
@@ -209,7 +213,8 @@ def update_plot(plot_id):
                 "$set": {
                     "crop_category": data['crop_category'],
                     "crop": data['crop'],
-                    "sow_date": data['sow_date']
+                    "sow_date": data['sow_date'],
+                    "quantity_planted": data['quantity_planted']
                 }
             }
         )
@@ -258,4 +263,58 @@ def update_irrigation(plot_id):
 
     except Exception as e:
         print(f"Error: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+@plot_bp.route('/archive_plot/<plot_id>', methods=['POST'])
+def archive_plot(plot_id):
+    try:
+        data = request.get_json()
+        harvest_date = data.get('harvest_date')
+        crop_yield = data.get('crop_yield')
+
+        if not harvest_date or not crop_yield:
+            return jsonify({"error": "Missing required fields"}), 400
+
+        # עדכון החלקה בבסיס הנתונים
+        db.plots.update_one(
+            {"_id": plot_id},
+            {
+                "$set": {
+                    "harvest_date": harvest_date,
+                    "crop_yield": crop_yield
+                }
+            }
+        )
+        return jsonify({"message": "Plot archived successfully"}), 200
+
+    except Exception as e:
+        print(f"Error archiving plot: {e}")
+        return jsonify({"error": "Server error"}), 500
+
+@plot_bp.route("/archive", methods=["GET"])
+def archive():
+    role = session.get("role")
+    email = session.get("email")
+    manager_email = session.get("manager_email")
+
+    if not role or not email:
+        return jsonify({"error": "User is not logged in or missing role."}), 403
+
+    try:
+        # הגדרת הקריטריון בהתאם לתפקיד המשתמש
+        if role == "manager":
+            filter_criteria = {"manager_email": email, "harvest_date": {"$ne": None}}
+        elif role == "co_manager":
+            filter_criteria = {"manager_email": manager_email, "harvest_date": {"$ne": None}}
+        else:
+            return jsonify({"error": "Unauthorized role."}), 403
+
+        # שליפת החלקות מארכיון
+        archived_plots = list(db.plots.find(filter_criteria))
+        for plot in archived_plots:
+            plot["_id"] = str(plot["_id"])  # המרת ObjectId למחרוזת
+
+        return render_template("plots_archive.html", plots=archived_plots)
+
+    except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500

@@ -8,6 +8,7 @@ from modules.users.models import User
 from modules.users.manager.models import Manager  # וודא שזה הנתיב הנכון למחלקה Manager
 from modules.users.employee.models import Employee
 from modules.users.co_manager.models import Co_Manager
+from modules.users.job_seeker.models import Job_Seeker
 from modules.task.models import task
 
 
@@ -21,6 +22,7 @@ logout_bp = Blueprint('logout_bp', __name__)
 mongo_key = os.getenv("MONGO_KEY")
 client = pymongo.MongoClient(mongo_key)
 db = client.get_database("dataGrow")
+cities_collection = db.israel_cities  # שם האוסף
 
 
 # הצגת טופס ההרשמה
@@ -78,7 +80,13 @@ def signup():
                 user["password"] = hashed_password
                 db.co_manager.insert_one(user)
                 return jsonify({"message": "Co-manager registered successfully!"}), 200
-            
+        
+        elif  role == "job_seeker":
+            user = Job_Seeker().signup(data)
+            user["password"] = hashed_password
+            db.job_seeker.insert_one(user)
+            return jsonify({"message": "Job-Seeker registered successfully!"}), 200
+
         return jsonify({"message": "Invalid role provided."}), 400
 
     except Exception as e:
@@ -159,6 +167,24 @@ def login():
                 "redirect_url": url_for('employee_bp.employee_home_page')
             }), 200
 
+        job_seeker = db.job_seeker.find_one({"email": email})
+        if job_seeker:
+            # בדיקת סיסמה
+            if not check_password_hash(manager["password"], password):
+                return jsonify({"message": "one of the detail is incorrect"}), 400
+            
+            # מנהל נמצא ומאושר
+            session['email'] = email
+            session['name'] = job_seeker.get('first_name')
+            session['role'] = 'job_seeker'
+            
+
+            return jsonify({
+                "message": "login successfuly",
+                "role": "job_seeker",
+                "redirect_url": url_for('job_seeker_bp.job_seeker_home_page')
+            }), 200
+        
         # אם המשתמש לא נמצא בשום collection
         return jsonify({"message": "user not found"}), 400
 
@@ -173,7 +199,6 @@ def profile_page():
     role = session.get('role')
     if role == "manager":
         user = db.manager.find_one({"email": user_email})
-        print(user_email)  # נתוני המשתמש
         if user:
             return render_template('profile.html', user=user)
         else:
@@ -199,12 +224,15 @@ def save_profile():
     first_name = request.form.get('firstName')
     last_name = request.form.get('lastName')
     email = request.form.get('email')
+    location = request.form.get('location')
+
     if role == "manager":
         try:
             db.manager.update_one({"email": user_email}, {"$set": {
                 "first_name": first_name,
                 "last_name": last_name,
-                "email": email
+                "email": email,
+                "location": location
             }})
               # עדכון השדות "manager_email" ב-co_managers וב-workers
             db.co_manager.update_many({"manager_email": user_email}, {"$set": {"manager_email": email}})
@@ -337,3 +365,16 @@ def logout():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
+
+@users_bp_main.route('/get_cities', methods=['GET'])
+def get_cities():
+    try:
+        # שליפת המסמך הראשון באוסף שמכיל את המערך 'cities'
+        document = cities_collection.find_one({}, {"_id": 0, "cities": 1})
+        if not document or "cities" not in document:
+            return jsonify({"error": "Cities data not found"}), 404
+
+        city_list = document["cities"]  # שליפת רשימת הערים מתוך המערך
+        return jsonify(city_list)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

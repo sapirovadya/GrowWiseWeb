@@ -25,78 +25,50 @@
     <link href="/static/css/style.css" rel="stylesheet">
 
     <style>
-        body {
-            font-family: "Open Sans", sans-serif;
-            background: #ffffff;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* אזור התוכן המרכזי */
-        .main-content {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 40px;
-        }
-
-        /* כותרת מרכזית */
-        .greeting {
-            font-size: 36px;
-            font-weight: bold;
-            color: #8fb23e;
-            margin-bottom: 40px;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        /* מיכל לעיגולים/עלים */
-        .leaf-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 50px;
-            justify-items: center;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        /* עיצוב העלה */
-        .leaf {
-            width: 180px;
-            height: 180px;
-            position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-        }
-
-        .leaf img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            transition: transform 0.3s ease;
-        }
-
-        .leaf:hover img {
-            transform: scale(1.1);
-        }
-
-        /* טקסט תחת העלה */
-        .leaf span {
-            display: block;
+        .title {
             text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-            color: #8fb23e;
-            margin-top: 10px;
-            font-family: 'Playfair Display', sans-serif;
-
+            font-size: 35px;
+            margin-bottom: 20px;
         }
 
-        /* הנפשה בעת לחיצה */
-        .leaf:active img {
-            transform: scale(0.7) rotate(15deg);
-            transition: transform 0.2s ease-out;
+        .table-container {
+            margin: 30px auto;
+            max-width: 80%;
+            overflow: hidden;
+            /* מוודא שהתוכן לא יחרוג מעבר לפינות המעוגלות */
+            border-radius: 15px;
+            /* עיגול הפינות */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* צל כדי להדגיש את הטבלה */
+        }
+
+        .table {
+            text-align: center;
+            border-collapse: separate;
+            /* מאפשר עיגול של הפינות */
+            border-spacing: 0;
+            /* מסיר רווחים פנימיים */
+        }
+
+        th,
+        td {
+            padding: 10px;
+        }
+
+        th:first-child,
+        td:first-child {
+            border-top-left-radius: 15px;
+            /* פינה שמאלית עליונה */
+            border-bottom-left-radius: 15px;
+            /* פינה שמאלית תחתונה */
+        }
+
+        th:last-child,
+        td:last-child {
+            border-top-right-radius: 15px;
+            /* פינה ימנית עליונה */
+            border-bottom-right-radius: 15px;
+            /* פינה ימנית תחתונה */
         }
     </style>
 </head>
@@ -163,85 +135,83 @@
                             <a href="contact.html" class="nav-item nav-link">צור קשר</a>
                         </div>
                     </div>
+                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                     <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
                         <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
                     </a>
+                    {% elif session['role'] == "employee" %}
+                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% endif %}
                 </div>
             </nav>
         </div>
     </div>
-
-
     <!-- Navbar End -->
-
-    <!-- Main Content Start -->
     <hr class="section-divider">
 
-    <div class="main-content">
-        <!-- כותרת -->
-        <h1 class="greeting">שלום, {{ name }}</h1>
+    <div class="container">
+        <h1 class="title">ארכיון חלקות</h1>
+        <hr class="section-divider">
 
-        <!-- עלים -->
-        <div class="leaf-container">
-            <div class="leaf" onclick="navigateTo('track_greenhouse')">
-                <img src="/static/img/leaf.png" alt="מעקב">
-                <span>מעקב חלקות/חממות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('archive')">
-                <img src="/static/img/leaf.png" alt="ארכיון">
-                <span>ארכיון חלקות/חממות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('optimal_management')">
-                <img src="/static/img/leaf.png" alt="ניהול">
-                <span>ניהול חלקות אופטימלי</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('reports')">
-                <img src="/static/img/leaf.png" alt="דו" חות">
-                <span>דו"חות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('team')">
-                <img src="/static/img/leaf.png" alt="צוות">
-                <span>הצוות שלי</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('calculator')">
-                <img src="/static/img/leaf.png" alt="מחשבון">
-                <span>מחשבון הוצאות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('inventory')">
-                <img src="/static/img/leaf.png" alt="מלאי">
-                <span>אספקה ומלאי</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('shop')">
-                <img src="/static/img/leaf.png" alt="חנות">
-                <span>חנות אונליין</span>
-            </div>
-        </div>
+        {% if plots and plots|length > 0 %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>שם החלקה</th>
+                    <th>גידול</th>
+                    <th>תאריך זריעה</th>
+                    <th>כמות השקייה סה״כ</th>
+                    <th>תאריך קצירה</th>
+                    <th>כמות יבול</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plot in plots %}
+                <tr>
+                    <td>{{ plot.plot_name }}</td>
+                    <td>{{ plot.crop or "לא זמין" }}</td>
+                    <td>{{ plot.sow_date or "לא זמין" }}</td>
+                    <td>{{ plot.total_irrigation_amount or "0" }}</td>
+                    <td>{{ plot.harvest_date or "לא זמין" }}</td>
+                    <td>{{ plot.crop_yield or "0" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="no-data">אין חלקות בארכיון להצגה.</p>
+        {% endif %}
     </div>
-
-    <!-- Back to Top -->
-    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
-            class="bi bi-arrow-up"></i></a>
-
-    <!-- JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-
     <script>
-        function navigateTo(page) {
-            const urls = {
-                'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
-                'archive': '{{ url_for("plot_bp.archive") }}',
-                'optimal_management': '#',
-                'reports': '#',
-                'team': '{{ url_for("manager_bp.get_employees_list") }}',
-                'calculator': '#',
-                'inventory': '#',
-                'shop': '#'
-            };
+        fetch('/task/alltasks')
+            .then(response => response.json())
+            .then(data => {
+                const taskTableBody = document.getElementById('taskTableBody');
+                data.forEach(task => {
+                    const row = document.createElement('tr');
+                    // המרת סטטוס
+                    let statusText = '';
+                    if (task.status === 'in_progress') {
+                        statusText = 'בתהליך';
+                    } else if (task.status === 'done') {
+                        statusText = 'בוצע';
+                    } else {
+                        statusText = task.status; // תצוגה ברירת מחדל
+                    }
+                    // עדכון הערך בטבלה
+                    row.innerHTML = `
+                <td>${task.employee_name}</td>
+                <td>${task.task_name}</td>
+                <td>${task.due_date}</td>
+                <td>${statusText}</td>
+            `;
+                    taskTableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error:', error));
 
-            if (urls[page]) {
-                window.location.href = urls[page];
-            }
-        }
         function toggleNotifications() {
             const modal = document.getElementById("notificationModal");
 
@@ -293,8 +263,6 @@
         }
 
     </script>
-
-
 </body>
 
 </html>
