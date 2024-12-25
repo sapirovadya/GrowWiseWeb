@@ -212,26 +212,18 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
                 <div class="d-flex justify-content-between align-items-center w-100">
-                    <div class="logout-icon" style="display: inline-block;">
-                        <a href="#" onclick="logoutAndPreventBack();">
-                            <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
-                        </a>
-                    </div>
                     <div class="notification-icon" style="position: relative; display: inline-block;">
                         <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
                             height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
-
                         <div id="notificationModal" class="notification-modal"
                             style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
                             <div style="padding: 15px;">
                                 <h5 style="margin-bottom: 10px;">התראות</h5>
                                 <hr class="section-divider">
-
                                 <div id="notifications-list">
                                     <p>טוען התראות...</p>
                                 </div>
                                 <hr class="section-divider">
-
                                 <button type="button" class="btn btn-sm btn-danger" style="margin-top: 10px;"
                                     onclick="closeNotifications()">סגור</button>
                             </div>
@@ -243,24 +235,19 @@
                                 style="cursor: pointer;">
                         </a>
                     </div>
-
-
                     <div class="collapse navbar-collapse" id="navbarCollapse">
                         <div class="navbar-nav ms-auto">
                             <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
-
                             <!-- Dropdown של דפים -->
                             <div class="nav-item dropdown position-relative">
                                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
                                 <div class="dropdown-menu bg-light rounded-0 m-0">
                                     <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
                                         חלקות/חממות</a>
-
                                     <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
                                         שלי</a>
                                 </div>
                             </div>
-
                             <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
                             <a href="contact.html" class="nav-item nav-link">צור קשר</a>
                         </div>
@@ -272,7 +259,6 @@
             </nav>
         </div>
     </div>
-
     <!-- Navbar End -->
 
     <!-- פס חוצץ -->
@@ -343,7 +329,6 @@
         <p class="alert-message"></p>
         <button class="alert-close" onclick="closeAlert()">סגור</button>
     </div>
-
     <!-- אלרט מותאם אישית עם כפתורי אישור וביטול -->
     <div id="customConfirm" class="alert-box" style="display: none;">
         <h5 class="alert-title">אישור</h5>
@@ -351,8 +336,6 @@
         <button class="alert-close" id="confirmYes">אישור</button>
         <button class="alert-close" id="confirmNo" style="background-color: var(--secondary);">בטל</button>
     </div>
-
-
     <!-- Modal -->
     <div id="detailsModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
@@ -369,7 +352,6 @@
             <div id="modal-actions"></div>
         </div>
     </div>
-
     <div id="taskModal" class="modal">
         <div id="taskModalContent" class="modal-content">
             <h2>משימה</h2>
@@ -390,7 +372,6 @@
         </div>
     </div>
 
-
     <!-- Back to Top -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
             class="bi bi-arrow-up"></i></a>
@@ -405,19 +386,15 @@
             const emailField = document.getElementById("detail-email");
             const roleField = document.getElementById("detail-role");
             const actions = document.getElementById("modal-actions");
-
             // הגדרת תרגום התפקיד
             const roleText = role === "employee" ? "עובד" : role === "co_manager" ? "שותף" : "לא ידוע";
-
             // הגדרת נתונים בחלון הקופץ
             firstNameField.textContent = firstName;
             lastNameField.textContent = lastName;
             emailField.textContent = email;
             roleField.textContent = roleText;
-
             // ניקוי כפתורים
             actions.innerHTML = "";
-
             // הוספת כפתורי אישור ודחייה אם המשתמש לא מאושר
             if (isApproved == 0) {
                 actions.innerHTML = `
@@ -425,11 +402,9 @@
             <button class="btn btn-danger btn-lg ms-3" onclick="rejectUser('${id}')">דחה</button>
         `;
             }
-
             // הצגת המודל
             modal.style.display = "flex";
         }
-
         function approveUser(id) {
             fetch(`/users/manager/approve_user/${id}`, {
                 method: 'POST'
@@ -442,7 +417,6 @@
                 })
                 .catch(error => console.error('Error:', error));
         }
-
         function rejectUser(id) {
             fetch(`/users/manager/reject_user/${id}`, {
                 method: 'DELETE'
@@ -455,16 +429,13 @@
                 })
                 .catch(error => console.error('Error:', error));
         }
-
         document.querySelector('.btn-close').addEventListener('click', function () {
             const modal = document.getElementById('detailsModal');
             modal.style.display = 'none'; // סגירת המודל
         });
-
         function closeModal() {
             document.getElementById("detailsModal").style.display = "none";
         }
-
         window.addEventListener('click', function (event) {
             const modal = document.getElementById('detailsModal');
             if (event.target === modal) {
@@ -473,10 +444,8 @@
         });
         function toggleNotifications() {
             const modal = document.getElementById("notificationModal");
-
             if (modal.style.display === "none" || modal.style.display === "") {
                 modal.style.display = "block";
-
                 // שליפת התראות מהשרת
                 fetch("/users/get_notifications")
                     .then(response => response.json())
@@ -495,32 +464,26 @@
                         console.error("Error fetching notifications:", error);
                         notificationsList.innerHTML = "<p>שגיאה בטעינת התראות.</p>";
                     });
-
                 // מאזין סגירה על לחיצה מחוץ לחלון
                 document.addEventListener("click", closeOnOutsideClick);
             } else {
                 closeNotifications();
             }
         }
-
         function closeNotifications() {
             const modal = document.getElementById("notificationModal");
             modal.style.display = "none";
-
             // הסרת המאזין
             document.removeEventListener("click", closeOnOutsideClick);
         }
-
         function closeOnOutsideClick(event) {
             const modal = document.getElementById("notificationModal");
             const notificationIcon = document.getElementById("notificationIcon");
-
             // בדיקה אם הלחיצה התבצעה מחוץ לחלון ומחוץ לאייקון
             if (!modal.contains(event.target) && event.target !== notificationIcon) {
                 closeNotifications();
             }
         }
-
         function openTaskModal(employeeEmail, employeeName) {
             currentEmployeeEmail = employeeEmail;
             document.getElementById("taskModal").style.display = "flex";
@@ -528,59 +491,47 @@
             document.getElementById("taskContent").value = "";
             document.getElementById("dueDate").value = "";
         }
-
         function closeTaskModal() {
             document.getElementById("taskModal").style.display = "none";
         }
-
-
         // פותח את חלון המשימות
         function openTaskModal(employeeEmail, employeeName) {
             currentEmployeeEmail = employeeEmail; // שמירת האימייל של העובד הנבחר
             const modal = document.getElementById("taskModal");
             modal.style.display = "flex"; // הצגת החלון
-
             // איפוס שדות הטופס
             document.getElementById("taskName").value = "";
             document.getElementById("taskContent").value = "";
             document.getElementById("dueDate").value = "";
-
             // מאזין ללחיצה מחוץ לחלון
             document.addEventListener("mousedown", closeOnOutsideClick);
         }
-
         // סוגר את חלון המשימות
         function closeTaskModal() {
             const modal = document.getElementById("taskModal");
             modal.style.display = "none"; // הסתרת החלון
-
             // הסרת המאזין ללחיצה מחוץ לחלון
             document.removeEventListener("mousedown", closeOnOutsideClick);
         }
-
         // בודק אם הלחיצה התבצעה מחוץ לחלון
         function closeOnOutsideClick(event) {
             const modal = document.getElementById("taskModal");
             const modalContent = document.getElementById("taskModalContent");
-
             // אם הלחיצה מחוץ לחלון, סגור את החלון
             if (modal.style.display === "flex" && !modalContent.contains(event.target)) {
                 closeTaskModal();
             }
         }
-
         // שמירת משימה
         function saveTask() {
             const taskName = document.getElementById("taskName").value;
             const taskContent = document.getElementById("taskContent").value;
             const dueDate = document.getElementById("dueDate").value;
-
             // בדיקה שכל השדות מלאים
             if (!taskName || !taskContent || !dueDate) {
                 showAlert("יש למלא את כל השדות.");
                 return;
             }
-
             // הכנת נתוני המשימה
             const taskData = {
                 giver_email: "{{ session['email'] }}", // המייל של המנהל המחובר
@@ -590,7 +541,6 @@
                 due_date: dueDate,
                 status: "in_progress" // סטטוס המשימה
             };
-
             // שליחת הנתונים לשרת
             fetch("/task/tasks", {
                 method: "POST",
@@ -615,7 +565,7 @@
                 });
         }
         function deleteEmployee(employeeId) {
-            if (showCustomConfirm("האם אתה בטוח שברצונך למחוק את העובד?")) {
+            showCustomConfirm("האם אתה בטוח שברצונך למחוק את העובד?", () => { // העברת פונקציה אנונימית
                 fetch(`/users/manager/deleteuser/${employeeId}`, {
                     method: 'DELETE'
                 })
@@ -626,19 +576,22 @@
                         return response.json();
                     })
                     .then(data => {
-                        if (data.success) {
-                            showAlert(data.message);
-                            location.reload();
+                        if (data.message) {
+                            showAlert("הצלחה", data.message); // הודעת הצלחה
+                            setTimeout(() => {
+                                location.reload(); // רענון הדף
+                            }, 2000);
                         } else {
-                            showAlert(data.message);
+                            showAlert("שגיאה", "לא ניתן למחוק את המשתמש.");
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        showAlert("שגיאה: לא ניתן למחוק את העובד.");
+                        showAlert("שגיאה", "שגיאה במחיקת המשתמש.");
                     });
-            }
+            });
         }
+
         function showAlert(title, message) {
             const alertBox = document.getElementById("customAlert");
             alertBox.querySelector(".alert-title").textContent = title;
@@ -649,7 +602,6 @@
             const alertBox = document.getElementById("customAlert");
             alertBox.style.display = "none";
         }
-
         function showCustomConfirm(message, onConfirm) {
             const confirmBox = document.getElementById("customConfirm");
             const messageBox = confirmBox.querySelector(".alert-message");
@@ -662,7 +614,9 @@
             // טיפול בכפתור אישור
             yesButton.onclick = function () {
                 confirmBox.style.display = "none";
-                onConfirm(); // קריאה לפונקציה כאשר המשתמש מאשר
+                if (typeof onConfirm === "function") { // בדיקה שהפרמטר הוא פונקציה
+                    onConfirm();
+                }
             };
 
             // טיפול בכפתור ביטול
@@ -671,26 +625,6 @@
             };
         }
 
-        function logoutAndPreventBack() {
-        window.location.href = "/logout";
-
-        setTimeout(() => {
-            window.location.replace("/"); 
-            history.replaceState(null, null, '/'); 
-        }, 0);
-
-        // מניעת חזרה אחורה לחלוטין
-        window.onpopstate = function () {
-            history.replaceState(null, null, '/');
-        };
-    }
-
-    (function preventBack() {
-        history.replaceState(null, null, '/'); 
-        window.onpopstate = function () {
-            history.replaceState(null, null, '/');
-        };
-    })();
     </script>
 
 </body>

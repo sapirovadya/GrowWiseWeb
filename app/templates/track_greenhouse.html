@@ -57,7 +57,7 @@
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <div class="logout-icon" style="display: inline-block;">
-                        <a href="#" onclick="logoutAndPreventBack();">
+                        <a href="#" onclick="">
                             <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
                         </a>
                     </div>
@@ -214,7 +214,14 @@
                             <label for="sowDate" class="form-label">תאריך זריעה</label>
                             <input type="date" id="sowDate" name="sow_date" class="form-control">
                         </div>
+                        <div class="mb-3" id="quantityPlantedDiv" style="display: none;">
+                            <label for="quantityPlanted" class="form-label">כמה זרעתי (בק״ג)</label>
+                            <input type="number" id="quantityPlanted" name="quantity_planted" class="form-control"
+                                min="0" step="0.01">
+                        </div>
                         <button type="button" class="btn btn-primary" onclick="savePlot()">שמירה</button>
+                        <button type="button" class="btn btn-secondary" onclick="closePlotForm()">סגירה</button>
+
                     </form>
 
                 </div>
@@ -342,15 +349,26 @@
             const cropCategory = document.getElementById('cropCategory').value;
             const crop = document.getElementById('crop').value;
             const sowDate = document.getElementById('sowDate').value;
+            const quantityPlanted = document.getElementById('quantityPlanted').value.trim();
 
             if (!plotName || !length || !width) {
                 alert('יש למלא את השדות: שם החלקה, אורך ורוחב.');
+                return;
+            }
+            if (length <= 0 || width <= 0) {
+                alert('אורך ורוחב חייבים להיות גדולים מ-0.');
                 return;
             }
 
             if (cropCategory !== 'none' && (!crop || !sowDate)) {
                 alert('נא למלא את השדות גידול ותאריך זריעה.');
                 return;
+            }
+            if (cropCategory !== 'none' && crop !== 'none' && sowDate) {
+                if (!quantityPlanted || quantityPlanted <= 0) {
+                    alert('נא למלא כמות זרעית גדולה מ-0.');
+                    return;
+                }
             }
 
             const formData = new FormData(document.getElementById('plotForm'));
@@ -420,6 +438,10 @@
         function renderMultipleView() {
             const container = document.getElementById("plotsContainer");
             container.innerHTML = ""; // איפוס
+            if (plots.length === 0) {
+                container.innerHTML = "<p style='text-align:center;'>אין חלקות פעילות להצגה.</p>";
+                return;
+            }
 
             plots.forEach(plot => {
                 const plotContainer = document.createElement("div");
@@ -449,8 +471,12 @@
         }
 
         function updateSingleView() {
-            if (plots.length === 0) return;
+            const singleView = document.getElementById("singleView");
 
+            if (plots.length === 0) {
+                singleView.innerHTML = "<p style='text-align:center;'>אין חלקות פעילות להצגה.</p>";
+                return;
+            }
             const plot = plots[currentPlotIndex];
 
             // עדכון שם החלקה
@@ -548,26 +574,42 @@
                 closeNotifications();
             }
         }
-        function logoutAndPreventBack() {
-        window.location.href = "/logout";
+        document.getElementById('sowDate').addEventListener('input', () => {
+            const sowDate = document.getElementById('sowDate').value;
+            const quantityPlantedDiv = document.getElementById('quantityPlantedDiv');
+            const saveButton = document.getElementById('saveButton');
 
-        setTimeout(() => {
-            window.location.replace("/"); 
-            history.replaceState(null, null, '/'); 
-        }, 0);
+            if (sowDate) {
+                quantityPlantedDiv.style.display = 'block';
+            } else {
+                quantityPlantedDiv.style.display = 'none';
+                saveButton.disabled = true;
+            }
+        });
 
-        // מניעת חזרה אחורה לחלוטין
-        window.onpopstate = function () {
-            history.replaceState(null, null, '/');
-        };
-    }
+        document.getElementById('quantityPlanted').addEventListener('input', () => {
+            const quantityPlanted = document.getElementById('quantityPlanted').value;
+            const saveButton = document.getElementById('saveButton');
 
-    (function preventBack() {
-        history.replaceState(null, null, '/'); 
-        window.onpopstate = function () {
-            history.replaceState(null, null, '/');
-        };
-    })();
+            saveButton.disabled = !quantityPlanted;
+        });
+
+        function closePlotForm() {
+            // הסתרת החלון
+            const plotFormModal = document.getElementById('plotFormModal');
+            plotFormModal.style.display = 'none';
+
+            // איפוס כל השדות
+            const form = document.getElementById('plotForm');
+            form.reset();
+
+            // איפוס שדות נוספים אם מוסתרים
+            document.getElementById('cropDiv').style.display = 'none';
+            document.getElementById('sowDateDiv').style.display = 'none';
+            document.getElementById('quantityPlantedDiv').style.display = 'none';
+        }
+
+
     </script>
 </body>
 
