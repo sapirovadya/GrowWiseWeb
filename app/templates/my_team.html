@@ -33,7 +33,6 @@
 
         .name-field {
             display: inline-flex;
-            /* מציג את השם והכפתור באותו קו */
             align-items: center;
         }
 
@@ -43,7 +42,6 @@
 
         .no-bullets {
             list-style-type: none;
-            /* מסיר נקודות מהרשימה */
             padding: 0;
         }
 
@@ -180,7 +178,7 @@
         }
 
         .btn-details:hover {
-            background-color: #6c9d38;
+            background-color: var(--secondary);
         }
 
         .btn-delete {
@@ -200,7 +198,7 @@
         }
 
         .btn-delete:hover {
-            background-color: #c90000;
+            background-color: var(--secondary);
             /* צבע אדום כהה יותר במעבר עכבר */
         }
     </style>
@@ -268,7 +266,8 @@
             <h1 class="title">רשימת עובדים</h1>
         </div>
         <hr class="section-divider">
-        <button class="btn btn-primary" onclick="window.location.href='/task/alltasks.html'" style="height: 40px;">כל
+        <button class="btn-details" onclick="window.location.href='/task/alltasks.html'"
+            style="height: 40px; font-size: 18px; font-weight: bold;">כל
             המשימות</button>
         <table class="employee-table">
             <thead>

@@ -39,7 +39,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding: 40px;
+            padding: 12px;
         }
 
         /* כותרת מרכזית */
@@ -47,7 +47,7 @@
             font-size: 36px;
             font-weight: bold;
             color: #8fb23e;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
 
@@ -136,8 +136,6 @@
                                 style="cursor: pointer;">
                         </a>
                     </div>
-
-
                     <div class="collapse navbar-collapse" id="navbarCollapse">
                         <div class="navbar-nav ms-auto">
                             <!-- כפתור "בית" מותאם לפי role -->
@@ -152,14 +150,20 @@
                                 <div class="dropdown-menu bg-light rounded-0 m-0">
                                     <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
                                         חלקות/חממות</a>
+                                    <a href='{{ url_for("plot_bp.archive") }}' class="dropdown-item">ארכיון
+                                        חלקות/חממות</a>
                                     {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                                     <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
+                                        שלי</a>
+                                    {% endif %}
+                                    {% if session['role'] == "employee" %}
+                                    <a href='/task/alltasks.html' class="dropdown-item">המשימות
                                         שלי</a>
                                     {% endif %}
                                 </div>
                             </div>
 
-                            <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
+                            <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
                             <a href="contact.html" class="nav-item nav-link">צור קשר</a>
                         </div>
                     </div>
@@ -170,14 +174,12 @@
             </nav>
         </div>
     </div>
-
-
     <!-- Navbar End -->
 
-    <!-- Main Content Start -->
-    <hr class="section-divider">
+    <hr class="section-divider ">
 
-    <div class="main-content">
+    <!-- Main Content Start -->
+    <div class="main-content container-fluid px-0 mb-5">
         <!-- כותרת -->
         <h1 class="greeting">שלום, {{ name }}</h1>
 
@@ -293,7 +295,6 @@
         }
 
     </script>
-
 
 </body>
 

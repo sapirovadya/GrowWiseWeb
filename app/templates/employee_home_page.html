@@ -27,7 +27,7 @@
     <style>
         body {
             font-family: "Open Sans", sans-serif;
-            background: #d8e7c1;
+            background: #ffffff;
             margin: 0;
             padding: 0;
         }
@@ -39,20 +39,21 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding: 40px;
+            padding: 10px;
         }
 
         /* כותרת מרכזית */
         .greeting {
             font-size: 36px;
             font-weight: bold;
-            color: #4CAF50;
-            margin-bottom: 40px;
+            color: #8fb23e;
+            margin-bottom: 30px;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
 
-        /* מיכל לעיגולים */
-        .circle-container {
+
+        /* מיכל לעיגולים/עלים */
+        .leaf-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 50px;
@@ -61,66 +62,42 @@
             max-width: 1200px;
         }
 
-        /* עיצוב העיגול */
-        .circle {
+        /* עיצוב העלה */
+        .leaf {
             width: 180px;
             height: 180px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 6px double #388e3c;
             position: relative;
-            box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.2), inset 0px 4px 8px rgba(255, 255, 255, 0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            overflow: hidden;
-        }
-
-        /* אפקט מעבר על עיגול */
-        .circle:hover {
-            background: #bcd4a1;
-            transform: scale(1.05);
             cursor: pointer;
         }
 
-        /* קישור בתוך העיגול */
-        .circle a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .leaf img {
             width: 100%;
             height: 100%;
-            text-decoration: none;
-            color: inherit;
-            position: absolute;
-            top: 0;
-            left: 0;
-            border-radius: 50%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
         }
 
-        /* טקסט בתוך הקישור */
-        .circle a span {
+        .leaf:hover img {
+            transform: scale(1.1);
+        }
+
+        /* טקסט תחת העלה */
+        .leaf span {
+            display: block;
+            text-align: center;
             font-size: 16px;
             font-weight: bold;
-            color: #2e7d32;
-            z-index: 1;
+            color: #8fb23e;
+            margin-top: 10px;
+            font-family: 'Playfair Display', sans-serif;
+
         }
 
-        /* אפקט לפני */
-        .circle:before {
-            content: "";
-            position: absolute;
-            width: 200%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            top: 50%;
-            left: -100%;
-            transform: translateY(-50%) scale(0.5);
-            transition: all 0.4s ease-in-out;
-        }
-
-        .circle:hover:before {
-            left: 0;
-            transform: translateY(-50%) scale(1.5);
+        /* הנפשה בעת לחיצה */
+        .leaf:active img {
+            transform: scale(0.7) rotate(15deg);
+            transition: transform 0.2s ease-out;
         }
     </style>
 </head>
@@ -177,7 +154,16 @@
                                 <div class="dropdown-menu bg-light rounded-0 m-0">
                                     <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
                                         חלקות/חממות</a>
-
+                                    <a href='{{ url_for("plot_bp.archive") }}' class="dropdown-item">ארכיון
+                                        חלקות/חממות</a>
+                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                                    <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
+                                        שלי</a>
+                                    {% endif %}
+                                    {% if session['role'] == "employee" %}
+                                    <a href='/task/alltasks.html' class="dropdown-item">המשימות
+                                        שלי</a>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -192,35 +178,32 @@
             </nav>
         </div>
     </div>
-
     <!-- Navbar End -->
 
     <!-- Main Content Start -->
+    <hr class="section-divider">
+
     <div class="main-content">
         <!-- כותרת -->
         <h1 class="greeting">שלום, {{ name }}</h1>
 
-        <!-- עיגולים -->
-        <div class="circle-container">
-            <div class="circle">
-                <a href="{{ url_for('plot_bp.track_greenhouse') }}">
-                    <span>מעקב חלקות/חממות</span>
-                </a>
+        <!-- עלים -->
+        <div class="leaf-container">
+            <div class="leaf" onclick="navigateTo('track_greenhouse')">
+                <img src="/static/img/leaf.png" alt="מעקב">
+                <span>מעקב חלקות/חממות</span>
             </div>
-            <div class="circle">
-                <a href="#">
-                    <span>ארכיון חלקות/חממות</span>
-                </a>
+            <div class="leaf" onclick="navigateTo('archive')">
+                <img src="/static/img/leaf.png" alt="ארכיון">
+                <span>ארכיון חלקות/חממות</span>
             </div>
-            <div class="circle">
-                <a href="/task/alltasks.html">
-                    <span>משימות</span>
-                </a>
+            <div class="leaf" onclick="navigateTo('inventory')">
+                <img src="/static/img/leaf.png" alt="מלאי">
+                <span>אספקה ומלאי</span>
             </div>
-            <div class="circle">
-                <a href="#">
-                    <span>אספקה ומלאי</span>
-                </a>
+            <div class="leaf" onclick="navigateTo('task')">
+                <img src="/static/img/leaf.png" alt="מלאי">
+                <span>המשימות שלי</span>
             </div>
         </div>
     </div>
@@ -231,6 +214,18 @@
 
     <!-- JavaScript -->
     <script>
+        function navigateTo(page) {
+            const urls = {
+                'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
+                'archive': '{{ url_for("plot_bp.archive") }}',
+                'task': '/task/alltasks.html',
+                'inventory': '#',
+            };
+
+            if (urls[page]) {
+                window.location.href = urls[page];
+            }
+        }
         function toggleNotifications() {
             const modal = document.getElementById("notificationModal");
 

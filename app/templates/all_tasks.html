@@ -126,9 +126,14 @@
                                 <div class="dropdown-menu bg-light rounded-0 m-0">
                                     <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
                                         חלקות/חממות</a>
-
+                                    <a href='{{ url_for("plot_bp.archive") }}' class="dropdown-item">ארכיון
+                                        חלקות/חממות</a>
                                     {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                                     <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
+                                        שלי</a>
+                                    {% endif %}
+                                    {% if session['role'] == "employee" %}
+                                    <a href='/task/alltasks.html' class="dropdown-item">המשימות
                                         שלי</a>
                                     {% endif %}
                                 </div>
