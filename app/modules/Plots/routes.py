@@ -24,18 +24,28 @@ db = client.get_database("dataGrow")
 @plot_bp.route("/growth_forecast", methods=["POST"])
 def growth_forecast():
     try:
+        email = session.get("email")
+        role = session.get("role")
+        
+        # if not email:
+        #     return jsonify({"error": "Manager is not logged in."}), 403
 
-        manager_email = session.get("email")
-        print(f"Manager Email: {manager_email}")
-        if not manager_email:
-            return jsonify({"error": "Manager is not logged in."}), 403
+        if role == "manager":
+            manager_email = email
+        elif role in ["employee", "co_manager"]:
+            manager_email = session.get("manager_email")
+            if not manager_email:
+                return jsonify({"error": "Manager email not found for user."}), 403
+        else:
+            return jsonify({"error": "Invalid role."}), 403
 
         manager = db.manager.find_one({"email": manager_email})
         if not manager:
             return jsonify({"error": "Manager not found in the database."}), 404
 
         city = manager.get("location")
-        print(f"Manager Email: {manager_email}, Location: {city}")
+        if not city:
+            return jsonify({"error": "Location not found for the manager."}), 400
 
         crop = request.json.get("crop")
         plot_type = request.json.get("plot_type")
