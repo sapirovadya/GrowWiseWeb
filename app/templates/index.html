@@ -120,7 +120,7 @@
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto">
                         <a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
-                        <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
+                        <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
                         <a href="about.html" class="nav-item nav-link">צור קשר</a>
                     </div>
                 </div>
@@ -133,7 +133,7 @@
         <div id="header-carousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
             <div class="carousel-inner">
                 <div class="carousel-item active">
-                    <img class="w-100" src="static/img/carousel-1.jpg" alt="Image">
+                    <img class="w-65 h-auto" src="static/img/hero_4.jpg" alt="Image">
                     <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
                         <div class="container">
                             <div class="row justify-content-center">
@@ -262,6 +262,14 @@
                 showAlert("שגיאה במהלך התחברות. נסה שנית.");
             }
         });
+
+
+
+
+        
+
+
+
     </script>
     <!-- Libraries -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
@@ -271,6 +279,27 @@
     <script src="static/lib/waypoints/waypoints.min.js"></script>
     <script src="static/lib/owlcarousel/owl.carousel.min.js"></script>
     <script src="static/js/main.js"></script>
+
+
+    <!-- קוד למניעת חזרה אחורה -->
+    <script>
+        window.onload = function () {
+            history.replaceState(null, null, location.href);
+            history.pushState(null, null, location.href);
+            window.addEventListener('popstate', function () {
+                history.pushState(null, null, location.href);
+            });
+        };
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Backspace' && (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA')) {
+                event.preventDefault();
+            }
+        });
+    </script>
+
+
+
 </body>
 
 </html>

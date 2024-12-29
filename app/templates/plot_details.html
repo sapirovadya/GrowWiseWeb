@@ -72,6 +72,53 @@
             display: flex;
             justify-content: space-between;
         }
+
+        #weather-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            color: #333;
+        }
+
+
+        #weather-info-short {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2a7a2e;
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            border: 1px solid #8fb23e;
+            border-radius: 8px;
+            padding: 5px 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            gap: 10px; 
+            margin-left: 200px;
+        }
+        #weather-info-short i {
+            color: #ffcc00;
+        }
+
+        #detailedWeatherModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
+            justify-content: center;
+            align-items: center;
+        }
+
+
     </style>
 </head>
 
@@ -82,7 +129,7 @@
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <div class="logout-icon" style="display: inline-block;">
-                        <a href="#" onclick="">
+                        <a href="#" onclick="logout(); return false;">
                             <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
                         </a>
                     </div>
@@ -146,6 +193,21 @@
                         <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
                     </a>
                     {% endif %}
+                    <div class="d-flex align-items-center">
+                        <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
+                            <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                        </a>
+                        <div id="weather-info-short" class="d-flex align-items-center">
+                            <i class="bi bi-cloud-sun" style="font-size: 1.5rem; margin-right: 5px;"></i>
+                            <span>
+                                <strong>{{ city }}</strong> - {{ temperature }}°C
+                            </span>
+                        </div>
+                        
+                        
+                    </div>
+
+                    
                 </div>
             </nav>
         </div>
@@ -200,7 +262,9 @@
             {{ plot.total_irrigation_amount }} קוב
             {% endif %}
         </p>
-
+        <div id="weather-info" style="position: absolute; top: 10px; left: 10px; z-index: 1000; background-color: #f8f9fa; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+            <p>טוען מזג אוויר...</p>
+        </div>
         <!-- {% if plot.crop_category == "none" %}
         <button id="updateCropCategory" class="btn btn-success" onclick="UpdateCropCategoryModal('{{ plot._id }}')">עדכון פרטי חלקה</button>
         {% endif %} -->
@@ -217,6 +281,7 @@
         {% endif %}
 
         <button id="growthForecastButton" class="btn btn-info">תחזית גדילה</button>
+        <button id="detailedWeatherButton" class="btn btn-info mt-3">תחזית מזג אוויר</button>
         <button id="archiveButton" class="btn btn-warning mt-3" onclick="openArchiveModal('{{ plot._id }}')">העבר
             לארכיון</button>
     </div>
@@ -297,6 +362,29 @@
             </div>
         </div>
     </div>
+
+    <div id="detailedWeatherModal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">תחזית מזג אוויר</h5>
+                    <button type="button" class="btn-close" onclick="closeWeatherModal()"></button>
+                </div>
+                <div id="detailedWeatherInfo">
+                    <p><strong>עיר:</strong> {{ city }}</p>
+                    <p><strong>טמפרטורה:</strong> {{ temperature }}°C</p>
+                    <p><strong>לחות:</strong> {{ humidity }}%</p>
+                    <p><strong>רוח:</strong> {{ wind_speed }} קמ"ש</p>
+                    <p><strong>תחזית לגשם:</strong> {{ precipitation }}</p>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeWeatherModal()">סגור</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="archiveModal" class="modal">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -643,6 +731,113 @@
                 console.error(error);
                 alert('שגיאה בעת שליחת הבקשה לשרת.');
             }
+        }
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            const shortWeatherDiv = document.getElementById("weather-info-short");
+            const detailedWeatherButton = document.getElementById("detailedWeatherButton");
+            const detailedWeatherInfo = document.getElementById("detailedWeatherInfo");
+
+            try {
+                const response = await fetch("/weather");
+                if (!response.ok) {
+                    throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // עדכון התצוגה הקצרה בסרגל הכלים
+                shortWeatherDiv.innerHTML = `<strong>${data.city}</strong> ${data.temperature}°C`;
+
+                // עדכון התחזית המורחבת במודל
+                detailedWeatherInfo.innerHTML = `
+                    <p><strong>עיר:</strong> ${data.city}</p>
+                    <p><strong>טמפרטורה:</strong> ${data.temperature}°C</p>
+                    <p><strong>לחות:</strong> ${data.humidity}%</p>
+                    <p><strong>רוח:</strong> ${data.wind_speed} קמ"ש</p>
+                    <p><strong>תחזית לגשם:</strong> ${data.precipitation}</p>
+                `;
+
+                // אירוע להצגת מודל התחזית המורחבת
+                detailedWeatherButton.addEventListener("click", () => {
+                    document.getElementById("detailedWeatherModal").style.display = "flex";
+                });
+            } catch (error) {
+                console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
+                shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+                detailedWeatherInfo.innerHTML = `<p>שגיאה בטעינת הנתונים</p>`;
+            }
+        });
+
+        // פונקציה לסגירת מודל תחזית מזג האוויר
+        function closeWeatherModal() {
+            document.getElementById("detailedWeatherModal").style.display = "none";
+        }
+
+
+        function toggleNotifications() {
+            const modal = document.getElementById("notificationModal");
+
+            if (modal.style.display === "none" || modal.style.display === "") {
+                modal.style.display = "block";
+
+                // שליפת התראות מהשרת
+                fetch("/users/get_notifications")
+                    .then(response => response.json())
+                    .then(data => {
+                        const notificationsList = document.getElementById("notifications-list");
+                        if (data.notifications.length > 0) {
+                            notificationsList.innerHTML = data.notifications
+                                .map(notification => `<p class="notification-item">${notification}</p>`)
+                                .join("");
+                        } else {
+                            notificationsList.innerHTML = "<p>אין התראות חדשות.</p>";
+                        }
+                    })
+                    .catch(error => {
+                        const notificationsList = document.getElementById("notifications-list");
+                        console.error("Error fetching notifications:", error);
+                        notificationsList.innerHTML = "<p>שגיאה בטעינת התראות.</p>";
+                    });
+
+                // מאזין סגירה על לחיצה מחוץ לחלון
+                document.addEventListener("click", closeOnOutsideClick);
+            } else {
+                closeNotifications();
+            }
+        }
+
+        function closeNotifications() {
+            const modal = document.getElementById("notificationModal");
+            modal.style.display = "none";
+
+            // הסרת המאזין
+            document.removeEventListener("click", closeOnOutsideClick);
+        }
+
+        function closeOnOutsideClick(event) {
+            const modal = document.getElementById("notificationModal");
+            const notificationIcon = document.getElementById("notificationIcon");
+
+            // בדיקה אם הלחיצה התבצעה מחוץ לחלון ומחוץ לאייקון
+            if (!modal.contains(event.target) && event.target !== notificationIcon) {
+                closeNotifications();
+            }
+        }
+
+        function logout() {
+            fetch('/users/logout', {
+                method: 'POST',
+                credentials: 'same-origin'  // שולח את ה-cookies של ה-session
+            }).then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;  // מפנה לדף הבית
+                } else {
+                    alert('שגיאה במהלך הניתוק.');
+                }
+            }).catch(error => {
+                console.error('שגיאה בלתי צפויה:', error);
+            });
         }
 
     </script>
