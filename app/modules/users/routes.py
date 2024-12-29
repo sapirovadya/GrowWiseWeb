@@ -45,10 +45,10 @@ def signup():
 
         # בדיקות שדות חובה
         if not all([first_name, last_name, email, password, role]):
-            return jsonify({"message": "All fields are required!"}), 400
+            return jsonify({"message": "All fields are required"}), 400
 
         if db.manager.find_one({"email": email}) or db.employee.find_one({"email": email}):
-            return jsonify({"message": "Email already exists. Please use a different email."}), 400
+            return jsonify({"message": "Email already exists. Please use a different email"}), 400
 
         # הצפנת סיסמה
         hashed_password = generate_password_hash(password)
@@ -57,41 +57,41 @@ def signup():
             user = Manager().signup(data)
             user["password"] = hashed_password
             db.manager.insert_one(user)
-            return jsonify({"message": "Manager registered successfully!"}), 200
+            return jsonify({"message": "Manager registered successfully"}), 200
 
         elif role == "employee" or role == "co_manager":
             if not manager_email:
-                return jsonify({"message": "Manager email is required for workers!"}), 400
+                return jsonify({"message": "Manager email is required for workers"}), 400
 
             manag = db.manager.find_one({"email": manager_email, "role": "manager"})
             if not manag:
-                return jsonify({"message": "Manager email not found. Please provide a valid manager email."}), 400
+                return jsonify({"message": "Manager email not found. Please provide a valid manager email"}), 400
 
             if role == "employee":
                 db.manager.update_one({"email": manager_email}, {"$addToSet": {"workers": email}})
                 user = Employee().signup(data)
                 user["password"] = hashed_password
                 db.employee.insert_one(user)
-                return jsonify({"message": "Employee registered successfully!"}), 200
+                return jsonify({"message": "Employee registered successfully"}), 200
             
             if role == "co_manager":
                 db.manager.update_one({"email": manager_email}, {"$addToSet": {"co_managers": email}})
                 user = Co_Manager().signup(data)
                 user["password"] = hashed_password
                 db.co_manager.insert_one(user)
-                return jsonify({"message": "Co-manager registered successfully!"}), 200
+                return jsonify({"message": "Co-manager registered successfully"}), 200
         
         elif  role == "job_seeker":
             user = Job_Seeker().signup(data)
             user["password"] = hashed_password
             db.job_seeker.insert_one(user)
-            return jsonify({"message": "Job-Seeker registered successfully!"}), 200
+            return jsonify({"message": "Job-Seeker registered successfully"}), 200
 
-        return jsonify({"message": "Invalid role provided."}), 400
+        return jsonify({"message": "Invalid role provided"}), 400
 
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({"message": "Failed to register user. Please try again later."}), 500
+        return jsonify({"message": "Failed to register user. Please try again later"}), 500
 
 
 @users_bp_main.route("/login", methods=['POST'])
@@ -355,16 +355,11 @@ def get_notifications():
         print(f"Error fetching notifications: {e}")
         return jsonify({"notifications": [], "message": "שגיאה בטעינת ההתראות."}), 500
     
-@logout_bp.route('/logout')
+@users_bp_main.route('/logout', methods=['POST'])
 def logout():
-    # ניקוי הנתונים מה-Session
-    session.clear()
-    # חזרה לדף הראשי והגדרת כותרות למניעת חזרה אחורה
-    response = redirect(url_for('home'))  # נניח שהדף הראשי מוגדר ב-'main_bp.home'
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response
+    session.clear()  # מנקה את הסשן
+    return redirect(url_for('home'))  # מפנה לדף הבית
+
 
 @users_bp_main.route('/get_cities', methods=['GET'])
 def get_cities():
@@ -378,3 +373,8 @@ def get_cities():
         return jsonify(city_list)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+@users_bp_main.route('/about', methods=['GET'])
+def about_us():
+    return render_template('about_us.html')

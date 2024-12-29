@@ -10,6 +10,9 @@ from modules.users.job_seeker.routes import job_seeker_bp
 from modules.users.routes import logout_bp
 from modules.Plots.routes import plot_bp
 from modules.task.routes import task_bp
+from modules.weather.routes import weather_bp
+
+
 import json
 
   # עדכן את הנתיב בהתאם
@@ -31,6 +34,7 @@ app.register_blueprint(job_seeker_bp, url_prefix='/job_seeker')
 app.register_blueprint(plot_bp, url_prefix='/Plots')
 app.register_blueprint(task_bp, url_prefix='/task')
 app.register_blueprint(logout_bp)
+app.register_blueprint(weather_bp, url_prefix='/weather')
 
 
 def update_crops_data():

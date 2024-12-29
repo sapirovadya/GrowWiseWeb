@@ -23,28 +23,44 @@ db = client.get_database("dataGrow")
 
 @plot_bp.route("/growth_forecast", methods=["POST"])
 def growth_forecast():
-
-    crop = request.json.get("crop")
-    plot_type = request.json.get("plot_type")
-    city = "באר שבע"
-    sow_date = request.json.get("sow_date")
-    input_date = datetime.strptime(sow_date, '%Y-%m-%d')
-    today_date = datetime.now()
-    days_passed = (today_date - input_date).days
-
-
-
-    prompt = f"כיצד אמור להיראות שתיל של {crop}, לאחר {days_passed} ימים מהשתילה, הגדל בעיר {city} באופן גידול  {plot_type}? תאר לי בעזרת גובה (במספרים), צבע (של גבעולים ועלים) ותפוקת יבול."
-
     try:
+
+        manager_email = session.get("email")
+        print(f"Manager Email: {manager_email}")
+        if not manager_email:
+            return jsonify({"error": "Manager is not logged in."}), 403
+
+        manager = db.manager.find_one({"email": manager_email})
+        if not manager:
+            return jsonify({"error": "Manager not found in the database."}), 404
+
+        city = manager.get("location")
+        print(f"Manager Email: {manager_email}, Location: {city}")
+
+        crop = request.json.get("crop")
+        plot_type = request.json.get("plot_type")
+        sow_date = request.json.get("sow_date")
+
+        if not (crop and plot_type and sow_date):
+            return jsonify({"error": "Missing required fields in the request."}), 400
+
+        input_date = datetime.strptime(sow_date, '%Y-%m-%d')
+        today_date = datetime.now()
+        days_passed = (today_date - input_date).days
+
+        # בניית הפרומפט
+        prompt = (
+            f"כיצד אמור להיראות שתיל של {crop}, לאחר {days_passed} ימים מהשתילה, "
+            f"הגדל בעיר {city} באופן גידול {plot_type}? "
+            f"תאר לי בעזרת גובה (במספרים), צבע (של גבעולים ועלים) והאם הגידול אמור להפיק תוצר בהתאם ליבול (פרי או ירק וכדומה)."
+        )
+
         response = openai.ChatCompletion.create(
             model=MODEL,
             messages=[
                 {
                     "role": "system",
-                    "content":(
-                        "אתה אגרונום, הנותן תחזית מדוייקת לחקלאים לפי מיקום ותנאי אקלים בארץ ישראל."
-                    )
+                    "content": "אתה אגרונום, הנותן תחזיות גדילה ואיך אמורים להיראות (במילולית) הגידולים באופן מדויק לחקלאים לפי מיקום ותנאי אקלים בארץ ישראל.אסור להשתמש בכוכביות ואסור  להדגיש מילים! ניתן להשתמש במספור אם יש צורך"
                 },
                 {"role": "user", "content": prompt}
             ],
@@ -62,7 +78,7 @@ def growth_forecast():
         return jsonify({"error": f"שגיאה ב-API של OpenAI: {e}"}), 500
     except Exception as e:
         return jsonify({"error": f"שגיאה כללית: {e}"}), 500
-    
+
 
 @plot_bp.route("/track_greenhouse", methods=['GET'])
 def track_greenhouse():
