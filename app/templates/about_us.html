@@ -42,7 +42,7 @@
                     {% if session['role'] == "manager" or session['role'] == "co_manager" or session['role'] ==
                     "employee" or session['role'] == "job_seeker" %}
                     <div class="logout-icon" style="display: inline-block;">
-                        <a href="#" onclick="">
+                        <a href="#" onclick="logout(); return false;">
                             <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
                         </a>
                     </div>
@@ -437,6 +437,21 @@
             modal.style.display = "none";
             // הסרת המאזין
             document.removeEventListener("click", closeOnOutsideClick);
+        }
+
+        function logout() {
+            fetch('/users/logout', {
+                method: 'POST',
+                credentials: 'same-origin'  // שולח את ה-cookies של ה-session
+            }).then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;  // מפנה לדף הבית
+                } else {
+                    alert('שגיאה במהלך הניתוק.');
+                }
+            }).catch(error => {
+                console.error('שגיאה בלתי צפויה:', error);
+            });
         }
     </script>
 </body>

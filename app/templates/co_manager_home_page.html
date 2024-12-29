@@ -91,7 +91,7 @@
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <div class="logout-icon" style="display: inline-block;">
-                        <a href="#" onclick="">
+                        <a href="#" onclick="logout(); return false;">
                             <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
                         </a>
                     </div>
@@ -238,6 +238,20 @@
             }).catch(error => console.error('Error updating session:', error));
         }
 
+        function logout() {
+            fetch('/users/logout', {
+                method: 'POST',
+                credentials: 'same-origin'  // שולח את ה-cookies של ה-session
+            }).then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;  // מפנה לדף הבית
+                } else {
+                    alert('שגיאה במהלך הניתוק.');
+                }
+            }).catch(error => {
+                console.error('שגיאה בלתי צפויה:', error);
+            });
+        }
     </script>
 </body>
 
