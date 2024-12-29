@@ -272,6 +272,12 @@
                     <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}" class="navbar-brand"><img
                             class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo"></a>
                     {% endif %}
+                    <div id="weather-info-short" class="d-flex align-items-center">
+                        <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                        <span>
+                            <strong>{{ city }}</strong> - {{ temperature }}°C
+                        </span>
+                    </div>
                 </div>
             </nav>
         </div>
@@ -642,6 +648,29 @@
                 confirmBox.style.display = "none";
             };
         }
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            const shortWeatherDiv = document.getElementById("weather-info-short");
+
+            try {
+                const response = await fetch("/weather");
+                if (!response.ok) {
+                    throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // עדכון התצוגה הקצרה בסרגל הכלים
+                shortWeatherDiv.innerHTML = `
+                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                    <strong>${data.city}</strong> ${data.temperature}°C
+                `;
+            } catch (error) {
+                console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
+                shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+            }
+        });
+
         function logout() {
             fetch('/users/logout', {
                 method: 'POST',
