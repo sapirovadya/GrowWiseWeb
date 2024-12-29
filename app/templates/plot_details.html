@@ -98,9 +98,10 @@
             border-radius: 8px;
             padding: 5px 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            gap: 10px; 
+            gap: 10px;
             margin-left: 200px;
         }
+
         #weather-info-short i {
             color: #ffcc00;
         }
@@ -117,8 +118,6 @@
             justify-content: center;
             align-items: center;
         }
-
-
     </style>
 </head>
 
@@ -166,6 +165,9 @@
                             <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
                             {% elif session['role'] == "employee" %}
                             <a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
+                            {% elif session['role'] == "job_seeker" %}
+                            <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}"
+                                class="nav-item nav-link">בית</a>
                             {% endif %}
                             <!-- Dropdown של דפים -->
                             <div class="nav-item dropdown position-relative">
@@ -180,34 +182,31 @@
                                 </div>
                             </div>
 
-                            <a href="about.html" class="nav-item nav-link">מי אנחנו</a>
+                            <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
                             <a href="contact.html" class="nav-item nav-link">צור קשר</a>
                         </div>
                     </div>
-                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
-                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                    </a>
-                    {% elif session['role'] == "employee" %}
-                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
-                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                    </a>
-                    {% endif %}
                     <div class="d-flex align-items-center">
+                        {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                         <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
                             <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
                         </a>
+                        {% elif session['role'] == "employee" %}
+                        <a href="{{ url_for('employee_bp.employee_home_page') }}" class="navbar-brand">
+                            <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                        </a>
+                        {% endif %}
                         <div id="weather-info-short" class="d-flex align-items-center">
                             <i class="bi bi-cloud-sun" style="font-size: 1.5rem; margin-right: 5px;"></i>
                             <span>
                                 <strong>{{ city }}</strong> - {{ temperature }}°C
                             </span>
                         </div>
-                        
-                        
+
+
                     </div>
 
-                    
+
                 </div>
             </nav>
         </div>
@@ -262,7 +261,8 @@
             {{ plot.total_irrigation_amount }} קוב
             {% endif %}
         </p>
-        <div id="weather-info" style="position: absolute; top: 10px; left: 10px; z-index: 1000; background-color: #f8f9fa; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+        <div id="weather-info"
+            style="position: absolute; top: 10px; left: 10px; z-index: 1000; background-color: #f8f9fa; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
             <p>טוען מזג אוויר...</p>
         </div>
         <!-- {% if plot.crop_category == "none" %}
@@ -377,7 +377,7 @@
                     <p><strong>רוח:</strong> {{ wind_speed }} קמ"ש</p>
                     <p><strong>תחזית לגשם:</strong> {{ precipitation }}</p>
                 </div>
-                
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeWeatherModal()">סגור</button>
                 </div>

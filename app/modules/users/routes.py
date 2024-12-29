@@ -47,7 +47,7 @@ def signup():
         if not all([first_name, last_name, email, password, role]):
             return jsonify({"message": "All fields are required"}), 400
 
-        if db.manager.find_one({"email": email}) or db.employee.find_one({"email": email}):
+        if db.manager.find_one({"email": email}) or db.employee.find_one({"email": email}) or db.co_manager.find_one({"email": email}) or db.job_seeker.find_one({"email": email}):
             return jsonify({"message": "Email already exists. Please use a different email"}), 400
 
         # הצפנת סיסמה
@@ -170,10 +170,9 @@ def login():
         job_seeker = db.job_seeker.find_one({"email": email})
         if job_seeker:
             # בדיקת סיסמה
-            if not check_password_hash(manager["password"], password):
+            if not check_password_hash(job_seeker["password"], password):
                 return jsonify({"message": "one of the detail is incorrect"}), 400
             
-            # מנהל נמצא ומאושר
             session['email'] = email
             session['name'] = job_seeker.get('first_name')
             session['role'] = 'job_seeker'

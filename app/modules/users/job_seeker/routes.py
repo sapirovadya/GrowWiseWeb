@@ -20,5 +20,5 @@ def job_seeker_home_page():
     if 'email' not in session:  # בדיקה אם המשתמש מחובר
         return redirect(url_for('users_bp_main.login'))  # אם לא, החזר לדף ההתחברות
     
-    name = session.get('name')  # קבלת שם המנהל מה-session
+    name = session.get('name') 
     return render_template("job_seeker_home_page.html", name=name)
