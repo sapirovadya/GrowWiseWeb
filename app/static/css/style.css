@@ -206,7 +206,8 @@ textarea {
     bottom: 0;
     display: flex;
     align-items: center;
-    background: rgba(136, 180, 78, .7);
+    background: none !important;
+    /* מסיר שכבות צבע */
     z-index: 1;
 }
 
@@ -238,6 +239,16 @@ textarea {
     }
 }
 
+.carousel-item img {
+    filter: none !important;
+    /* מבטל כל פילטר */
+    background-color: transparent !important;
+    /* מבטל כל צבע רקע */
+    opacity: 1 !important;
+    /* שומר על אטימות מלאה */
+}
+
+
 .page-header {
     background: linear-gradient(rgba(136, 180, 78, .7), rgba(136, 180, 78, .7)), url(../img/carousel-1.jpg) center center no-repeat;
     background-size: cover;
@@ -264,7 +275,7 @@ textarea {
 .section-title::before {
     position: absolute;
     content: "";
-    width: 50%;
+    width: 100%;
     height: 2px;
     bottom: 0;
     left: 0;
@@ -277,7 +288,7 @@ textarea {
     width: 28px;
     height: 28px;
     bottom: -13px;
-    left: calc(25% - 13px);
+    left: 50%;
     background: var(--dark);
     border: 10px solid #FFFFFF;
     border-radius: 28px;
@@ -1137,7 +1148,6 @@ span.me-2 {
     /* צבע טקסט */
     padding: 20px 30px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    border: 2px solid var(--primary);
     /* צבע גבול */
     border-radius: 10px;
     text-align: center;
@@ -1180,4 +1190,315 @@ span.me-2 {
 
 .alert-box .alert-close:hover {
     background-color: var(--secondary);
+}
+
+/*--------------------------------------------------------------
+# Services Section
+--------------------------------------------------------------*/
+.services .section-title h2 {
+    color: var(--accent-color);
+    /* שמור על הצבע הנוכחי */
+    font-size: 30px;
+    /* הגודל של הצוות שלנו */
+    font-weight: 700;
+    /* שמירה על הדגשה */
+}
+
+.services .content .service-item {
+    background-color: var(--surface-color);
+    padding: 20px 30px;
+    border-top: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+    border-left: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+    position: relative;
+}
+
+.services .content .service-item .number {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-weight: 400;
+    color: color-mix(in srgb, var(--default-color), transparent 80%);
+}
+
+.services .content .service-item .service-item-icon {
+    position: relative;
+    margin-bottom: 20px;
+    color: var(--accent-color);
+}
+
+.services .content .service-item .service-item-icon img {
+    width: 90px;
+}
+
+
+.services .content .service-item .service-item-icon:before {
+    position: absolute;
+    content: "";
+    transform: rotate(45deg);
+    z-index: -1;
+    left: -20px;
+    border-top: 40px solid transparent;
+    border-bottom: 40px solid transparent;
+    border-right: 40px solid var(--accent-color);
+    display: none;
+}
+
+.services .content .service-item .service-item-icon>span {
+    color: var(--default-color);
+    font-size: 4rem;
+}
+
+.services .content .service-item .service-item-content .service-heading {
+    font-size: 20px;
+    color: var(--default-color);
+    font-weight: 400;
+}
+
+.services .content .service-item .service-item-content p {
+    font-size: 15px;
+}
+
+@media (min-width: 769px) {
+    .services .content [class^=col-]:nth-child(4n+4) .service-item {
+        border-right: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+    }
+
+    .services .content [class^=col-]:nth-last-child(-n+4) .service-item {
+        border-bottom: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+    }
+}
+
+@media (max-width: 768px) {
+    .services .content [class^=col-]:nth-child(2n+2) .service-item {
+        border-right: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+    }
+
+    .services .content [class^=col-]:last-child .service-item,
+    .services .content [class^=col-]:nth-last-child(2) .service-item {
+        border-bottom: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+    }
+}
+
+@media (max-width: 576px) {
+    .services .content [class^=col-] .service-item {
+        border: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+        margin-bottom: 10px;
+    }
+}
+
+/*--------------------------------------------------------------
+# About 3 Section
+--------------------------------------------------------------*/
+.about-3 .content-title {
+    color: var(--accent-color);
+    margin-bottom: 30px;
+}
+
+.about-3 .btn-cta {
+    font-size: 25px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 30px;
+    padding-right: 30px;
+    background-color: var(--accent-color);
+    color: var(--contrast-color);
+    border-radius: 6px;
+}
+
+.about-3 .list-check {
+    margin-bottom: 50px;
+}
+
+.about-3 .list-check li {
+    display: block;
+    padding-left: 30px;
+    position: relative;
+}
+
+.about-3 .list-check li:before {
+    content: "\f26e";
+    display: inline-block;
+    font-family: "bootstrap-icons" !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    vertical-align: -0.125em;
+    -webkit-font-smoothing: antialiased;
+    top: 0.1rem;
+    font-size: 20px;
+    left: 0;
+    color: var(--accent-color);
+}
+
+.about-3 .pulsating-play-btn {
+    position: absolute;
+    left: calc(50% - 47px);
+    top: calc(50% - 47px);
+}
+
+/*--------------------------------------------------------------
+# Services 2 Section
+--------------------------------------------------------------*/
+.services-2 {
+    overflow: visible;
+    margin-bottom: 200px;
+}
+
+.services-2 .section-title {
+    text-align: left;
+}
+
+.services-2 .section-title h2 {
+    color: color-mix(in srgb, var(--contrast-color), transparent 50%);
+    text-transform: uppercase;
+    font-size: 20px;
+}
+
+.services-2 .section-title p {
+    color: var(--contrast-color);
+}
+
+.services-2 .services-carousel-wrap {
+    position: relative;
+    margin-bottom: -200px;
+}
+
+.services-2 .swiper-wrapper {
+    height: auto;
+}
+
+.services-2 .service-item {
+    position: relative;
+    overflow: hidden;
+}
+
+.services-2 .service-item:before {
+    content: "";
+    background-color: color-mix(in srgb, var(--background-color), transparent 50%);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    opacity: 0;
+    visibility: hidden;
+    z-index: 1;
+    transition: 0.3s all ease;
+}
+
+.services-2 .service-item img {
+    transition: 0.5s all ease;
+    transform: scale(1);
+}
+
+.services-2 .service-item .service-item-contents {
+    z-index: 9;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    transition: 0.3s all ease;
+    transform: translateY(100%);
+    opacity: 0;
+    visibility: hidden;
+}
+
+.services-2 .service-item .service-item-contents .service-item-category {
+    color: var(--accent-color);
+    text-transform: uppercase;
+}
+
+.services-2 .service-item .service-item-contents .service-item-title {
+    color: var(--contrast-color);
+    margin-bottom: 0;
+}
+
+.services-2 .service-item:hover:before {
+    opacity: 1;
+    visibility: visible;
+}
+
+.services-2 .service-item:hover .service-item-contents {
+    transform: translateY(0%);
+    opacity: 1;
+    visibility: visible;
+}
+
+.services-2 .service-item:hover img {
+    transform: scale(1.2);
+}
+
+.services-2 .navigation-prev,
+.services-2 .navigation-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 9;
+    width: 46px;
+    height: 46px;
+    background: var(--contrast-color);
+    background-color: none;
+    border: none;
+    transition: 0.3s all ease;
+}
+
+.services-2 .navigation-prev i,
+.services-2 .navigation-next i {
+    font-size: 2rem;
+}
+
+.services-2 .navigation-prev:hover,
+.services-2 .navigation-next:hover {
+    background-color: var(--accent-color);
+    color: var(--contrast-color);
+}
+
+.services-2 .navigation-prev {
+    left: 10px;
+}
+
+.services-2 .navigation-next {
+    right: 10px;
+}
+
+.services-2 .swiper {
+    padding-bottom: 50px;
+}
+
+.services-2 .swiper-pagination {
+    bottom: 0px;
+}
+
+.services-2 .swiper-pagination .swiper-pagination-bullet {
+    border-radius: 0;
+    width: 20px;
+    height: 4px;
+    background-color: color-mix(in srgb, var(--background-color), transparent 80%) !important;
+    opacity: 1;
+}
+
+.services-2 .swiper-pagination .swiper-pagination-bullet-active {
+    background-color: var(--accent-color) !important;
+}
+
+/* הגדלת טקסט */
+.about-3 .large-text {
+    font-size: 16px;
+    /* שנה לפי הצורך */
+    line-height: 1.8;
+    /* שיפור קריאות */
+}
+
+.team .large-text {
+    font-size: 16px;
+    /* שנה לפי הצורך */
+    line-height: 1.8;
+}
+
+/* יישור לשמאל */
+.team {
+    direction: ltr;
+    /* שינוי כיוון הטקסט */
 }
