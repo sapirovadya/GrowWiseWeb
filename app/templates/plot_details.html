@@ -282,8 +282,10 @@
 
         <button id="growthForecastButton" class="btn btn-info">תחזית גדילה</button>
         <button id="detailedWeatherButton" class="btn btn-info mt-3">תחזית מזג אוויר</button>
+        {% if session['role'] == "manager" or session['role'] == "co_manager" %}
         <button id="archiveButton" class="btn btn-warning mt-3" onclick="openArchiveModal('{{ plot._id }}')">העבר
             לארכיון</button>
+        {% endif %}
     </div>
 
     <!-- Update crop window -->
