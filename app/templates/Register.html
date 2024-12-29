@@ -31,6 +31,63 @@
 
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        .alert-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            text-align: center;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .alert-box .alert-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .alert-box .alert-message {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .alert-box .alert-close {
+            margin-top: 10px;
+            font-size: 14px;
+            padding: 10px 20px;
+            background-color: #8fb23e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .alert-box .alert-close:hover {
+            background-color: var(--secondary);
+
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -55%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -129,6 +186,11 @@
     </div>
     <!-- Registration Form End -->
 
+    <div id="customAlert" class="alert-box" style="display:none;">
+        <h5 class="alert-title">כותרת</h5>
+        <p class="alert-message">הודעה</p>
+        <button class="alert-close btn btn-primary" onclick="closeAlert()">סגור</button>
+    </div>
 
     <!-- Footer Start -->
     <div class="container-fluid bg-dark footer mt-3 py-3 wow fadeIn" data-wow-delay="0.1s">
@@ -171,7 +233,7 @@
 
                 // בדיקה אם השדה ריק
                 if (validValue === "") {
-                    input.setCustomValidity("יש להזין שם המכיל רק אותיות.");
+                    input.setCustomValidity("נא הזן שם המכיל רק אותיות");
                 } else {
                     input.setCustomValidity("");
                 }
@@ -185,20 +247,26 @@
         const validateEmailInput = (input) => {
             input.addEventListener("input", (event) => {
                 const value = event.target.value;
-                const emailPattern = /^[a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]*$/;
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-                // הסרת תווים לא חוקיים בזמן ההקלדה
                 if (!emailPattern.test(value)) {
-                    event.target.value = value.replace(/[^a-zA-Z0-9._%+-@]/g, "");
-                }
-
-                // בדיקה אם הפורמט הכללי נכון
-                const fullPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                if (!fullPattern.test(value) && value !== "") {
-                    input.setCustomValidity("כתובת האימייל אינה תקינה.");
+                    input.setCustomValidity("כתובת האימייל אינה תקינה. יש לכלול את הסימן @ ואת הסיומת (לדוגמה: name@example.com).");
                 } else {
                     input.setCustomValidity("");
                 }
+
+                // // הסרת תווים לא חוקיים בזמן ההקלדה
+                // if (!emailPattern.test(value)) {
+                //     event.target.value = value.replace(/[^a-zA-Z0-9._%+-@]/g, "");
+                // }
+
+                // // בדיקה אם הפורמט הכללי נכון
+                // const fullPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                // if (!fullPattern.test(value) && value !== "") {
+                //     input.setCustomValidity("The email address is invalid");
+                // } else {
+                //     input.setCustomValidity("");
+                // }
             });
         };
 
@@ -220,7 +288,7 @@
                 const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
 
                 if (!passwordPattern.test(validValue)) {
-                    input.setCustomValidity("הסיסמה חייבת לכלול בין 8-16 תווים, לפחות אות אחת באנגלית, מספר אחד וסימן מיוחד.");
+                    input.setCustomValidity("הסיסמה חייבת לכלול בין 8-16 תווים, לפחות אות אחת גדולה באנגלית, מספר אחד וסמל מיוחד");
                 } else {
                     input.setCustomValidity("");
                 }
@@ -240,35 +308,81 @@
             }
         });
 
-        // וידוא טופס לפני שליחה
         document.getElementById("registerForm").addEventListener("submit", async function (event) {
-            event.preventDefault();
+            event.preventDefault(); // מניעת שליחת הטופס ברירת מחדל
 
-            const formData = new FormData(this);
-            const data = {};
-            formData.forEach((value, key) => (data[key] = value));
+            // איסוף הערכים מהשדות
+            const firstName = document.getElementById("first_name").value.trim();
+            const lastName = document.getElementById("last_name").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const managerEmail = document.getElementById("manager_email").value.trim();
+            const role = document.getElementById("role").value;
+            const location = document.getElementById("location").value.trim();
 
+            // דפוסי אימות
+            const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+            // בדיקות שדות
+            if (!firstName || !lastName || !email || !password || !role) {
+                showAlert("שגיאה", "יש למלא את כל השדות");
+                return;
+            }
+
+            if (!emailPattern.test(email)) {
+                showAlert("שגיאה", "כתובת האימייל אינה תקינה. יש להזין כתובת חוקית.");
+                return;
+            }
+
+            if (!passwordPattern.test(password)) {
+                showAlert("שגיאה", "הסיסמה אינה עומדת בדרישות. יש להזין סיסמה באורך 8-16 תווים, עם אות גדולה באנגלית, מספר וסימן מיוחד.");
+                return;
+            }
+
+            if (role === "manager" && !location) {
+                showAlert("שגיאה", "יש לבחור את מיקום המשק.");
+                return;
+            }
+
+            if ((role === "co_manager" || role === "employee") && !managerEmail) {
+                showAlert("שגיאה", "יש להזין את כתובת האימייל של המנהל.");
+                return;
+            }
+
+            // הכנת הנתונים לשליחה
+            const formData = {
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                password: password,
+                role: role,
+                manager_email: managerEmail || "",
+                location: location || "",
+            };
+
+            // שליחת הנתונים לשרת
             try {
                 const response = await fetch("/users/signup", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(data),
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData),
                 });
 
                 const result = await response.json();
+
                 if (response.ok) {
-                    alert(result.message);
+                    showAlert("הצלחה", result.message);
                     window.location.href = "/"; // הפניה לדף הבית
                 } else {
-                    alert(result.message || "Failed to submit the form. Please check the inputs.");
+                    showAlert("שגיאה", result.message || "אירעה שגיאה בעת שליחת הטופס.");
                 }
             } catch (error) {
                 console.error("Error submitting form:", error);
-                alert("An error occurred. Please try again later.");
+                showAlert("שגיאה", "אירעה שגיאה בשרת. נסה שנית מאוחר יותר.");
             }
         });
+
         const loadCities = async () => {
             try {
                 const response = await fetch('/users/get_cities');
@@ -307,7 +421,7 @@
 
             } catch (error) {
                 console.error("Error loading cities:", error.message);
-                alert("שגיאה בטעינת רשימת הערים.");
+                showAlert("שגיאה בטעינת רשימת הערים.");
             }
         };
 
@@ -325,21 +439,6 @@
             }
         });
 
-
-        // בדיקת טופס לפני שליחה
-        document.getElementById("registerForm").addEventListener("submit", function (event) {
-            const role = document.getElementById("role").value;
-            const location = document.getElementById("location").value;
-
-            if (!role) {
-                event.preventDefault();
-                alert("נא לבחור תפקיד.");
-            } else if (role === "manager" && !location) {
-                event.preventDefault();
-                alert("נא לבחור את מקום המשק.");
-            }
-        });
-
         // קריאה ראשונית אם התפקיד כבר נבחר
         document.addEventListener("DOMContentLoaded", () => {
             const role = document.getElementById("role").value;
@@ -348,6 +447,20 @@
                 loadCities();
             }
         });
+        function showAlert(title, message) {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.querySelector(".alert-title").textContent = title;
+            alertBox.querySelector(".alert-message").textContent = message;
+            alertBox.style.display = "block";
+            alertBox.classList.add("fade-in");
+        }
+
+        function closeAlert() {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.classList.remove("fade-in");
+            alertBox.style.display = "none";
+        }
+
     </script>
 
 
