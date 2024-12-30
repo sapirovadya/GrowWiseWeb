@@ -222,7 +222,7 @@ def update_plot(plot_id):
         data = request.get_json()
 
         # בדיקה האם כל הנתונים הדרושים נשלחו
-        required_fields = ['crop_category', 'crop', 'sow_date']
+        required_fields = ['crop_category', 'crop', 'sow_date', 'quantity_planted']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing field: {field}"}), 400

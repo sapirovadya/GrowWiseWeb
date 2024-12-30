@@ -72,7 +72,6 @@
             display: flex;
             justify-content: space-between;
         }
-
     </style>
 </head>
 
@@ -152,15 +151,16 @@
                         </a>
                         {% endif %}
                     </div>
-                        <div id="weather-info-short" class="d-flex align-items-center">
-                            <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
-                            <span>
-                                <strong>{{ city }}</strong> - {{ temperature }}°C
-                            </span>
-                        </div>
+                    <div id="weather-info-short" class="d-flex align-items-center">
+                        <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
+                            style="width: 24px; height: 24px; margin-right: 8px;">
+                        <span>
+                            <strong>{{ city }}</strong> - {{ temperature }}°C
+                        </span>
+                    </div>
 
 
-                   
+
 
 
                 </div>
@@ -173,126 +173,126 @@
     <hr class="section-divider">
     <div class="container mt-4">
         <div class="row">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1 class="text-center flex-grow-1">פרטי החלקה</h1>
-            <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="btn btn-primary">חזרה לדף החלקות</a>
-        </div>
-        <hr class="section-divider">
-        <!-- פרטי החלקה (צד שמאל) -->
-        <div class="col-md-6 order-md-1">
-        <h2>{{ plot.plot_name }}</h2>
-        <br>
-        <p><strong>צורת גידול: </strong> {{ plot.plot_type or "לא זמין" }}</p>
-        <p><strong>אורך:</strong> {{ plot.length or "לא זמין" }} מטר</p>
-        <p><strong>רוחב:</strong> {{ plot.width or "לא זמין" }} מטר</p>
-        <p><strong>סוג גידול:</strong>
-            {% if plot.crop_category == "none" %}
-            טרם נבחר סוג הגידול
-            {% else %}
-            {{ plot.crop_category }}
-            {% endif %}
-        </p>
-        <p><strong>גידול:</strong>
-            {% if plot.crop == "none" %}
-            טרם נבחר גידול
-            {% else %}
-            {{ plot.crop }}
-            {% endif %}
-        </p>
-        <p><strong>תאריך זריעה:</strong>
-            {% if plot.sow_date == "" %}
-            טרם בוצעה זריעה
-            {% else %}
-            {{ plot.sow_date }}
-            {% endif %}
-        </p>
-        <p><strong>כמות הזריעה(בק״ג):</strong>
-            {% if plot.quantity_planted == "" %}
-            טרם בוצעה זריעה
-            {% else %}
-            {{ plot.quantity_planted }}
-            {% endif %}
-        </p>
-        <p><strong>תאריך השקיה אחרון:</strong>
-            {% if plot.last_irrigation_date == None %}
-            טרם בוצעה השקייה
-            {% else %}
-            {{ plot.last_irrigation_date }}
-            {% endif %}
-        </p>
-        <p><strong>כמות השקיה כוללת:</strong>
-            {% if plot.total_irrigation_amount == None %}
-            0
-            {% else %}
-            {{ plot.total_irrigation_amount }} קוב
-            {% endif %}
-        </p>
-    </div>
-        <div id="weather-info"
-            style="position: absolute; top: 10px; left: 10px; z-index: 1000; background-color: #f8f9fa; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-            <p>טוען מזג אוויר...</p>
-        </div>
-
-        {% if plot.crop_category == "none" %}
-        <div class="col-md-6 order-md-2 move-buttons-lower" style="margin-top: 80px;">
-            <div class="container">
-
-                <div class="col-3 text-center" style="padding: 10px;">
-                    <div class="service-item-icon" id="updateCropCategory"
-                        onclick="openUpdateModal('{{ plot._id }}')">
-                        <img src="/static/img/update_grow.png" alt="" width="80" height="80">
-                    </div>
-                    <p>עדכון פרטי חלקה</p>
-                </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="text-center flex-grow-1">פרטי החלקה</h1>
+                <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="btn btn-primary">חזרה לדף החלקות</a>
             </div>
-
-        </div>
-        {% endif %}
-
-
-        <!-- כפתורים (צד ימין, קצת למטה) -->
-        {% if plot.crop_category != "none" %}
-        <div class="col-md-6 order-md-2 move-buttons-lower" style="margin-top: 80px;">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <!-- שורה ראשונה -->
-                    <div class="col-3 text-center" style="padding: 10px;">
-                        <div class="service-item-icon" onclick="checkAndOpenIrrigationModal('{{ plot._id }}')">
-                            <img src="/static/img/waters.png" alt="" width="80" height="80">
-                        </div>
-                        <p>עדכון השקיה</p>
-                    </div>
-                    <div class="col-3 text-center" id="growthForecastButton" style="padding: 10px;">
-                        <div class="service-item-icon">
-                            <img src="/static/img/grow_color.png" alt="" width="80" height="80">
-                        </div>
-                        <p>תחזית גדילה</p>
-                    </div>
-                </div>
-
-                <div class="row justify-content-center mt-4">
-                    <!-- שורה שנייה -->
-                    <div class="col-3 text-center" style="padding: 10px;" id="detailedWeatherButton">
-                        <div class="service-item-icon">
-                            <img src="/static/img/cloud.png" alt="" width="80" height="80">
-                        </div>
-                        <p>תחזית מזג אוויר</p>
-                    </div>
-                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                    <div class="col-3 text-center" id="archiveButton" style="padding: 10px;"
-                        onclick="openArchiveModal('{{ plot._id }}')">
-                        <div class="service-item-icon">
-                            <img src="/static/img/archive_color.png" alt="" width="80" height="80">
-                        </div>
-                        <p>העבר לארכיון</p>
-                    </div>
+            <hr class="section-divider">
+            <!-- פרטי החלקה (צד שמאל) -->
+            <div class="col-md-6 order-md-1">
+                <h2>{{ plot.plot_name }}</h2>
+                <br>
+                <p><strong>צורת גידול: </strong> {{ plot.plot_type or "לא זמין" }}</p>
+                <p><strong>אורך:</strong> {{ plot.length or "לא זמין" }} מטר</p>
+                <p><strong>רוחב:</strong> {{ plot.width or "לא זמין" }} מטר</p>
+                <p><strong>סוג גידול:</strong>
+                    {% if plot.crop_category == "none" %}
+                    טרם נבחר סוג הגידול
+                    {% else %}
+                    {{ plot.crop_category }}
                     {% endif %}
+                </p>
+                <p><strong>גידול:</strong>
+                    {% if plot.crop == "none" %}
+                    טרם נבחר גידול
+                    {% else %}
+                    {{ plot.crop }}
+                    {% endif %}
+                </p>
+                <p><strong>תאריך זריעה:</strong>
+                    {% if plot.sow_date == "" %}
+                    טרם בוצעה זריעה
+                    {% else %}
+                    {{ plot.sow_date }}
+                    {% endif %}
+                </p>
+                <p><strong>כמות הזריעה(בק״ג):</strong>
+                    {% if plot.quantity_planted == "" %}
+                    טרם בוצעה זריעה
+                    {% else %}
+                    {{ plot.quantity_planted }}
+                    {% endif %}
+                </p>
+                <p><strong>תאריך השקיה אחרון:</strong>
+                    {% if plot.last_irrigation_date == None %}
+                    טרם בוצעה השקייה
+                    {% else %}
+                    {{ plot.last_irrigation_date }}
+                    {% endif %}
+                </p>
+                <p><strong>כמות השקיה כוללת:</strong>
+                    {% if plot.total_irrigation_amount == None %}
+                    0
+                    {% else %}
+                    {{ plot.total_irrigation_amount }} קוב
+                    {% endif %}
+                </p>
+            </div>
+            <div id="weather-info"
+                style="position: absolute; top: 10px; left: 10px; z-index: 1000; background-color: #f8f9fa; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+                <p>טוען מזג אוויר...</p>
+            </div>
+
+            {% if plot.crop_category == "none" %}
+            <div class="col-md-6 order-md-2 move-buttons-lower" style="margin-top: 80px;">
+                <div class="container">
+
+                    <div class="col-3 text-center" style="padding: 10px;">
+                        <div class="service-item-icon" id="updateCropCategory"
+                            onclick="openUpdateModal('{{ plot._id }}')">
+                            <img src="/static/img/update_grow.png" alt="" width="80" height="80">
+                        </div>
+                        <p>עדכון פרטי חלקה</p>
+                    </div>
+                </div>
+
+            </div>
+            {% endif %}
+
+
+            <!-- כפתורים (צד ימין, קצת למטה) -->
+            {% if plot.crop_category != "none" %}
+            <div class="col-md-6 order-md-2 move-buttons-lower" style="margin-top: 80px;">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <!-- שורה ראשונה -->
+                        <div class="col-3 text-center" style="padding: 10px;">
+                            <div class="service-item-icon" onclick="checkAndOpenIrrigationModal('{{ plot._id }}')">
+                                <img src="/static/img/waters.png" alt="" width="80" height="80">
+                            </div>
+                            <p>עדכון השקיה</p>
+                        </div>
+                        <div class="col-3 text-center" id="growthForecastButton" style="padding: 10px;">
+                            <div class="service-item-icon">
+                                <img src="/static/img/grow_color.png" alt="" width="80" height="80">
+                            </div>
+                            <p>תחזית גדילה</p>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-center mt-4">
+                        <!-- שורה שנייה -->
+                        <div class="col-3 text-center" style="padding: 10px;" id="detailedWeatherButton">
+                            <div class="service-item-icon">
+                                <img src="/static/img/cloud.png" alt="" width="80" height="80">
+                            </div>
+                            <p>תחזית מזג אוויר</p>
+                        </div>
+                        {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                        <div class="col-3 text-center" id="archiveButton" style="padding: 10px;"
+                            onclick="openArchiveModal('{{ plot._id }}')">
+                            <div class="service-item-icon">
+                                <img src="/static/img/archive_color.png" alt="" width="80" height="80">
+                            </div>
+                            <p>העבר לארכיון</p>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
-</div>
 
 
 
@@ -322,7 +322,7 @@
                             <label for="sowDate" class="form-label">תאריך זריעה</label>
                             <input type="date" id="sowDate" name="sow_date" class="form-control" required>
                         </div>
-                        <div class="mb-3" id="quantityPlantedDiv" style="display: none;">
+                        <div class="mb-3" id="quantityPlantedDiv">
                             <label for="quantityPlanted" class="form-label">כמה זרעתי (בק״ג)</label>
                             <input type="number" id="quantityPlanted" name="quantity_planted" class="form-control"
                                 min="0" step="0.01">
@@ -493,17 +493,6 @@
 
             // טען את רשימת הקטגוריות
             await loadCategories();
-            // שלוף את הפרטים של החלקה הקיימת
-            const response = await fetch(`/Plots/get_plot_details/${plotId}`);
-            const plot = await response.json();
-
-            // קבע ערכים ברירת מחדל
-            document.getElementById('cropCategory').value = plot.crop_category || "none";
-            if (plot.crop_category && plot.crop_category !== "none") {
-                await loadCrops(plot.crop_category); // טען גידולים בהתאם לקטגוריה שנשמרה
-                document.getElementById('crop').value = plot.crop || "none";
-            }
-            document.getElementById('sowDate').value = plot.sow_date || "";
         }
 
         async function loadCategories() {
@@ -583,18 +572,20 @@
             const cropCategory = document.getElementById('cropCategory').value;
             const crop = document.getElementById('crop').value;
             const sowDate = document.getElementById('sowDate').value;
+            const quantity_Planted = document.getElementById('quantityPlanted').value;
             const plotId = document.getElementById('updateModal').getAttribute('data-plot-id');
 
             // בדיקות תקינות
-            if (!cropCategory || cropCategory === "none") {
-                alert('נא לבחור סוג גידול.');
+            if (!cropCategory || !crop || !sowDate || !quantity_Planted) {
+                alert('נא למלא את כל השדות.');
                 return;
             }
 
             const payload = {
                 crop_category: cropCategory,
-                crop: crop || "none",
-                sow_date: sowDate || ""
+                crop: crop,
+                sow_date: sowDate,
+                quantity_planted: quantity_Planted
             };
 
             try {
@@ -618,15 +609,11 @@
                 alert('שגיאה בעת שליחת הבקשה לשרת.');
             }
         }
-
-
         function closeUpdateModal() {
             const modal = document.getElementById('updateModal');
             modal.style.display = 'none';
             document.getElementById('updatePlotForm').reset();
         }
-
-
 
         //תחזית גדילה
         document.getElementById("growthForecastButton").addEventListener("click", async () => {
@@ -638,7 +625,7 @@
             modal.style.display = "flex";
 
             try {
-               
+
                 const response = await fetch("/Plots/growth_forecast", {
                     method: "POST",
                     headers: {
@@ -686,13 +673,6 @@
             updateButton.disabled = !quantityPlanted;
         });
 
-        function closeUpdateModal() {
-            const modal = document.getElementById('updateModal');
-            modal.style.display = 'none';
-            document.getElementById('updatePlotForm').reset();
-            document.getElementById('quantityPlantedDiv').style.display = 'none';
-            document.getElementById('updateButton').disabled = true;
-        }
 
         let selectedPlotId = null; // משתנה לשמירת ה-ID של החלקה
 
