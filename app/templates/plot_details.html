@@ -172,11 +172,14 @@
     <!-- פס חוצץ -->
     <hr class="section-divider">
     <div class="container mt-4">
+        <div class="row">
         <div class="d-flex justify-content-between align-items-center">
-            <h1 class="text-center flex-grow-1 text-center">פרטי החלקה</h1>
+            <h1 class="text-center flex-grow-1">פרטי החלקה</h1>
             <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="btn btn-primary">חזרה לדף החלקות</a>
         </div>
-        <hr style="border: 1px solid #8fb23e;">
+        <hr class="section-divider">
+        <!-- פרטי החלקה (צד שמאל) -->
+        <div class="col-md-6 order-md-1">
         <h2>{{ plot.plot_name }}</h2>
         <br>
         <p><strong>צורת גידול: </strong> {{ plot.plot_type or "לא זמין" }}</p>
@@ -203,6 +206,13 @@
             {{ plot.sow_date }}
             {% endif %}
         </p>
+        <p><strong>כמות הזריעה(בק״ג):</strong>
+            {% if plot.quantity_planted == "" %}
+            טרם בוצעה זריעה
+            {% else %}
+            {{ plot.quantity_planted }}
+            {% endif %}
+        </p>
         <p><strong>תאריך השקיה אחרון:</strong>
             {% if plot.last_irrigation_date == None %}
             טרם בוצעה השקייה
@@ -217,32 +227,74 @@
             {{ plot.total_irrigation_amount }} קוב
             {% endif %}
         </p>
+    </div>
         <div id="weather-info"
             style="position: absolute; top: 10px; left: 10px; z-index: 1000; background-color: #f8f9fa; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
             <p>טוען מזג אוויר...</p>
         </div>
-        <!-- {% if plot.crop_category == "none" %}
-        <button id="updateCropCategory" class="btn btn-success" onclick="UpdateCropCategoryModal('{{ plot._id }}')">עדכון פרטי חלקה</button>
-        {% endif %} -->
 
         {% if plot.crop_category == "none" %}
-        <button id="updateCropCategory" class="btn btn-success" onclick="openUpdateModal('{{ plot._id }}')">עדכון פרטי
-            חלקה</button>
+        <div class="col-md-6 order-md-2 move-buttons-lower" style="margin-top: 80px;">
+            <div class="container">
+
+                <div class="col-3 text-center" style="padding: 10px;">
+                    <div class="service-item-icon" id="updateCropCategory"
+                        onclick="openUpdateModal('{{ plot._id }}')">
+                        <img src="/static/img/update_grow.png" alt="" width="80" height="80">
+                    </div>
+                    <p>עדכון פרטי חלקה</p>
+                </div>
+            </div>
+
+        </div>
         {% endif %}
 
 
+        <!-- כפתורים (צד ימין, קצת למטה) -->
         {% if plot.crop_category != "none" %}
-        <button id="updateIrrigationButton" class="btn btn-success"
-            onclick="checkAndOpenIrrigationModal('{{ plot._id }}')">השקיה</button>
-        {% endif %}
+        <div class="col-md-6 order-md-2 move-buttons-lower" style="margin-top: 80px;">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <!-- שורה ראשונה -->
+                    <div class="col-3 text-center" style="padding: 10px;">
+                        <div class="service-item-icon" onclick="checkAndOpenIrrigationModal('{{ plot._id }}')">
+                            <img src="/static/img/waters.png" alt="" width="80" height="80">
+                        </div>
+                        <p>עדכון השקיה</p>
+                    </div>
+                    <div class="col-3 text-center" id="growthForecastButton" style="padding: 10px;">
+                        <div class="service-item-icon">
+                            <img src="/static/img/grow_color.png" alt="" width="80" height="80">
+                        </div>
+                        <p>תחזית גדילה</p>
+                    </div>
+                </div>
 
-        <button id="growthForecastButton" class="btn btn-info">תחזית גדילה</button>
-        <button id="detailedWeatherButton" class="btn btn-info mt-3">תחזית מזג אוויר</button>
-        {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-        <button id="archiveButton" class="btn btn-warning mt-3" onclick="openArchiveModal('{{ plot._id }}')">העבר
-            לארכיון</button>
+                <div class="row justify-content-center mt-4">
+                    <!-- שורה שנייה -->
+                    <div class="col-3 text-center" style="padding: 10px;" id="detailedWeatherButton">
+                        <div class="service-item-icon">
+                            <img src="/static/img/cloud.png" alt="" width="80" height="80">
+                        </div>
+                        <p>תחזית מזג אוויר</p>
+                    </div>
+                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                    <div class="col-3 text-center" id="archiveButton" style="padding: 10px;"
+                        onclick="openArchiveModal('{{ plot._id }}')">
+                        <div class="service-item-icon">
+                            <img src="/static/img/archive_color.png" alt="" width="80" height="80">
+                        </div>
+                        <p>העבר לארכיון</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         {% endif %}
     </div>
+</div>
+
+
 
     <!-- Update crop window -->
     <div id="updateModal" class="modal">
@@ -368,6 +420,7 @@
         <div class="container py-4">
             <div class="row g-5">
                 <div class="col-lg-3 col-md-6">
+                    <br>
                     <h4 class="text-primary mb-4">המשרד שלנו</h4>
                     <p class="mb-2"><i class="fa fa-map-marker-alt text-primary me-3"></i> באר שבע, ישראל</p>
                     <p class="mb-2"><i class="fa fa-phone-alt text-primary me-3"></i> 52-8744379 972+ </p>
