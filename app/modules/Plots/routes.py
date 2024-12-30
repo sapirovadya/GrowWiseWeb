@@ -311,7 +311,7 @@ def archive_plot(plot_id):
                 }
             }
         )
-        return jsonify({"message": "Plot archived successfully"}), 200
+        return redirect(url_for('plot_bp.track_greenhouse'))
 
     except Exception as e:
         print(f"Error archiving plot: {e}")

@@ -320,10 +320,10 @@
                         </div>
                         <div class="mb-3">
                             <label for="sowDate" class="form-label">תאריך זריעה</label>
-                            <input type="date" id="sowDate" name="sow_date" class="form-control" required>
+                            <input type="date" id="sowDate" name="sow_date" class="form-control">
                         </div>
                         <div class="mb-3" id="quantityPlantedDiv">
-                            <label for="quantityPlanted" class="form-label">כמה זרעתי (בק״ג)</label>
+                            <label for="quantityPlanted" class="form-label">כמה זרעתי (בק״ג):</label>
                             <input type="number" id="quantityPlanted" name="quantity_planted" class="form-control"
                                 min="0" step="0.01">
                         </div>
@@ -415,6 +415,12 @@
             </div>
         </div>
     </div>
+
+    <div id="customAlert" class="alert-box" style="display:none;">
+        <h5 class="alert-title">כותרת</h5>
+        <p class="alert-message">הודעה</p>
+        <button class="alert-close btn btn-primary" onclick="closeAlert()">סגור</button>
+    </div>
     <!-- Footer Start -->
     <div class="container-fluid bg-dark footer mt-3 py-3 wow fadeIn" data-wow-delay="0.1s">
         <div class="container py-4">
@@ -458,7 +464,7 @@
             const plotId = document.getElementById('irrigationModal').getAttribute('data-plot-id');
 
             if (!irrigationAmount || isNaN(irrigationAmount) || irrigationAmount <= 0) {
-                alert('נא להזין כמות השקיה תקינה.');
+                showAlert('נא להזין כמות השקיה תקינה.');
                 return;
             }
 
@@ -472,16 +478,15 @@
                 });
 
                 if (response.ok) {
-                    alert("ההשקיה עודכנה בהצלחה!");
+                    showAlert("ההשקיה עודכנה בהצלחה!");
                     closeIrrigationModal();
-                    location.reload();
                 } else {
                     const errorData = await response.json();
-                    alert(`שגיאה: ${errorData.error}`);
+                    showAlert(`שגיאה: ${errorData.error}`);
                 }
             } catch (error) {
                 console.error(error);
-                alert('שגיאה בעת שליחת הבקשה לשרת.');
+                showAlert('שגיאה בעת שליחת הבקשה לשרת.');
             }
         }
 
@@ -521,7 +526,7 @@
                 });
             } catch (error) {
                 console.error('שגיאה בטעינת קטגוריות:', error);
-                alert('שגיאה בעת טעינת הקטגוריות.');
+                showAlert('שגיאה בעת טעינת הקטגוריות.');
             }
         }
 
@@ -556,7 +561,7 @@
                 cropDiv.style.display = 'block'; // הצגת שדה הגידולים
             } catch (error) {
                 console.error('שגיאה בטעינת גידולים:', error);
-                alert('שגיאה בעת טעינת הגידולים.');
+                showAlert('שגיאה בעת טעינת הגידולים.');
             }
         }
 
@@ -576,11 +581,26 @@
             const plotId = document.getElementById('updateModal').getAttribute('data-plot-id');
 
             // בדיקות תקינות
-            if (!cropCategory || !crop || !sowDate || !quantity_Planted) {
-                alert('נא למלא את כל השדות.');
+            if (!quantity_Planted || !sowDate || crop === "none" || cropCategory === "none") {
+                showAlert('נא למלא את כל השדות.');
                 return;
             }
-
+            if (cropCategory === "none") {
+                showAlert('נא בחר סוג גידול.');
+                return;
+            }
+            else if (crop === "none") {
+                showAlert('נא בחר גידול.');
+                return;
+            }
+            else if (!sowDate) {
+                showAlert('נא בחר את תאריך הזריעה.');
+                return;
+            }
+            else if (!quantity_Planted) {
+                showAlert('נא בחר את הכמות שזרעת.');
+                return;
+            }
             const payload = {
                 crop_category: cropCategory,
                 crop: crop,
@@ -597,16 +617,15 @@
                 });
 
                 if (response.ok) {
-                    alert('פרטי החלקה עודכנו בהצלחה!');
+                    showAlert('פרטי החלקה עודכנו בהצלחה!');
                     closeUpdateModal();
-                    location.reload();
                 } else {
                     const error = await response.json();
-                    alert(`שגיאה: ${error.error}`);
+                    showAlert(`שגיאה: ${error.error}`);
                 }
             } catch (error) {
                 console.error('שגיאה בעת עדכון:', error);
-                alert('שגיאה בעת שליחת הבקשה לשרת.');
+                showAlert('שגיאה בעת שליחת הבקשה לשרת.');
             }
         }
         function closeUpdateModal() {
@@ -693,7 +712,7 @@
             const cropYield = document.getElementById('cropYield').value;
 
             if (!cropYield || cropYield <= 0) {
-                alert('נא להזין כמות יבול תקינה.');
+                showAlert('נא להזין כמות יבול תקינה.');
                 return;
             }
 
@@ -709,17 +728,17 @@
                     })
                 });
 
-                if (response.ok) {
-                    alert("החלקה הועברה לארכיון בהצלחה!");
-                    closeArchiveModal();
-                    location.reload();
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    showAlert('החלקה הועברה לארכיון בהצלחה!', null, '/Plots/track_greenhouse');
                 } else {
                     const errorData = await response.json();
-                    alert(`שגיאה: ${errorData.error}`);
+                    showAlert(`שגיאה: ${errorData.error}`);
                 }
             } catch (error) {
                 console.error(error);
-                alert('שגיאה בעת שליחת הבקשה לשרת.');
+                showAlert('שגיאה בעת שליחת הבקשה לשרת.');
             }
         }
 
@@ -827,12 +846,37 @@
                 if (response.redirected) {
                     window.location.href = response.url;  // מפנה לדף הבית
                 } else {
-                    alert('שגיאה במהלך הניתוק.');
+                    showAlert('שגיאה במהלך הניתוק.');
                 }
             }).catch(error => {
                 console.error('שגיאה בלתי צפויה:', error);
             });
         }
+        function showAlert(title, message, redirectUrl = null) {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.querySelector(".alert-title").textContent = title;
+            alertBox.querySelector(".alert-message").textContent = message;
+            alertBox.style.display = "block";
+            alertBox.classList.add("fade-in");
+
+            // הגדרת אירוע סגירה להפניה
+            const closeButton = alertBox.querySelector(".alert-close");
+            closeButton.onclick = () => closeAlert(redirectUrl);
+        }
+
+        function closeAlert(redirectUrl = null) {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.classList.remove("fade-in");
+            alertBox.style.display = "none";
+
+            // בדיקה אם יש כתובת להפניה
+            if (redirectUrl) {
+                window.location.href = redirectUrl; // מפנה לדף הרצוי
+            } else {
+                location.reload(); // רענן את הדף אם אין כתובת להפניה
+            }
+        }
+
 
     </script>
 
