@@ -154,7 +154,8 @@
                     </a>
                     {% endif %}
                     <div id="weather-info-short" class="d-flex align-items-center">
-                        <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                        <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
+                            style="width: 24px; height: 24px; margin-right: 8px;">
                         <span>
                             <strong>{{ city }}</strong> - {{ temperature }}°C
                         </span>
@@ -175,11 +176,12 @@
             <thead>
                 <tr>
                     <th>שם החלקה</th>
-                    <th>גידול</th>
+                    <th>מה נזרע</th>
                     <th>תאריך זריעה</th>
-                    <th>כמות השקייה סה״כ</th>
+                    <th>כמות שנזרעה (ק״ג)</th>
+                    <th>כמות השקייה (קו״ב)</th>
                     <th>תאריך קצירה</th>
-                    <th>כמות יבול</th>
+                    <th>תפוקת יבול (ק״ג)</th>
                 </tr>
             </thead>
             <tbody>
@@ -188,6 +190,7 @@
                     <td>{{ plot.plot_name }}</td>
                     <td>{{ plot.crop or "לא זמין" }}</td>
                     <td>{{ plot.sow_date or "לא זמין" }}</td>
+                    <td>{{ plot.quantity_planted or "לא זמין" }}</td>
                     <td>{{ plot.total_irrigation_amount or "0" }}</td>
                     <td>{{ plot.harvest_date or "לא זמין" }}</td>
                     <td>{{ plot.crop_yield or "0" }}</td>

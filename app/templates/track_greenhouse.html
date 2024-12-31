@@ -39,15 +39,36 @@
         }
 
         .modal-dialog {
+            max-height: 80vh;
+            /* גובה מקסימלי של החלון */
+            width: 100%;
             background: white;
             border-radius: 8px;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-content {
+            overflow-y: auto;
+            /* גלילה אנכית */
+            max-height: 100%;
+            /* גובה מקסימלי */
+            padding: 10px;
+            flex-grow: 1;
+            /* מבטיח שתוכן החלון יימשך */
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            /* גלילה אם התוכן גדול מדי */
+            max-height: 80vh;
+            /* גובה מקסימלי לגוף */
         }
 
         #singleView {
             display: none;
         }
-
     </style>
 </head>
 
@@ -132,7 +153,8 @@
                     </a>
                     {% endif %}
                     <div id="weather-info-short" class="d-flex align-items-center">
-                        <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                        <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
+                            style="width: 24px; height: 24px; margin-right: 8px;">
                         <span>
                             <strong>{{ city }}</strong> - {{ temperature }}°C
                         </span>
@@ -250,7 +272,9 @@
         <!-- הכותרת מעל התמונה -->
         <h3 id="plotTitle" class="fw-bold mb-4"></h3>
         <div class="plot-circle mx-auto mt-3">
-            <img id="plotImage" src="" alt="תמונה">
+            <a id="plotDetailsLink" href="#">
+                <img id="plotImage" src="" alt="תמונה">
+            </a>
         </div>
         <div class="navigation-container">
 
@@ -273,7 +297,11 @@
             </button>
         </div>
     </div>
-
+    <div id="customAlert" class="alert-box" style="display:none;">
+        <h5 class="alert-title">כותרת</h5>
+        <p class="alert-message">הודעה</p>
+        <button class="alert-close btn btn-primary" onclick="closeAlert()">סגור</button>
+    </div>
     <!-- Back to Top -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
             class="bi bi-arrow-up"></i></a>
@@ -354,7 +382,7 @@
                 });
             } catch (error) {
                 console.error(error.message);
-                alert("שגיאה בטעינת הגידולים מהשרת.");
+                showAlert("שגיאה בטעינת הגידולים מהשרת.");
             }
         }
 
@@ -368,21 +396,21 @@
             const quantityPlanted = document.getElementById('quantityPlanted').value.trim();
 
             if (!plotName || !length || !width) {
-                alert('יש למלא את השדות: שם החלקה, אורך ורוחב.');
+                showAlert('יש למלא את השדות: שם החלקה, אורך ורוחב.');
                 return;
             }
             if (length <= 0 || width <= 0) {
-                alert('אורך ורוחב חייבים להיות גדולים מ-0.');
+                showAlert('אורך ורוחב חייבים להיות גדולים מ-0.');
                 return;
             }
 
             if (cropCategory !== 'none' && (!crop || !sowDate)) {
-                alert('נא למלא את השדות גידול ותאריך זריעה.');
+                showAlert('נא למלא את השדות גידול ותאריך זריעה.');
                 return;
             }
             if (cropCategory !== 'none' && crop !== 'none' && sowDate) {
                 if (!quantityPlanted || quantityPlanted <= 0) {
-                    alert('נא למלא כמות זרעית גדולה מ-0.');
+                    showAlert('נא למלא כמות זרעית גדולה מ-0.');
                     return;
                 }
             }
@@ -394,11 +422,10 @@
             });
 
             if (response.ok) {
-                alert('החלקה נשמרה בהצלחה!');
-                location.reload();
+                showAlert('החלקה נשמרה בהצלחה!');
             } else {
                 const errorData = await response.json();
-                alert(`שגיאה: ${errorData.error}`);
+                showAlert(`שגיאה: ${errorData.error}`);
             }
         }
 
@@ -447,7 +474,7 @@
                 renderMultipleView();
             } catch (error) {
                 console.error(error.message);
-                alert(error.message); // הצגת השגיאה למשתמש
+                showAlert(error.message); // הצגת השגיאה למשתמש
             }
         }
 
@@ -501,6 +528,11 @@
             // עדכון תמונת החלקה לפי סוג
             document.getElementById("plotImage").src =
                 plot.plot_type === "חלקה" ? "/static/img/land.png" : "/static/img/green_house.png";
+
+            // עדכון קישור התמונה
+            const plotDetailsLink = document.getElementById("plotDetailsLink");
+            plotDetailsLink.href = `/Plots/plot_details?id=${plot._id}`;
+
 
             // עדכון השדות לפי הערכים מהבסיס נתונים
             document.getElementById("plottype").textContent = plot.plot_type || "לא זמין";
@@ -625,7 +657,7 @@
             document.getElementById('quantityPlantedDiv').style.display = 'none';
         }
 
-        
+
         document.addEventListener("DOMContentLoaded", async function () {
             const shortWeatherDiv = document.getElementById("weather-info-short");
 
@@ -657,13 +689,36 @@
                 if (response.redirected) {
                     window.location.href = response.url;  // מפנה לדף הבית
                 } else {
-                    alert('שגיאה במהלך הניתוק.');
+                    showAlert('שגיאה במהלך הניתוק.');
                 }
             }).catch(error => {
                 console.error('שגיאה בלתי צפויה:', error);
             });
         }
+        function showAlert(title, message, redirectUrl = null) {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.querySelector(".alert-title").textContent = title;
+            alertBox.querySelector(".alert-message").textContent = message;
+            alertBox.style.display = "block";
+            alertBox.classList.add("fade-in");
 
+            // הגדרת אירוע סגירה להפניה
+            const closeButton = alertBox.querySelector(".alert-close");
+            closeButton.onclick = () => closeAlert(redirectUrl);
+        }
+
+        function closeAlert(redirectUrl = null) {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.classList.remove("fade-in");
+            alertBox.style.display = "none";
+
+            // בדיקה אם יש כתובת להפניה
+            if (redirectUrl) {
+                window.location.href = redirectUrl; // מפנה לדף הרצוי
+            } else {
+                location.reload(); // רענן את הדף אם אין כתובת להפניה
+            }
+        }
 
 
     </script>

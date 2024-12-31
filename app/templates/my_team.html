@@ -273,7 +273,8 @@
                             class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo"></a>
                     {% endif %}
                     <div id="weather-info-short" class="d-flex align-items-center">
-                        <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                        <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
+                            style="width: 24px; height: 24px; margin-right: 8px;">
                         <span>
                             <strong>{{ city }}</strong> - {{ temperature }}°C
                         </span>
@@ -437,7 +438,6 @@
                 .then(data => {
                     showAlert(data.message);
                     closeModal();
-                    location.reload(); // טוען מחדש את הדף כדי לעדכן את הרשימה
                 })
                 .catch(error => console.error('Error:', error));
         }
@@ -449,7 +449,6 @@
                 .then(data => {
                     showAlert(data.message);
                     closeModal();
-                    location.reload(); // טוען מחדש את הדף כדי לעדכן את הרשימה
                 })
                 .catch(error => console.error('Error:', error));
         }
@@ -602,9 +601,6 @@
                     .then(data => {
                         if (data.message) {
                             showAlert("הצלחה", data.message); // הודעת הצלחה
-                            setTimeout(() => {
-                                location.reload(); // רענון הדף
-                            }, 2000);
                         } else {
                             showAlert("שגיאה", "לא ניתן למחוק את המשתמש.");
                         }
@@ -625,6 +621,7 @@
         function closeAlert() {
             const alertBox = document.getElementById("customAlert");
             alertBox.style.display = "none";
+            location.reload(); // רענון הדף
         }
         function showCustomConfirm(message, onConfirm) {
             const confirmBox = document.getElementById("customConfirm");
