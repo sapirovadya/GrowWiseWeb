@@ -1,6 +1,7 @@
 from flask import jsonify
 from werkzeug.security import generate_password_hash
 import uuid
+from datetime import datetime
 
 class User:
     def signup(self, data):
@@ -21,3 +22,24 @@ class User:
         }
 
         return user
+
+
+class Notification:
+    def __init__(self, email,employee_email, content):
+        self.id = str(uuid.uuid4())  # מזהה ייחודי להתראה
+        self.email = email  # כתובת אימייל של המשתמש
+        self.employee_email = employee_email
+        self.content = content  # תוכן ההתראה
+        self.created_at = datetime.now()  # זמן יצירת ההתראה
+        self.seen = False  # סטטוס צפייה
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "employee_email": self.employee_email,
+            "content": self.content,
+            "created_at": self.created_at,
+            "seen": self.seen
+        }
+

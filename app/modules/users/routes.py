@@ -10,6 +10,8 @@ from modules.users.employee.models import Employee
 from modules.users.co_manager.models import Co_Manager
 from modules.users.job_seeker.models import Job_Seeker
 from modules.task.models import task
+from modules.users.models import Notification
+
 
 
 load_dotenv()
@@ -279,85 +281,117 @@ def change_password():
         pass
     return render_template('change_password.html')
 
+
 @users_bp_main.route("/get_notifications", methods=["GET"])
 def get_notifications():
-    role = session.get("role")
-    notifications = []
-
     try:
-        # המרת תאריך נוכחי לפורמט ISO
-        today = datetime.now().isoformat()[:10]  # תאריך בפורמט "YYYY-MM-DD"
+        # שליפת המידע מהסשן
+        role = session.get("role")
+        email = session.get("email")
 
+        # רשימת ההתראות
+        notifications = []
+
+        # בדיקת תאריך נוכחי
+        today = datetime.now().isoformat()[:10]
+
+        # לוגיקה להוספת התראות חדשות לפי תפקיד
         if role == "manager":
-            email = session.get("email")  # מייל המנהל המחובר
-            
-            # שליפת עובדים לא מאושרים
-            employees = db.employee.find({"manager_email": email, "is_approved": 0})
-            for employee in employees:
-                notifications.append(f"עובד בשם {employee['first_name']} {employee['last_name']} מחכה לאישור.")
-            
-            # שליפת שותפים לא מאושרים
-            co_managers = db.co_manager.find({"manager_email": email, "is_approved": 0})
-            for co_manager in co_managers:
-                notifications.append(f"שותף בשם {co_manager['first_name']} {co_manager['last_name']} מחכה לאישור.")
-            
-            # שליפת משימות שפג תוקפן
-            overdue_tasks = db.task.find({
-                "giver_email": email,  # משימות שניתנו ע"י המנהל המחובר
-                "status": "in_progress",
-                "due_date": {"$lt": today}  # השוואת מחרוזות של תאריך
-            })
-            for task in overdue_tasks:
-               notifications.append(f"ישנה משימה שטרם בוצעה ועבר התאריך המוגדר לביצועה\n"
-                         f"נושא: {task['task_name']}.\n"
-                         f"מייל העובד: {task['employee_email']}.")
+            add_manager_notifications(email, today)
 
-        elif role == "co_manager":
-            manager_email = session.get("manager_email")
-            # שליפת עובדים לא מאושרים
-            employees = db.employee.find({"manager_email": manager_email, "is_approved": 0})
-            for employee in employees:
-                notifications.append(f"עובד בשם {employee['first_name']} {employee['last_name']} מחכה לאישור.")
-            
-            # שליפת שותפים לא מאושרים
-            co_managers = db.co_manager.find({"manager_email": manager_email, "is_approved": 0})
-            for co_manager in co_managers:
-                notifications.append(f"שותף בשם {co_manager['first_name']} {co_manager['last_name']} מחכה לאישור.")
-            
-            # שליפת משימות שפג תוקפן
-            overdue_tasks = db.task.find({
-                "giver_email": manager_email,
-                "status": "in_progress",
-                "due_date": {"$lt": today}
-            })
-            for task in overdue_tasks:
-                notifications.append(f"ישנה משימה שטרם בוצעה ועבר התאריך המוגדר לביצועה\n"
-                         f"נושא: {task['task_name']}.\n"
-                         f"מייל העובד: {task['employee_email']}.")
-        
         elif role == "employee":
-            email = session.get("email")  # מייל העובד המחובר
+            add_employee_notifications(email)
 
-            # שליפת משימות שהוקצו לעובד זה
-            assigned_tasks = db.task.find({
-                "employee_email": email,
-                "status": "in_progress"
+        # שליפת התראות קיימות מהמנוע ומיון לפי זמן יצירתן
+        db_notifications = db.notifications.find({"email": email}).sort("created_at", -1)
+        for notification in db_notifications:
+            notifications.append({
+                "content": notification["content"],
+                "employee_email": notification.get("employee_email"),
+                "seen": notification.get("seen", False),
+                "created_at": notification["created_at"].strftime("%d-%m-%Y %H:%M:%S")
             })
-            for task in assigned_tasks:
-                notifications.append(f"נוספה לך משימה חדשה\n"
-                                     f"נושא: {task['task_name']}.")
 
-        
-        return jsonify({"notifications": notifications}), 200
+        # ספירת התראות חדשות (לא נצפו)
+        new_notifications_count = db.notifications.count_documents({"email": email, "seen": False})
+
+        return jsonify({
+            "notifications": notifications,
+            "new_notifications_count": new_notifications_count
+        }), 200
 
     except Exception as e:
         print(f"Error fetching notifications: {e}")
         return jsonify({"notifications": [], "message": "שגיאה בטעינת ההתראות."}), 500
-    
-@users_bp_main.route('/logout', methods=['POST'])
-def logout():
-    session.clear()  # מנקה את הסשן
-    return redirect(url_for('home'))  # מפנה לדף הבית
+
+def add_manager_notifications(email, today):
+    """לוגיקה להוספת התראות חדשות למנהלים"""
+    try:
+        # התראות על עובדים שטרם אושרו
+        employees = db.employee.find({"manager_email": email, "is_approved": 0})
+        for employee in employees:
+            content = f"עובד בשם {employee['first_name']} {employee['last_name']} מחכה לאישור."
+            add_notification(email, employee['email'], content)
+
+        # התראות על שותפים שטרם אושרו
+        co_managers = db.co_manager.find({"manager_email": email, "is_approved": 0})
+        for co_manager in co_managers:
+            content = f"שותף בשם {co_manager['first_name']} {co_manager['last_name']} מחכה לאישור."
+            add_notification(email, co_manager['email'], content)
+
+        # התראות על משימות שעבר זמנן
+        overdue_tasks = db.task.find({
+            "giver_email": email,
+            "status": "in_progress",
+            "due_date": {"$lt": today}
+        })
+        for task in overdue_tasks:
+            content = f"ישנה משימה שטרם בוצעה ועבר התאריך המוגדר לביצועה\nנושא: {task['task_name']}."
+            add_notification(email, task["employee_email"], content)
+
+    except Exception as e:
+        print(f"Error adding manager notifications: {e}")
+
+
+def add_employee_notifications(email):
+    try:
+        # התראות על משימות חדשות
+        assigned_tasks = db.task.find({
+            "employee_email": email,
+            "status": "in_progress"
+        })
+        for task in assigned_tasks:
+            content = f"נוספה לך משימה חדשה\nנושא: {task['task_name']}."
+            add_notification(email, task["employee_email"], content)
+    except Exception as e:
+        print(f"Error adding employee notifications: {e}")
+
+def add_notification(email, employee_email, content):
+    """הוספת התראה חדשה אם אינה קיימת"""
+    try:
+        existing_notification = db.notifications.find_one({
+            "email": email,
+            "employee_email": employee_email,
+            "content": content
+        })
+        if not existing_notification:
+            notification = Notification(email, employee_email, content)
+            db.notifications.insert_one(notification.to_dict())
+    except Exception as e:
+        print(f"Error adding notification: {e}")
+
+@users_bp_main.route("/mark_notifications_seen", methods=["POST"])
+def mark_notifications_seen():
+    email = session.get("email")
+    try:
+        db.notifications.update_many(
+            {"email": email, "seen": False},
+            {"$set": {"seen": True}}
+        )
+        return jsonify({"message": "Notifications marked as seen"}), 200
+    except Exception as e:
+        print(f"Error marking notifications as seen: {e}")
+        return jsonify({"message": "Failed to mark notifications as seen"}), 500
 
 
 @users_bp_main.route('/get_cities', methods=['GET'])
@@ -373,7 +407,15 @@ def get_cities():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-
 @users_bp_main.route('/about', methods=['GET'])
 def about_us():
     return render_template('about_us.html')
+
+@users_bp_main.route('/logout', methods=['POST'])
+def logout():
+    session.clear()  # מנקה את הסשן
+    return redirect(url_for('home'))  # מפנה לדף הבית
+
+@users_bp_main.route('/contact', methods=['GET'])
+def contact():
+    return render_template('contact.html')

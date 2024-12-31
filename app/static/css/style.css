@@ -1638,3 +1638,26 @@ span.me-2 {
     padding: 20px;
     /* ריווח קטן בין התמונות */
 }
+
+
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    display: none; /* מוסתר כברירת מחדל */
+}
+
+.notification-modal {
+    max-height: 300px; /* גובה מקסימלי */
+    overflow-y: auto; /* גלילה אנכית */
+}
