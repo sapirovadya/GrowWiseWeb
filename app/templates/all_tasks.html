@@ -130,8 +130,10 @@
                                 <div class="dropdown-menu bg-light rounded-0 m-0">
                                     <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
                                         חלקות/חממות</a>
+                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                                     <a href='{{ url_for("plot_bp.archive") }}' class="dropdown-item">ארכיון
                                         חלקות/חממות</a>
+                                    {% endif %}
                                     {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                                     <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
                                         שלי</a>
@@ -217,35 +219,53 @@
             })
             .catch(error => console.error('Error:', error));
 
+        function showNotificationBadge(newNotificationsCount) {
+            const badge = document.getElementById("notificationBadge");
+            if (newNotificationsCount > 0) {
+                badge.style.display = "flex"; // הצגת העיגול האדום
+                badge.textContent = newNotificationsCount; // הצגת מספר ההתראות
+            } else {
+                badge.style.display = "none"; // הסתרת העיגול האדום
+            }
+        }
+
+
         function toggleNotifications() {
             const modal = document.getElementById("notificationModal");
+            const badge = document.getElementById("notificationBadge");
 
             if (modal.style.display === "none" || modal.style.display === "") {
                 modal.style.display = "block";
 
-                // שליפת התראות מהשרת
+                // הסתרת האייקון האדום (בזמן פתיחת ההתראות)
+                badge.style.display = "none";
+
+                // סימון התראות כנצפות בשרת
+                fetch("/users/mark_notifications_seen", { method: "POST" })
+                    .catch(error => console.error("Error marking notifications as seen:", error));
+
+                // טעינת התראות
                 fetch("/users/get_notifications")
                     .then(response => response.json())
                     .then(data => {
                         const notificationsList = document.getElementById("notifications-list");
                         if (data.notifications.length > 0) {
                             notificationsList.innerHTML = data.notifications
-                                .map(notification => `<p class="notification-item">${notification}</p>`)
+                                .map(notification => `
+                                    <div class="notification-item">
+                                        <p><strong>תוכן:</strong> ${notification.content}</p>
+                                        <p><strong>מייל:</strong> ${notification.employee_email || "לא זמין"}</p>
+                                        <hr>
+                                    </div>
+                                `)
                                 .join("");
                         } else {
                             notificationsList.innerHTML = "<p>אין התראות חדשות.</p>";
                         }
                     })
-                    .catch(error => {
-                        const notificationsList = document.getElementById("notifications-list");
-                        console.error("Error fetching notifications:", error);
-                        notificationsList.innerHTML = "<p>שגיאה בטעינת התראות.</p>";
-                    });
-
-                // מאזין סגירה על לחיצה מחוץ לחלון
-                document.addEventListener("click", closeOnOutsideClick);
+                    .catch(error => console.error("Error fetching notifications:", error));
             } else {
-                closeNotifications();
+                modal.style.display = "none";
             }
         }
 
@@ -267,10 +287,10 @@
             }
         }
 
+
         document.addEventListener("DOMContentLoaded", async function () {
+            //מזג אוויר
             const shortWeatherDiv = document.getElementById("weather-info-short");
-            const detailedWeatherButton = document.getElementById("detailedWeatherButton");
-            const detailedWeatherInfo = document.getElementById("detailedWeatherInfo");
 
             try {
                 const response = await fetch("/weather");
@@ -282,35 +302,26 @@
 
                 // עדכון התצוגה הקצרה בסרגל הכלים
                 shortWeatherDiv.innerHTML = `
-                <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
-                <strong>${data.city}</strong> ${data.temperature}°C
-                 `;
-
-                // עדכון התחזית המורחבת במודל
-                detailedWeatherInfo.innerHTML = `
-                    <p><strong>עיר:</strong> ${data.city}</p>
-                    <p><strong>טמפרטורה:</strong> ${data.temperature}°C</p>
-                    <p><strong>לחות:</strong> ${data.humidity}%</p>
-                    <p><strong>רוח:</strong> ${data.wind_speed} קמ"ש</p>
-                    <p><strong>תיאור:</strong> ${data.weather_description}</p>
-                    <p><strong>תחזית לגשם:</strong> ${data.precipitation}</p>
+                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                    <strong>${data.city}</strong> ${data.temperature}°C
                 `;
-
-                // אירוע להצגת מודל התחזית המורחבת
-                detailedWeatherButton.addEventListener("click", () => {
-                    document.getElementById("detailedWeatherModal").style.display = "flex";
-                });
             } catch (error) {
                 console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
                 shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
-                detailedWeatherInfo.innerHTML = `<p>שגיאה בטעינת הנתונים</p>`;
             }
-        });
 
-        // פונקציה לסגירת מודל תחזית מזג האוויר
-        function closeWeatherModal() {
-            document.getElementById("detailedWeatherModal").style.display = "none";
-        }
+
+            // טעינת התראות
+            try {
+                const notificationsResponse = await fetch("/users/get_notifications");
+                const notificationsData = await notificationsResponse.json();
+
+                showNotificationBadge(notificationsData.new_notifications_count); // עדכון העיגול האדום עם מספר ההתראות החדשות
+            } catch (error) {
+                console.error("Error fetching notifications:", error);
+            }
+
+        });
 
         function logout() {
             fetch('/users/logout', {

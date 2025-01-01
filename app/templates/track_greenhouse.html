@@ -86,7 +86,7 @@
                     <div class="notification-icon" style="position: relative; display: inline-block;">
                         <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
                             height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
-
+                            <div class="notification-badge" id="notificationBadge" style="display: none;">!</div>
                         <div id="notificationModal" class="notification-modal"
                             style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
                             <div style="padding: 15px;">
@@ -573,35 +573,54 @@
 
         // קריאה לטעינת החלקות
         document.addEventListener("DOMContentLoaded", loadPlots);
+        
+        function showNotificationBadge(newNotificationsCount) {
+            const badge = document.getElementById("notificationBadge");
+            if (newNotificationsCount > 0) {
+                badge.style.display = "flex"; // הצגת העיגול האדום
+                badge.textContent = newNotificationsCount; // הצגת מספר ההתראות
+            } else {
+                badge.style.display = "none"; // הסתרת העיגול האדום
+            }
+        }
+
+
         function toggleNotifications() {
             const modal = document.getElementById("notificationModal");
+            const badge = document.getElementById("notificationBadge");
 
             if (modal.style.display === "none" || modal.style.display === "") {
                 modal.style.display = "block";
 
-                // שליפת התראות מהשרת
+                // הסתרת האייקון האדום (בזמן פתיחת ההתראות)
+                badge.style.display = "none";
+
+                // סימון התראות כנצפות בשרת
+                fetch("/users/mark_notifications_seen", { method: "POST" })
+                    .catch(error => console.error("Error marking notifications as seen:", error));
+
+                // טעינת התראות
                 fetch("/users/get_notifications")
                     .then(response => response.json())
                     .then(data => {
                         const notificationsList = document.getElementById("notifications-list");
                         if (data.notifications.length > 0) {
                             notificationsList.innerHTML = data.notifications
-                                .map(notification => `<p class="notification-item">${notification}</p>`)
+                                .map(notification => `
+                                    <div class="notification-item">
+                                        <p><strong>תוכן:</strong> ${notification.content}</p>
+                                        <p><strong>מייל:</strong> ${notification.employee_email || "לא זמין"}</p>
+                                        <hr>
+                                    </div>
+                                `)
                                 .join("");
                         } else {
                             notificationsList.innerHTML = "<p>אין התראות חדשות.</p>";
                         }
                     })
-                    .catch(error => {
-                        const notificationsList = document.getElementById("notifications-list");
-                        console.error("Error fetching notifications:", error);
-                        notificationsList.innerHTML = "<p>שגיאה בטעינת התראות.</p>";
-                    });
-
-                // מאזין סגירה על לחיצה מחוץ לחלון
-                document.addEventListener("click", closeOnOutsideClick);
+                    .catch(error => console.error("Error fetching notifications:", error));
             } else {
-                closeNotifications();
+                modal.style.display = "none";
             }
         }
 
@@ -612,6 +631,52 @@
             // הסרת המאזין
             document.removeEventListener("click", closeOnOutsideClick);
         }
+
+        function closeOnOutsideClick(event) {
+            const modal = document.getElementById("notificationModal");
+            const notificationIcon = document.getElementById("notificationIcon");
+
+            // בדיקה אם הלחיצה התבצעה מחוץ לחלון ומחוץ לאייקון
+            if (!modal.contains(event.target) && event.target !== notificationIcon) {
+                closeNotifications();
+            }
+        }
+
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            //מזג אוויר
+            const shortWeatherDiv = document.getElementById("weather-info-short");
+
+            try {
+                const response = await fetch("/weather");
+                if (!response.ok) {
+                    throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // עדכון התצוגה הקצרה בסרגל הכלים
+                shortWeatherDiv.innerHTML = `
+                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                    <strong>${data.city}</strong> ${data.temperature}°C
+                `;
+            } catch (error) {
+                console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
+                shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+            }
+
+
+            // טעינת התראות
+            try {
+                const notificationsResponse = await fetch("/users/get_notifications");
+                const notificationsData = await notificationsResponse.json();
+
+                showNotificationBadge(notificationsData.new_notifications_count); // עדכון העיגול האדום עם מספר ההתראות החדשות
+            } catch (error) {
+                console.error("Error fetching notifications:", error);
+            }
+
+        });
 
         function closeOnOutsideClick(event) {
             const modal = document.getElementById("notificationModal");
@@ -658,27 +723,27 @@
         }
 
 
-        document.addEventListener("DOMContentLoaded", async function () {
-            const shortWeatherDiv = document.getElementById("weather-info-short");
+        // document.addEventListener("DOMContentLoaded", async function () {
+        //     const shortWeatherDiv = document.getElementById("weather-info-short");
 
-            try {
-                const response = await fetch("/weather");
-                if (!response.ok) {
-                    throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
-                }
+        //     try {
+        //         const response = await fetch("/weather");
+        //         if (!response.ok) {
+        //             throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
+        //         }
 
-                const data = await response.json();
+        //         const data = await response.json();
 
-                // עדכון התצוגה הקצרה בסרגל הכלים
-                shortWeatherDiv.innerHTML = `
-                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
-                    <strong>${data.city}</strong> ${data.temperature}°C
-                `;
-            } catch (error) {
-                console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
-                shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
-            }
-        });
+        //         // עדכון התצוגה הקצרה בסרגל הכלים
+        //         shortWeatherDiv.innerHTML = `
+        //             <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+        //             <strong>${data.city}</strong> ${data.temperature}°C
+        //         `;
+        //     } catch (error) {
+        //         console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
+        //         shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+        //     }
+        // });
 
 
         function logout() {
