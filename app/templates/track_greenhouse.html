@@ -140,7 +140,7 @@
                             </div>
 
                             <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
-                            <a href="contact.html" class="nav-item nav-link">צור קשר</a>
+                            <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
                         </div>
                     </div>
                     {% if session['role'] == "manager" or session['role'] == "co_manager" %}

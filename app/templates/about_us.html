@@ -108,7 +108,7 @@
                             {% endif %}
 
                             <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
-                            <a href="contact.html" class="nav-item nav-link">צור קשר</a>
+                            <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
                         </div>
                     </div>
                     {% if session['role'] == "manager" or session['role'] == "co_manager" %}
@@ -392,6 +392,7 @@
         <div class="container py-4">
             <div class="row g-5">
                 <div class="col-lg-3 col-md-6">
+                    <br>
                     <h4 class="text-primary mb-4">המשרד שלנו</h4>
                     <p class="mb-2"><i class="fa fa-map-marker-alt text-primary me-3"></i> באר שבע, ישראל</p>
                     <p class="mb-2"><i class="fa fa-phone-alt text-primary me-3"></i> 52-8744379 972+ </p>

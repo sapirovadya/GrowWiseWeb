@@ -87,6 +87,7 @@
                     <div class="notification-icon" style="position: relative; display: inline-block;">
                         <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
                             height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
+                            <div class="notification-badge" id="notificationBadge" style="display: none;">!</div>
 
                         <div id="notificationModal" class="notification-modal"
                             style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
@@ -143,7 +144,7 @@
                             </div>
 
                             <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
-                            <a href="contact.html" class="nav-item nav-link">צור קשר</a>
+                            <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
                         </div>
                     </div>
                     {% if session['role'] == "manager" or session['role'] == "co_manager" %}
