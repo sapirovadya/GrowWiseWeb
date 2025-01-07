@@ -121,7 +121,7 @@ def approve_user(user_id):
         )
 
         if result_employee.matched_count > 0:
-            return jsonify({'message': 'המשתמש ב-employee אושר בהצלחה'}), 200
+            return jsonify({'message': 'המשתמש אושר בהצלחה'}), 200
 
         # ניסיון לעדכן ב-collection "co_manager"
         result_co_manager = db.co_manager.update_one(
@@ -130,10 +130,10 @@ def approve_user(user_id):
         )
 
         if result_co_manager.matched_count > 0:
-            return jsonify({'message': 'המשתמש ב-co_manager אושר בהצלחה'}), 200
+            return jsonify({'message': 'המשתמש אושר בהצלחה'}), 200
 
         # אם לא נמצא בשום מקום
-        return jsonify({'message': 'שגיאה: משתמש לא נמצא בשום collection'}), 404
+        return jsonify({'message': 'שגיאה: משתמש לא נמצא בשום טבלה'}), 404
 
     except Exception as e:
         return jsonify({'message': 'שגיאה בשרת', 'error': str(e)}), 500
@@ -149,15 +149,15 @@ def reject_user(user_id):
         # ניסיון למחוק מה-collection "employee"
         result_employee = db.employee.delete_one({'_id': ObjectId(user_id)})
         if result_employee.deleted_count > 0:
-            return jsonify({'message': 'המשתמש הוסר בהצלחה מ-employee'}), 200
+            return jsonify({'message': 'המשתמש הוסר בהצלחה'}), 200
 
         # ניסיון למחוק מה-collection "co_manager"
         result_co_manager = db.co_manager.delete_one({'_id': ObjectId(user_id)})
         if result_co_manager.deleted_count > 0:
-            return jsonify({'message': 'המשתמש הוסר בהצלחה מ-co_manager'}), 200
+            return jsonify({'message': 'המשתמש הוסר בהצלחה '}), 200
 
         # אם המשתמש לא נמצא בשום collection
-        return jsonify({'message': 'שגיאה: משתמש לא נמצא בשום collection'}), 404
+        return jsonify({'message': 'שגיאה: משתמש לא נמצא בשום טבלה'}), 404
 
     except Exception as e:
         return jsonify({'message': 'שגיאה בשרת', 'error': str(e)}), 500
