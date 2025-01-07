@@ -86,7 +86,7 @@
                     <div class="notification-icon" style="position: relative; display: inline-block;">
                         <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
                             height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
-                            <div class="notification-badge" id="notificationBadge" style="display: none;">!</div>
+                        <div class="notification-badge" id="notificationBadge" style="display: none;">!</div>
                         <div id="notificationModal" class="notification-modal"
                             style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
                             <div style="padding: 15px;">
@@ -126,9 +126,9 @@
                                 <div class="dropdown-menu bg-light rounded-0 m-0">
                                     <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
                                         חלקות/חממות</a>
+                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                                     <a href='{{ url_for("plot_bp.archive") }}' class="dropdown-item">ארכיון
                                         חלקות/חממות</a>
-                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                                     <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
                                         שלי</a>
                                     {% endif %}
@@ -573,7 +573,7 @@
 
         // קריאה לטעינת החלקות
         document.addEventListener("DOMContentLoaded", loadPlots);
-        
+
         function showNotificationBadge(newNotificationsCount) {
             const badge = document.getElementById("notificationBadge");
             if (newNotificationsCount > 0) {
