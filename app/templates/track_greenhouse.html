@@ -14,6 +14,11 @@
         href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Playfair+Display:wght@700;900&display=swap"
         rel="stylesheet">
 
+    <!-- CSS של Owl Carousel -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+
     <!-- CSS Libraries -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -24,52 +29,6 @@
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
 
-    <style>
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1050;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-dialog {
-            max-height: 80vh;
-            /* גובה מקסימלי של החלון */
-            width: 100%;
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal-content {
-            overflow-y: auto;
-            /* גלילה אנכית */
-            max-height: 100%;
-            /* גובה מקסימלי */
-            padding: 10px;
-            flex-grow: 1;
-            /* מבטיח שתוכן החלון יימשך */
-        }
-
-        .modal-body {
-            overflow-y: auto;
-            /* גלילה אם התוכן גדול מדי */
-            max-height: 80vh;
-            /* גובה מקסימלי לגוף */
-        }
-
-        #singleView {
-            display: none;
-        }
-    </style>
 </head>
 
 <body>
@@ -195,7 +154,7 @@
     </div>
 
     <!-- חלון סוג חלקה -->
-    <div id="selectTypeModal" class="modal" onclick="closeModal(event, 'selectTypeModal')">
+    <div id="selectTypeModal" class="modal select-plot" onclick="closeModal(event, 'selectTypeModal')">
         <div class="modal-dialog" onclick="event.stopPropagation()">
             <div class="modal-content">
                 <div class="modal-header">
@@ -214,11 +173,13 @@
 
 
     <!-- חלון הגדרת חלקה/חממה -->
-    <div id="plotFormModal" class="modal">
-        <div class="modal-dialog">
+    <div id="plotFormModal" class="modal plots">
+        <div class=" modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">הגדרת חממה/חלקה</h5>
+                    <button type="button" class="btn-close" aria-label="Close"
+                        onclick="closeModal(null, 'plotFormModal')"></button>
                 </div>
                 <div class="modal-body">
                     <form id="plotForm">
@@ -307,6 +268,13 @@
             class="bi bi-arrow-up"></i></a>
 
     <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
+
+    <script src="/static/js/main.js"></script>
+
     <script>
 
         document.getElementById('addPlotButton').addEventListener('click', () => {
@@ -382,7 +350,7 @@
                 });
             } catch (error) {
                 console.error(error.message);
-                showAlert("שגיאה בטעינת הגידולים מהשרת.");
+                showAlert("שגיאה", "שגיאה בטעינת הגידולים מהשרת.");
             }
         }
 
@@ -396,21 +364,37 @@
             const quantityPlanted = document.getElementById('quantityPlanted').value.trim();
 
             if (!plotName || !length || !width) {
-                showAlert('יש למלא את השדות: שם החלקה, אורך ורוחב.');
+                showAlert("שגיאה", 'יש למלא את השדות: שם החלקה, אורך ורוחב.', {
+                    restoreForm: true,
+                    formId: "plotForm",
+                    modalId: "plotFormModal"
+                });
                 return;
             }
             if (length <= 0 || width <= 0) {
-                showAlert('אורך ורוחב חייבים להיות גדולים מ-0.');
+                showAlert("שגיאה", 'אורך ורוחב חייבים להיות גדולים מ-0.', {
+                    restoreForm: true,
+                    formId: "plotForm",
+                    modalId: "plotFormModal"
+                });
                 return;
             }
 
             if (cropCategory !== 'none' && (!crop || !sowDate)) {
-                showAlert('נא למלא את השדות גידול ותאריך זריעה.');
+                showAlert("שגיאה", 'נא למלא את השדות גידול ותאריך זריעה.', {
+                    restoreForm: true,
+                    formId: "plotForm",
+                    modalId: "plotFormModal"
+                });
                 return;
             }
             if (cropCategory !== 'none' && crop !== 'none' && sowDate) {
                 if (!quantityPlanted || quantityPlanted <= 0) {
-                    showAlert('נא למלא כמות זרעית גדולה מ-0.');
+                    showAlert("שגיאה", 'נא למלא כמות זרעית גדולה מ-0.', {
+                        restoreForm: true,
+                        formId: "plotForm",
+                        modalId: "plotFormModal"
+                    });
                     return;
                 }
             }
@@ -422,10 +406,17 @@
             });
 
             if (response.ok) {
-                showAlert('החלקה נשמרה בהצלחה!');
+                showAlert("הצלחה", 'החלקה נשמרה בהצלחה!', {
+                    isSuccess: true,
+                    redirectUrl: "/Plots/track_greenhouse" // הפניה לדף הרצוי (ניתן לשנות)
+                });
             } else {
                 const errorData = await response.json();
-                showAlert(`שגיאה: ${errorData.error}`);
+                showAlert("שגיאה", errorData.error, {
+                    restoreForm: true,
+                    formId: "plotForm",
+                    modalId: "plotFormModal"
+                });
             }
         }
 
@@ -573,76 +564,6 @@
 
         // קריאה לטעינת החלקות
         document.addEventListener("DOMContentLoaded", loadPlots);
-
-        function showNotificationBadge(newNotificationsCount) {
-            const badge = document.getElementById("notificationBadge");
-            if (newNotificationsCount > 0) {
-                badge.style.display = "flex"; // הצגת העיגול האדום
-                badge.textContent = newNotificationsCount; // הצגת מספר ההתראות
-            } else {
-                badge.style.display = "none"; // הסתרת העיגול האדום
-            }
-        }
-
-
-        function toggleNotifications() {
-            const modal = document.getElementById("notificationModal");
-            const badge = document.getElementById("notificationBadge");
-
-            if (modal.style.display === "none" || modal.style.display === "") {
-                modal.style.display = "block";
-
-                // הסתרת האייקון האדום (בזמן פתיחת ההתראות)
-                badge.style.display = "none";
-
-                // סימון התראות כנצפות בשרת
-                fetch("/users/mark_notifications_seen", { method: "POST" })
-                    .catch(error => console.error("Error marking notifications as seen:", error));
-
-                // טעינת התראות
-                fetch("/users/get_notifications")
-                    .then(response => response.json())
-                    .then(data => {
-                        const notificationsList = document.getElementById("notifications-list");
-                        if (data.notifications.length > 0) {
-                            notificationsList.innerHTML = data.notifications
-                                .map(notification => `
-                                    <div class="notification-item">
-                                        <p><strong>תוכן:</strong> ${notification.content}</p>
-                                        <p><strong>מייל:</strong> ${notification.employee_email || "לא זמין"}</p>
-                                        <hr>
-                                    </div>
-                                `)
-                                .join("");
-                        } else {
-                            notificationsList.innerHTML = "<p>אין התראות חדשות.</p>";
-                        }
-                    })
-                    .catch(error => console.error("Error fetching notifications:", error));
-            } else {
-                modal.style.display = "none";
-            }
-        }
-
-        function closeNotifications() {
-            const modal = document.getElementById("notificationModal");
-            modal.style.display = "none";
-
-            // הסרת המאזין
-            document.removeEventListener("click", closeOnOutsideClick);
-        }
-
-        function closeOnOutsideClick(event) {
-            const modal = document.getElementById("notificationModal");
-            const notificationIcon = document.getElementById("notificationIcon");
-
-            // בדיקה אם הלחיצה התבצעה מחוץ לחלון ומחוץ לאייקון
-            if (!modal.contains(event.target) && event.target !== notificationIcon) {
-                closeNotifications();
-            }
-        }
-
-
         document.addEventListener("DOMContentLoaded", async function () {
             //מזג אוויר
             const shortWeatherDiv = document.getElementById("weather-info-short");
@@ -665,28 +586,8 @@
                 shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
             }
 
-
-            // טעינת התראות
-            try {
-                const notificationsResponse = await fetch("/users/get_notifications");
-                const notificationsData = await notificationsResponse.json();
-
-                showNotificationBadge(notificationsData.new_notifications_count); // עדכון העיגול האדום עם מספר ההתראות החדשות
-            } catch (error) {
-                console.error("Error fetching notifications:", error);
-            }
-
         });
 
-        function closeOnOutsideClick(event) {
-            const modal = document.getElementById("notificationModal");
-            const notificationIcon = document.getElementById("notificationIcon");
-
-            // בדיקה אם הלחיצה התבצעה מחוץ לחלון ומחוץ לאייקון
-            if (!modal.contains(event.target) && event.target !== notificationIcon) {
-                closeNotifications();
-            }
-        }
         document.getElementById('sowDate').addEventListener('input', () => {
             const sowDate = document.getElementById('sowDate').value;
             const quantityPlantedDiv = document.getElementById('quantityPlantedDiv');
@@ -722,66 +623,60 @@
             document.getElementById('quantityPlantedDiv').style.display = 'none';
         }
 
-
-        // document.addEventListener("DOMContentLoaded", async function () {
-        //     const shortWeatherDiv = document.getElementById("weather-info-short");
-
-        //     try {
-        //         const response = await fetch("/weather");
-        //         if (!response.ok) {
-        //             throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
-        //         }
-
-        //         const data = await response.json();
-
-        //         // עדכון התצוגה הקצרה בסרגל הכלים
-        //         shortWeatherDiv.innerHTML = `
-        //             <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
-        //             <strong>${data.city}</strong> ${data.temperature}°C
-        //         `;
-        //     } catch (error) {
-        //         console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
-        //         shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
-        //     }
-        // });
-
-
-        function logout() {
-            fetch('/users/logout', {
-                method: 'POST',
-                credentials: 'same-origin'  // שולח את ה-cookies של ה-session
-            }).then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;  // מפנה לדף הבית
-                } else {
-                    showAlert('שגיאה במהלך הניתוק.');
-                }
-            }).catch(error => {
-                console.error('שגיאה בלתי צפויה:', error);
-            });
-        }
-        function showAlert(title, message, redirectUrl = null) {
+        function showAlert(title, message, options = {}) {
+            const { redirectUrl = null, isSuccess = false, restoreForm = false, formId = null, modalId = null } = options;
             const alertBox = document.getElementById("customAlert");
             alertBox.querySelector(".alert-title").textContent = title;
             alertBox.querySelector(".alert-message").textContent = message;
             alertBox.style.display = "block";
             alertBox.classList.add("fade-in");
+            // שמירת מידע במידת הצורך לשימוש מאוחר יותר
+            if (restoreForm && formId && modalId) {
+                const form = document.getElementById(formId);
+                if (form) {
+                    window.lastFormData = new FormData(form); // שמירת נתוני הטופס
+                    window.lastModalId = modalId; // שמירת מזהה החלון
+                }
+            }
 
-            // הגדרת אירוע סגירה להפניה
+            // הגדרת פעולה בהתבסס על סוג ההודעה (הצלחה או שגיאה)
             const closeButton = alertBox.querySelector(".alert-close");
-            closeButton.onclick = () => closeAlert(redirectUrl);
+            closeButton.onclick = () => closeAlert({ redirectUrl, isSuccess });
         }
 
-        function closeAlert(redirectUrl = null) {
+        function closeAlert({ redirectUrl = null, isSuccess = false } = {}) {
             const alertBox = document.getElementById("customAlert");
             alertBox.classList.remove("fade-in");
             alertBox.style.display = "none";
 
-            // בדיקה אם יש כתובת להפניה
-            if (redirectUrl) {
-                window.location.href = redirectUrl; // מפנה לדף הרצוי
+            if (isSuccess) {
+                // במקרה של הצלחה
+                if (redirectUrl) {
+                    window.location.href = redirectUrl; // מפנה לכתובת URL
+                } else {
+                    location.reload(); // רענון הדף
+                }
             } else {
-                location.reload(); // רענן את הדף אם אין כתובת להפניה
+                // במקרה של שגיאה: שחזור הטופס והחלון
+                if (window.lastFormData && window.lastModalId) {
+                    const modal = document.getElementById(window.lastModalId);
+                    const form = document.getElementById('plotForm');
+
+                    // שחזור נתוני הטופס
+                    if (form && window.lastFormData) {
+                        for (const [name, value] of window.lastFormData.entries()) {
+                            const field = form.elements[name];
+                            if (field) {
+                                field.value = value;
+                            }
+                        }
+                    }
+
+                    // פתיחת החלון
+                    if (modal) {
+                        modal.style.display = "flex";
+                    }
+                }
             }
         }
 

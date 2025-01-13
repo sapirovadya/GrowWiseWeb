@@ -13,6 +13,10 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Playfair+Display:wght@700;900&display=swap"
         rel="stylesheet">
+    <!-- CSS של Owl Carousel -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
 
     <!-- CSS Libraries -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
@@ -23,56 +27,6 @@
 
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
-
-    <style>
-        .btn-warning {
-            background-color: #ffcc00;
-            border-color: #ffcc00;
-            color: #fff;
-            font-weight: bold;
-        }
-
-        .btn-warning:hover {
-            background-color: #e6b800;
-            border-color: #e6b800;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1050;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-dialog {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            width: 400px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-title {
-            font-weight: bold;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: space-between;
-        }
-    </style>
 </head>
 
 <body>
@@ -174,7 +128,7 @@
     <div class="container mt-4">
         <div class="row">
             <div class="d-flex justify-content-between align-items-center">
-                <h1 class="text-center flex-grow-1">פרטי החלקה</h1>
+                <h1>פרטי החלקה</h1>
                 <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="btn btn-primary">חזרה לדף החלקות</a>
             </div>
             <hr class="section-divider">
@@ -182,45 +136,48 @@
             <div class="col-md-6 order-md-1">
                 <h2>{{ plot.plot_name }}</h2>
                 <br>
-                <p><strong>צורת גידול: </strong> {{ plot.plot_type or "לא זמין" }}</p>
-                <p><strong>אורך:</strong> {{ plot.length or "לא זמין" }} מטר</p>
-                <p><strong>רוחב:</strong> {{ plot.width or "לא זמין" }} מטר</p>
-                <p><strong>סוג גידול:</strong>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">צורת גידול: </strong> {{ plot.plot_type or
+                    "לא זמין" }}</p>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">אורך:</strong> {{ plot.length or "לא זמין"
+                    }} מטר</p>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">רוחב:</strong> {{ plot.width or "לא זמין"
+                    }} מטר</p>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">סוג גידול:</strong>
                     {% if plot.crop_category == "none" %}
                     טרם נבחר סוג הגידול
                     {% else %}
                     {{ plot.crop_category }}
                     {% endif %}
                 </p>
-                <p><strong>גידול:</strong>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">גידול:</strong>
                     {% if plot.crop == "none" %}
                     טרם נבחר גידול
                     {% else %}
                     {{ plot.crop }}
                     {% endif %}
                 </p>
-                <p><strong>תאריך זריעה:</strong>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">תאריך זריעה:</strong>
                     {% if plot.sow_date == "" %}
                     טרם בוצעה זריעה
                     {% else %}
                     {{ plot.sow_date }}
                     {% endif %}
                 </p>
-                <p><strong>כמות הזריעה(בק״ג):</strong>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">כמות הזריעה(בק״ג):</strong>
                     {% if plot.quantity_planted == "" %}
                     טרם בוצעה זריעה
                     {% else %}
                     {{ plot.quantity_planted }}
                     {% endif %}
                 </p>
-                <p><strong>תאריך השקיה אחרון:</strong>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">תאריך השקיה אחרון:</strong>
                     {% if plot.last_irrigation_date == None %}
                     טרם בוצעה השקייה
                     {% else %}
                     {{ plot.last_irrigation_date }}
                     {% endif %}
                 </p>
-                <p><strong>כמות השקיה כוללת:</strong>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">כמות השקיה כוללת:</strong>
                     {% if plot.total_irrigation_amount == None %}
                     0
                     {% else %}
@@ -242,7 +199,7 @@
                             onclick="openUpdateModal('{{ plot._id }}')">
                             <img src="/static/img/update_grow.png" alt="" width="80" height="80">
                         </div>
-                        <p>עדכון פרטי חלקה</p>
+                        <p style="font-size: 17px;"><strong>עדכון פרטי חלקה</strong></p>
                     </div>
                 </div>
 
@@ -255,35 +212,36 @@
                 <div class="container">
                     <div class="row justify-content-center">
                         <!-- שורה ראשונה -->
-                        <div class="col-3 text-center" style="padding: 10px;">
+                        <div class="col-3 text-center" style="margin-left: 50px;">
                             <div class="service-item-icon" onclick="checkAndOpenIrrigationModal('{{ plot._id }}')">
                                 <img src="/static/img/waters.png" alt="" width="80" height="80">
                             </div>
-                            <p>עדכון השקיה</p>
+                            <p style="font-size: 17px;"><strong>עדכון השקיה</strong></p>
                         </div>
-                        <div class="col-3 text-center" id="growthForecastButton" style="padding: 10px;">
+                        <div class="col-3 text-center" id="growthForecastButton">
                             <div class="service-item-icon">
                                 <img src="/static/img/grow_color.png" alt="" width="80" height="80">
                             </div>
-                            <p>תחזית גדילה</p>
+                            <p style="font-size: 17px;"><strong>תחזית גדילה</strong></p>
                         </div>
                     </div>
 
                     <div class="row justify-content-center mt-4">
                         <!-- שורה שנייה -->
-                        <div class="col-3 text-center" style="padding: 10px;" id="detailedWeatherButton">
+                        <div class="col-3 text-center" style="margin-top: 10px; margin-left: 50px;"
+                            id="detailedWeatherButton">
                             <div class="service-item-icon">
                                 <img src="/static/img/cloud.png" alt="" width="80" height="80">
                             </div>
-                            <p>תחזית מזג אוויר</p>
+                            <p style="font-size: 17px;"><strong>תחזית מזג אוויר</strong></p>
                         </div>
                         {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                        <div class="col-3 text-center" id="archiveButton" style="padding: 10px;"
+                        <div class="col-3 text-center" id="archiveButton" style="margin-top: 10px;"
                             onclick="openArchiveModal('{{ plot._id }}')">
                             <div class="service-item-icon">
                                 <img src="/static/img/archive_color.png" alt="" width="80" height="80">
                             </div>
-                            <p>העבר לארכיון</p>
+                            <p style="font-size: 17px;"><strong>העבר לארכיון</strong></p>
                         </div>
                         {% endif %}
                     </div>
@@ -335,7 +293,7 @@
     </div>
 
     <!-- irrigation window-->
-    <div id="irrigationModal" class="modal">
+    <div id="irrigationModal" class="modal irrigationModal">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -353,11 +311,11 @@
         </div>
     </div>
 
-    <div id="growthForecastModal" class="modal">
+    <div id="growthForecastModal" class="modal grow">
         <div class="modal-dialog">
             <div class="modal-content" style="max-width:1500px;">
                 <div class="modal-header">
-                    <h5 class="modal-title">תחזית גדילה</h5>
+                    <h4 class="modal-title">תחזית גדילה</h4>
                     <button type="button" class="btn-close" onclick="closeGrowthForecastModal()"></button>
                 </div>
                 <div class="modal-body">
@@ -392,7 +350,7 @@
         </div>
     </div>
 
-    <div id="archiveModal" class="modal">
+    <div id="archiveModal" class="modal archive">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -406,7 +364,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-success" onclick="finalizePlot()">סיום חלקה</button>
+                    <button type="button" class="btn btn-done" onclick="finalizePlot()">סיום חלקה</button>
                     <button type="button" class="btn btn-secondary" onclick="closeArchiveModal()">סגור</button>
                 </div>
             </div>
@@ -439,6 +397,12 @@
             class="bi bi-arrow-up"></i></a>
 
     <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
+
+    <script src="/static/js/main.js"></script>
     <script>
 
 
@@ -778,119 +742,11 @@
                 detailedWeatherInfo.innerHTML = `<p>שגיאה בטעינת הנתונים</p>`;
             }
 
-
-
-            // טעינת התראות
-            try {
-                const notificationsResponse = await fetch("/users/get_notifications");
-                const notificationsData = await notificationsResponse.json();
-
-                showNotificationBadge(notificationsData.new_notifications_count); // עדכון העיגול האדום עם מספר ההתראות החדשות
-            } catch (error) {
-                console.error("Error fetching notifications:", error);
-            }
         });
 
         // פונקציה לסגירת מודל תחזית מזג האוויר
         function closeWeatherModal() {
             document.getElementById("detailedWeatherModal").style.display = "none";
-        }
-
-
-        function showNotificationBadge(newNotificationsCount) {
-            const badge = document.getElementById("notificationBadge");
-            if (newNotificationsCount > 0) {
-                badge.style.display = "flex"; // הצגת העיגול האדום
-                badge.textContent = newNotificationsCount; // הצגת מספר ההתראות
-            } else {
-                badge.style.display = "none"; // הסתרת העיגול האדום
-            }
-        }
-
-
-        function toggleNotifications() {
-            const modal = document.getElementById("notificationModal");
-            const badge = document.getElementById("notificationBadge");
-
-            if (modal.style.display === "none" || modal.style.display === "") {
-                modal.style.display = "block";
-
-                // הסתרת האייקון האדום (בזמן פתיחת ההתראות)
-                badge.style.display = "none";
-
-                // סימון התראות כנצפות בשרת
-                fetch("/users/mark_notifications_seen", { method: "POST" })
-                    .catch(error => console.error("Error marking notifications as seen:", error));
-
-                // טעינת התראות
-                fetch("/users/get_notifications")
-                    .then(response => response.json())
-                    .then(data => {
-                        const notificationsList = document.getElementById("notifications-list");
-                        if (data.notifications.length > 0) {
-                            notificationsList.innerHTML = data.notifications
-                                .map(notification => `
-                                    <div class="notification-item">
-                                        <p><strong>תוכן:</strong> ${notification.content}</p>
-                                        <p><strong>מייל:</strong> ${notification.employee_email || "לא זמין"}</p>
-                                        <hr>
-                                    </div>
-                                `)
-                                .join("");
-                        } else {
-                            notificationsList.innerHTML = "<p>אין התראות חדשות.</p>";
-                        }
-                    })
-                    .catch(error => console.error("Error fetching notifications:", error));
-            } else {
-                modal.style.display = "none";
-            }
-        }
-
-        function closeNotifications() {
-            const modal = document.getElementById("notificationModal");
-            modal.style.display = "none";
-
-            // הסרת המאזין
-            document.removeEventListener("click", closeOnOutsideClick);
-        }
-
-        function closeOnOutsideClick(event) {
-            const modal = document.getElementById("notificationModal");
-            const notificationIcon = document.getElementById("notificationIcon");
-
-            // בדיקה אם הלחיצה התבצעה מחוץ לחלון ומחוץ לאייקון
-            if (!modal.contains(event.target) && event.target !== notificationIcon) {
-                closeNotifications();
-            }
-        }
-
-
-        function logout() {
-            fetch('/users/logout', {
-                method: 'POST',
-                credentials: 'same-origin'  // שולח את ה-cookies של ה-session
-            }).then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;  // מפנה לדף הבית
-                } else {
-                    showAlert('שגיאה במהלך הניתוק.');
-                }
-            }).catch(error => {
-                console.error('שגיאה בלתי צפויה:', error);
-            });
-        }
-
-        function showAlert(title, message, redirectUrl = null) {
-            const alertBox = document.getElementById("customAlert");
-            alertBox.querySelector(".alert-title").textContent = title;
-            alertBox.querySelector(".alert-message").textContent = message;
-            alertBox.style.display = "block";
-            alertBox.classList.add("fade-in");
-
-            // הגדרת אירוע סגירה להפניה
-            const closeButton = alertBox.querySelector(".alert-close");
-            closeButton.onclick = () => closeAlert(redirectUrl);
         }
 
         function closeAlert(redirectUrl = null) {

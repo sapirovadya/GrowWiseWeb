@@ -9,7 +9,7 @@
     <meta content="" name="description">
 
     <!-- Favicon -->
-    <link href="static/img/favicon.ico" rel="icon">
+    <link href="/static/img/favicon.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,80 +22,21 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
+    <!-- CSS של Owl Carousel -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+
     <!-- Libraries Stylesheet -->
-    <link href="lib/animate/animate.min.css" rel="stylesheet">
-    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="/static/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/static/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
 
     <!-- Customized Bootstrap Stylesheet -->
-    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Template Stylesheet -->
-    <link href="static/css/style.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
 
-    <!-- Custom Styles for Alerts -->
-    <style>
-        /* עיצוב לאלרט */
-        .alert-box {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: var(--light);
-            /* צבע רקע */
-            color: var(--dark);
-            /* צבע טקסט */
-            padding: 20px 30px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            border: 2px solid var(--primary);
-            /* צבע גבול */
-            border-radius: 10px;
-            text-align: center;
-            z-index: 1050;
-            display: none;
-            /* מוסתר כברירת מחדל */
-            width: 350px;
-        }
-
-        /* עיצוב כותרת */
-        .alert-box .alert-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-family: 'Playfair Display', serif;
-            /* גופן הכותרת */
-            color: var(--primary);
-            /* צבע הכותרת */
-        }
-
-        /* עיצוב טקסט ההודעה */
-        .alert-box .alert-message {
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 15px;
-            font-family: 'Open Sans', sans-serif;
-            /* גופן גוף ההודעה */
-        }
-
-        /* עיצוב כפתור סגירה */
-        .alert-box .alert-close {
-            background-color: var(--primary);
-            /* צבע כפתור */
-            color: var(--light);
-            /* צבע טקסט הכפתור */
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: 'Open Sans', sans-serif;
-            transition: background-color 0.3s ease;
-        }
-
-        .alert-box .alert-close:hover {
-            background-color: var(--secondary);
-            /* שינוי צבע הכפתור במעבר עכבר */
-        }
-    </style>
 </head>
 
 <body>
@@ -167,14 +108,15 @@
     </div>
 
     <!-- Alert Box -->
-    <div id="customAlert" class="alert-box">
-        <h5 class="alert-title">שגיאה</h5>
-        <p class="alert-message"></p>
-        <button class="alert-close" onclick="closeAlert()">סגור</button>
+    <div id="customAlert" class="alert-box" style="display:none;">
+        <h5 class="alert-title">כותרת</h5>
+        <p class="alert-message">הודעה</p>
+        <button class="alert-close btn btn-primary" onclick="closeAlert()">סגור</button>
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal fade modal-login" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -219,12 +161,33 @@
             class="bi bi-arrow-up"></i></a>
 
     <!-- JavaScript -->
+    <!-- Libraries -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/lib/wow/wow.min.js"></script>
+    <script src="/static/lib/easing/easing.min.js"></script>
+    <script src="/static/lib/waypoints/waypoints.min.js"></script>
+    <script src="/static/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="/static/js/main.js"></script>
     <script>
-        function showAlert(message) {
+        // משתנים לשמירת מצב השדות
+        let lastEmail = "";
+        let lastPassword = "";
+
+        function showAlert(title, message) {
             const alertBox = document.getElementById("customAlert");
+            alertBox.querySelector(".alert-title").textContent = title;
             alertBox.querySelector(".alert-message").textContent = message;
             alertBox.style.display = "block";
+            alertBox.classList.add("fade-in");
 
+            const emailInput = document.getElementById("email");
+            const passwordInput = document.getElementById("password");
+
+            if (emailInput && passwordInput) {
+                lastEmail = emailInput.value;
+                lastPassword = passwordInput.value;
+            }
             // Close the login modal
             const loginModal = document.getElementById("loginModal");
             const bootstrapModal = bootstrap.Modal.getInstance(loginModal);
@@ -233,11 +196,25 @@
             }
         }
 
-        // Function to close custom alert
         function closeAlert() {
             const alertBox = document.getElementById("customAlert");
+            alertBox.classList.remove("fade-in");
             alertBox.style.display = "none";
+
+            // שחזור השדות בטופס
+            const emailInput = document.getElementById("email");
+            const passwordInput = document.getElementById("password");
+
+            if (emailInput && passwordInput) {
+                emailInput.value = lastEmail;
+                passwordInput.value = lastPassword;
+            }
+
+            // פתיחה מחדש של חלון ההתחברות
+            const loginModal = new bootstrap.Modal(document.getElementById("loginModal"));
+            loginModal.show();
         }
+
 
         // Example usage in form submission
         document.getElementById("loginForm").addEventListener("submit", async function (event) {
@@ -254,7 +231,22 @@
                 const result = await response.json();
 
                 if (!response.ok) {
-                    showAlert(result.message);
+                    let userMessage;
+                    switch (result.message) {
+                        case "user not found":
+                            userMessage = "משתמש לא נמצא";
+                            break;
+                        case "one of the detail is incorrect":
+                            userMessage = "אחד הפרטים לא נכונים";
+                            break;
+                        case "user is not approved":
+                            userMessage = "משתמש לא מאושר";
+                            break;
+                        default:
+                            userMessage = "אירעה שגיאה. נסה שנית.";
+                    }
+
+                    showAlert("שגיאה", userMessage);
                 } else {
                     window.location.href = result.redirect_url;
                 }
@@ -262,27 +254,6 @@
                 showAlert("שגיאה במהלך התחברות. נסה שנית.");
             }
         });
-
-
-
-
-        
-
-
-
-    </script>
-    <!-- Libraries -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="static/lib/wow/wow.min.js"></script>
-    <script src="static/lib/easing/easing.min.js"></script>
-    <script src="static/lib/waypoints/waypoints.min.js"></script>
-    <script src="static/lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="static/js/main.js"></script>
-
-
-    <!-- קוד למניעת חזרה אחורה -->
-    <script>
         window.onload = function () {
             history.replaceState(null, null, location.href);
             history.pushState(null, null, location.href);
@@ -296,8 +267,8 @@
                 event.preventDefault();
             }
         });
-    </script>
 
+    </script>
 
 
 </body>

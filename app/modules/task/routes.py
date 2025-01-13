@@ -86,6 +86,7 @@ def get_tasks():
             result.append({
                 "employee_name": employees.get(task["employee_email"], "לא נמצא"),
                 "task_name": task["task_name"],
+                "task_content": task["task_content"],
                 "due_date": task["due_date"],
                 "status": task["status"]
             })
@@ -108,6 +109,7 @@ def get_tasks():
             result.append({
                 "employee_name": employees.get(task["employee_email"], "לא נמצא"),
                 "task_name": task["task_name"],
+                "task_content": task["task_content"],
                 "due_date": task["due_date"],
                 "status": task["status"]
             })
@@ -124,6 +126,7 @@ def get_tasks():
             result.append({
                 "employee_name": "אתה",  # כיוון שהמשימות שייכות למשתמש הנוכחי
                 "task_name": task["task_name"],
+                "task_content": task["task_content"],
                 "due_date": task["due_date"],
                 "status": task["status"]
             })
