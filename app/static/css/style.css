@@ -8,7 +8,10 @@
 
 /* הגדרת ברירת מחדל לגופן עבור כל האתר */
 body {
-    font-family: 'Playfair Display', sans-serif;
+    font-family: "Open Sans", sans-serif;
+    background: #ffffff;
+    margin: 0;
+    padding: 0;
 }
 
 /* עבור כותרות */
@@ -18,26 +21,26 @@ h3,
 h4,
 h5,
 h6 {
-    font-family: 'Playfair Display', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 }
 
 /* עבור קישורים */
 a {
-    font-family: inherit;
+    font-family: 'Open Sans', sans-serif;
     /* ירש מהגופן הכללי של ההורה */
 }
 
 /* עבור כפתורים */
 button,
 .btn {
-    font-family: inherit;
+    font-family: 'Open Sans', sans-serif;
     /* ירש מהגופן הכללי */
 }
 
 /* תיבת קלט או טקסט */
 input,
 textarea {
-    font-family: inherit;
+    font-family: 'Open Sans', sans-serif;
     /* ירש את ההגדרה הכללית */
 }
 
@@ -85,6 +88,8 @@ textarea {
 
 .btn-primary,
 .btn-outline-primary:hover {
+    font-weight: bold;
+    font-size: 17px;
     color: var(--light);
 }
 
@@ -141,7 +146,7 @@ textarea {
     font-weight: 600;
     text-transform: uppercase;
     outline: none;
-    font-family: 'Playfair Display', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     /* גופן Arial */
     font-size: 20px;
     /* גודל כתב 20 */
@@ -557,7 +562,7 @@ textarea {
 body {
     direction: rtl;
     text-align: right;
-    font-family: 'Playfair Display', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 }
 
 .form-floating label {
@@ -619,7 +624,7 @@ body {
 
 /* עיצוב הסלוגן */
 .carousel-caption h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Open Sans', sans-serif;
     /* גופן מסוגנן */
     color: #ffffff;
     /* טקסט לבן */
@@ -629,7 +634,7 @@ body {
 
 /* עיצוב החתימה */
 .carousel-caption p {
-    font-family: 'Playfair Display', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     /* גופן פשוט ונקי */
     font-size: 1.5rem;
     /* גודל טקסט גדול */
@@ -744,15 +749,11 @@ body {
 }
 
 .page-header h1 {
-    font-family: 'Playfair Display', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-weight: 800;
     /* אופציונלי: הדגשה */
     font-size: 5rem;
     /* אופציונלי: שליטה בגודל */
-}
-
-h1 {
-    font-family: 'Playfair Display', sans-serif;
 }
 
 /* עיצוב הכפתור X */
@@ -818,6 +819,11 @@ h1 {
 
 
 .modal-content {
+    background-color: white;
+    margin: auto;
+    padding: 20px;
+    width: 50%;
+    text-align: right;
     border: none;
     /* מסיר את המסגרת */
     box-shadow: none;
@@ -851,7 +857,7 @@ h1 {
 }
 
 .plot-name {
-    font-family: 'Playfair Display', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 
     text-align: center;
     /* שמירה על מיקום מרכזי */
@@ -931,50 +937,6 @@ h1 {
     /* ללא הדגשה */
 }
 
-/* כפתורי דפדוף */
-.navigation-buttons button {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-    display: flex;
-    font-weight: bold;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid #ddd;
-    background-color: #8fb23e;
-    /* ירוק */
-    color: rgb(255, 255, 255);
-    /* טקסט לבן */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
-    border-radius: 50%;
-    /* עיגול */
-
-}
-
-.navigation-buttons button:hover {
-    background-color: #6c9d38;
-    /* ירוק כהה יותר */
-}
-
-.navigation-buttons {
-    position: relative;
-    top: 0;
-    /* מתאים לגובה המלל */
-    display: flex;
-    justify-content: space-between;
-    /* כפתורים בצדדים */
-    align-items: center;
-    width: 100%;
-    /* מקביל לכל רוחב המלל */
-    max-width: 600px;
-    /* גודל קבוע אם נדרש */
-    margin: 0 auto;
-    margin-top: 100px;
-    /* למרכז את התוכן */
-}
-
-
 .plot-details {
     margin-top: 50px;
 }
@@ -998,44 +960,6 @@ span.me-2 {
     display: inline-block;
 }
 
-.navigation-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 0;
-    /* רווח בין הכפתורים לתוכן */
-}
-
-.navigation-container #plotDetails {
-    flex: 1;
-    text-align: center;
-}
-
-.navigation-container button {
-
-
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid #ddd;
-    background-color: #8fb23e;
-    /* ירוק */
-    color: #fff;
-    /* טקסט לבן */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
-    border-radius: 50%;
-    /* צורת עיגול */
-}
-
-.navigation-container button:hover {
-    background-color: #6c9d38;
-    /* ירוק כהה יותר */
-}
-
 .section-divider {
     border: none;
     /* מסיר את הקו הדיפולטי */
@@ -1043,6 +967,7 @@ span.me-2 {
     /* פס עליון דק בצבע הרצוי */
     margin-top: 10px;
     /* הסר רווחים מעל ומתחת לפס */
+    margin-bottom: 20px;
 }
 
 .secondary-navbar {
@@ -1050,11 +975,6 @@ span.me-2 {
     /* מרחק מה-Navbar העליון */
     z-index: 999;
     /* הבטחה שהסרגל יופיע מעל אלמנטים אחרים */
-}
-
-/* מרווח מתחת לפס ההפרדה */
-.section-divider {
-    margin-bottom: 20px;
 }
 
 /* הסרה של קווי הטבלה */
@@ -1070,50 +990,14 @@ span.me-2 {
 }
 
 .name-field {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
 }
 
 .name-field span {
-    margin-right: 2px;
-    /* רווח קטן בין השם הפרטי לשם המשפחה */
+    margin-right: 3px;
 }
 
-.btn-task {
-    margin-right: 2px;
-    background-color: #8fb23e;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.btn-task:hover {
-    background-color: #6c9d38;
-}
-
-#taskModal {
-    display: none;
-    position: fixed;
-    z-index: 600;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-    align-items: center;
-    justify-content: center;
-}
-
-#taskModalContent {
-    background-color: white;
-    margin: auto;
-    padding: 20px;
-    border-radius: 5px;
-    width: 50%;
-    text-align: right;
-}
 
 .notification-modal {
     display: none;
@@ -1136,33 +1020,31 @@ span.me-2 {
     color: #333;
 }
 
+
+/* alert */
 /* עיצוב כללי לאלרט */
 .alert-box {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: var(--light);
-    /* צבע רקע */
-    color: var(--dark);
-    /* צבע טקסט */
-    padding: 20px 30px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    /* צבע גבול */
-    border-radius: 10px;
+    width: 300px;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
     text-align: center;
-    z-index: 1050;
-    display: none;
-    /* מוסתר כברירת מחדל */
-    width: 350px;
+    animation: fadeIn 0.3s ease-in-out;
 }
 
 /* כותרת האלרט */
 .alert-box .alert-title {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
     margin-bottom: 10px;
-    font-family: 'Playfair Display', serif;
+    font-family: 'Open Sans', sans-serif;
     color: var(--primary);
     /* צבע הכותרת */
 }
@@ -1170,8 +1052,7 @@ span.me-2 {
 /* טקסט ההודעה */
 .alert-box .alert-message {
     font-size: 16px;
-    line-height: 1.5;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     font-family: 'Open Sans', sans-serif;
 }
 
@@ -1186,10 +1067,21 @@ span.me-2 {
     font-size: 14px;
     font-family: 'Open Sans', sans-serif;
     transition: background-color 0.3s ease;
+    margin-top: 10px;
+    background-color: #8fb23e;
+    color: white;
 }
 
-.alert-box .alert-close:hover {
-    background-color: var(--secondary);
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -55%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
 }
 
 /*--------------------------------------------------------------
@@ -1614,7 +1506,8 @@ span.me-2 {
     justify-content: center;
     font-size: 12px;
     font-weight: bold;
-    display: none; /* מוסתר כברירת מחדל */
+    display: none;
+    /* מוסתר כברירת מחדל */
 }
 
 .container .row>[class*="col-"] {
@@ -1654,12 +1547,15 @@ span.me-2 {
     justify-content: center;
     font-size: 12px;
     font-weight: bold;
-    display: none; /* מוסתר כברירת מחדל */
+    display: none;
+    /* מוסתר כברירת מחדל */
 }
 
 .notification-modal {
-    max-height: 300px; /* גובה מקסימלי */
-    overflow-y: auto; /* גלילה אנכית */
+    max-height: 300px;
+    /* גובה מקסימלי */
+    overflow-y: auto;
+    /* גלילה אנכית */
 }
 
 
@@ -1670,4 +1566,734 @@ span.me-2 {
     border: 1px solid #ccc;
     background-color: #f9f9f9;
     font-size: 14px;
+}
+
+/* all tasks*/
+
+.title {
+    text-align: center;
+    font-size: 35px;
+    margin-bottom: 20px;
+}
+
+.table-container {
+    margin: 30px auto;
+    max-width: 90%;
+    overflow: hidden;
+    /* מוודא שהתוכן לא יחרוג מעבר לפינות המעוגלות */
+    border-radius: 5px;
+    /* עיגול הפינות */
+
+}
+
+.table {
+    font-size: 17px;
+    text-align: center;
+
+}
+
+th,
+td {
+    padding: 5px;
+}
+
+th:first-child,
+td:first-child {
+    border-top-left-radius: 15px;
+    /* פינה שמאלית עליונה */
+    border-bottom-left-radius: 15px;
+    /* פינה שמאלית תחתונה */
+}
+
+th:last-child,
+td:last-child {
+    border-top-right-radius: 15px;
+    /* פינה ימנית עליונה */
+    border-bottom-right-radius: 15px;
+    /* פינה ימנית תחתונה */
+}
+
+/* home pages */
+/* אזור התוכן המרכזי */
+.main-content {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px;
+}
+
+/* מיכל לעיגולים/עלים */
+.leaf-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 60px;
+    justify-items: center;
+    width: 100%;
+    max-width: 1200px;
+}
+
+/* עיצוב העלה */
+.leaf {
+    width: 170px;
+    height: 170px;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.leaf img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.leaf:hover img {
+    transform: scale(1.1);
+}
+
+/* טקסט תחת העלה */
+.leaf span {
+    display: block;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #8fb23e;
+    margin-top: 2px;
+    font-family: 'Open Sans', sans-serif;
+
+}
+
+/* הנפשה בעת לחיצה */
+.leaf:active img {
+    transform: scale(0.7) rotate(15deg);
+    transition: transform 0.2s ease-out;
+}
+
+/* my team */
+
+
+.btn-detail,
+.btn-task,
+.btn-success {
+    background-color: #8fb23e;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+    /* מקטין את הרווח מימין */
+    margin-left: 10px;
+    /* מקטין את הרווח משמאל */
+    font-size: 17px;
+    width: 100px;
+    height: 45px;
+    font-weight: bold;
+}
+
+.btn-done {
+    background-color: #8fb23e;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+    /* מקטין את הרווח מימין */
+    margin-left: 10px;
+    /* מקטין את הרווח משמאל */
+    font-size: 17px;
+    width: 120px;
+    height: 45px;
+    font-weight: bold;
+}
+
+.btn-details {
+    background-color: #8fb23e;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+    /* מקטין את הרווח מימין */
+    margin-left: 10px;
+    /* מקטין את הרווח משמאל */
+    font-size: 18px;
+    height: 50px;
+
+}
+
+.btn-details:hover,
+.btn-task:hover,
+.btn-delete:hover,
+.alert-box .alert-close:hover,
+.irrigationModal .btn-primary:hover,
+.archive .btn-secondary:hover,
+.archive .btn-success:hover,
+.grow .btn-secondary:hover,
+.btn-primary:hover,
+#modal-actions .btn-danger:hover,
+.btn-danger:hover,
+#modal-actions .btn-success:hover,
+.btn-detail:hover,
+.btn-success:hover,
+.btn-change:hover,
+.btn-done:hover {
+    background-color: var(--secondary);
+}
+
+.btn-delete {
+    background-color: #E53935;
+    /* אדום */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    /* ריווח פנימי */
+    border-radius: 5px;
+    /* עיגול פינות */
+    cursor: pointer;
+    margin-right: 10px;
+    /* רווח מימין */
+    margin-left: 10px;
+    /* רווח משמאל */
+    font-size: 17px;
+    width: 100px;
+    height: 45px;
+    font-weight: bold;
+}
+
+#modal-actions .btn-danger,
+.btn-danger {
+    background-color: #E53935;
+    /* אדום */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    /* ריווח פנימי */
+    border-radius: 5px;
+    /* עיגול פינות */
+    cursor: pointer;
+    margin-right: 10px;
+    /* רווח מימין */
+    margin-left: 10px;
+    /* רווח משמאל */
+    font-size: 17px;
+    width: 100px;
+    height: 45px;
+    font-weight: bold;
+}
+
+.btn-change {
+    background-color: #E53935;
+    /* אדום */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    /* ריווח פנימי */
+    border-radius: 5px;
+    /* עיגול פינות */
+    cursor: pointer;
+    margin-right: 10px;
+    /* רווח מימין */
+    margin-left: 10px;
+    /* רווח משמאל */
+    font-size: 17px;
+    width: 120px;
+    height: 45px;
+    font-weight: bold;
+}
+
+.employee-table {
+    width: 100%;
+    border-collapse: collapse;
+    /* מסיר קווי טבלה */
+    text-align: right;
+}
+
+.employee-table th,
+.employee-table td {
+    padding: 10px 20px;
+    /* ריווח פנימי */
+    text-align: right;
+}
+
+.employee-table th {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.employee-table td {
+    font-size: 20px;
+}
+
+.ms-3 {
+    margin-left: 13px;
+    /* ריווח בין הכפתורים */
+}
+
+/* עיצוב כפתורים */
+#modal-actions .btn {
+    font-size: 18px;
+    /* גודל טקסט */
+    padding: 10px 25px;
+    /* ריווח פנימי */
+    border-radius: 5px;
+    /* עיגול פינות */
+    transition: all 0.3s ease;
+    /* אנימציה עדינה */
+}
+
+#modal-actions .btn-success {
+    background-color: #8fb23e;
+    /* ירוק */
+    border: none;
+    color: #ffffff;
+    padding: 5px 10px;
+    /* ריווח פנימי */
+    border-radius: 5px;
+    /* עיגול פינות */
+    cursor: pointer;
+    margin-right: 10px;
+    /* רווח מימין */
+    margin-left: 10px;
+    /* רווח משמאל */
+}
+
+
+#modal-actions .btn-lg {
+    font-size: 18px;
+    /* טקסט גדול */
+    padding: 10px 25px;
+    /* ריווח פנימי מוגדל */
+}
+
+
+#taskModal {
+    display: none;
+    position: fixed;
+    z-index: 600;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    align-items: center;
+    justify-content: center;
+}
+
+#taskModalContent {
+    background-color: white;
+    margin: auto;
+    padding: 20px;
+    border-radius: 5px;
+    width: 50%;
+    text-align: right;
+}
+
+/* עיצוב מודל */
+.modal {
+
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1050;
+    justify-content: center;
+    align-items: center;
+}
+
+/* login */
+/* עיצוב ייחודי למודל הכניסה */
+.modal-login .modal-dialog {
+    top: 100px;
+    width: 850px;
+    height: 200px;
+    /* הגדלת הרוחב */
+    max-width: 100%;
+}
+
+/* plot detalis */
+.irrigationModal .modal-dialog {
+    width: 400px;
+    /* הגדלת רוחב החלון */
+    height: 300px;
+    /* גובה המותאם לתוכן */
+    max-width: 100%;
+    /* התאמה למסכים קטנים */
+    border-radius: 10px;
+    /* פינות מעוגלות */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* צל קל */
+    display: flex;
+    flex-direction: column;
+    /* יישור התוכן אנכית */
+    background-color: white;
+    /* רקע לבן */
+    padding: 20px;
+    /* ריווח פנימי */
+    border: none;
+    /* ביטול מסגרות נוספות */
+}
+
+.irrigationModal .modal-content {
+    width: 100%;
+    /* התאמת רוחב */
+    height: 100%;
+    /* התאמת גובה */
+    border: none;
+    /* ביטול מסגרת פנימית */
+    box-shadow: none;
+    /* ביטול צל כפול */
+    background-color: transparent;
+    /* ביטול רקע נוסף */
+    padding: 0;
+    /* ביטול ריווח מיותר */
+}
+
+.irrigationModal .modal-body {
+    flex-grow: 1;
+    /* תוכן המודל מקבל את רוב הגובה */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* יישור תוכן אנכית */
+    align-items: center;
+    /* יישור תוכן אופקית */
+    text-align: center;
+    /* יישור טקסט למרכז */
+}
+
+/* הגדלת תיבת הטקסט */
+.irrigationModal .form-control {
+    width: 250px;
+    height: 50px;
+    /* גובה מוגדל */
+    font-size: 1.2rem;
+    /* טקסט גדול יותר */
+    border: 1px solid #ccc;
+    /* מסגרת אפורה */
+    border-radius: 5px;
+    /* פינות מעוגלות */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* צל קל */
+}
+
+.irrigationModal .btn-primary {
+    font-size: 1.1rem;
+    /* גודל כתב מוגדל */
+    font-weight: bold;
+    /* כתב מודגש */
+    height: 50px;
+    /* גובה הכפתור */
+    border-radius: 5px;
+    /* פינות מעוגלות */
+    text-align: center;
+    /* טקסט במרכז הכפתור */
+    transition: background-color 0.3s ease;
+    /* אפקט מעבר בצבע */
+    border: none;
+
+}
+
+.grow .modal-dialog {
+    width: 650px;
+    height: 400px;
+    /* גובה מותאם לתוכן */
+    max-width: 100%;
+    /* התאמה למסכים קטנים */
+    border-radius: 10px;
+    /* פינות מעוגלות */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* צל קל */
+    display: flex;
+    flex-direction: column;
+    /* יישור התוכן אנכית */
+}
+
+.grow .modal-body {
+    width: 100%;
+    /* התאמה לרוחב המודל */
+    height: 100%;
+    /* התאמה לגובה המודל */
+    padding: 20px;
+    /* ריווח פנימי */
+    overflow-y: auto;
+    /* גלילה אנכית במקרה הצורך */
+    text-align: right;
+    /* יישור הטקסט לימין */
+    direction: rtl;
+    /* כיוון כתיבה מימין לשמאל */
+    word-wrap: break-word;
+    /* שבירת מילים ארוכות */
+    font-size: 1.2rem;
+    /* גודל טקסט נוח */
+    line-height: 1.3;
+    /* מרווח בין השורות */
+    box-sizing: border-box;
+    /* כולל padding בחישוב הרוחב */
+    flex-grow: 1;
+    /* נותן עדיפות למילוי גובה עבור גוף המודל */
+}
+
+.grow .modal-content {
+    width: 100%;
+    /* התאמת הרוחב למסגרת */
+    height: 100%;
+    /* התאמת הגובה למסגרת */
+    display: flex;
+    flex-direction: column;
+    /* חלוקה אנכית של התוכן */
+}
+
+.grow .modal-header,
+.grow .modal-footer {
+    flex-shrink: 0;
+    /* שמירה על גודל קבוע */
+}
+
+.grow .btn-secondary {
+    /* רוחב הכפתור */
+    height: 50px;
+    /* גובה הכפתור */
+    font-size: 1.1rem;
+    /* גודל טקסט */
+    font-weight: bold;
+    /* טקסט מודגש */
+    border-radius: 8px;
+    /* פינות מעוגלות */
+    background-color: #818181;
+    /* צבע רקע ברירת מחדל */
+    color: white;
+    /* צבע הטקסט */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    /* אפקט מעבר */
+    border: none;
+}
+
+
+.archive .modal-dialog {
+    width: 600px;
+    /* הגדלת רוחב החלון */
+    height: 300px;
+    /* גובה המותאם לתוכן */
+    max-width: 100%;
+    /* התאמה למסכים קטנים */
+    border-radius: 10px;
+    /* פינות מעוגלות */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* צל קל */
+    display: flex;
+    flex-direction: column;
+    /* יישור התוכן אנכית */
+    background-color: white;
+    /* רקע לבן */
+    padding: 20px;
+    /* ריווח פנימי */
+    border: none;
+    /* ביטול מסגרות נוספות */
+}
+
+.archive .modal-content {
+    width: 100%;
+    /* התאמת רוחב */
+    height: 100%;
+    /* התאמת גובה */
+    border: none;
+    /* ביטול מסגרת פנימית */
+    box-shadow: none;
+    /* ביטול צל כפול */
+    background-color: transparent;
+    /* ביטול רקע נוסף */
+    padding: 0;
+    /* ביטול ריווח מיותר */
+}
+
+.archive .modal-body {
+    flex-grow: 1;
+    /* תוכן המודל מקבל את רוב הגובה */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* יישור תוכן אנכית */
+    align-items: center;
+    /* יישור תוכן אופקית */
+    text-align: center;
+    /* יישור טקסט למרכז */
+}
+
+.archive .modal-footer {
+    display: flex;
+    /* מציג את הכפתורים בשורה אחת */
+    justify-content: center;
+    /* מיישר את הכפתורים לימין */
+    gap: 15px;
+    /* רווח בין הכפתורים */
+    padding: 15px;
+    /* ריווח פנימי בתחתית */
+}
+
+.archive .btn {
+    height: 50px;
+    /* גובה מוגדל לכפתור */
+    padding: 0 20px;
+    /* ריווח פנימי */
+    font-size: 1.1rem;
+    /* גודל טקסט */
+    border-radius: 5px;
+    /* פינות מעוגלות */
+    display: inline-block;
+    /* מוודא שהכפתורים בשורה */
+    border: none;
+
+}
+
+.archive .btn-success {
+    background-color: #8fb23e;
+    /* צבע ירוק */
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.archive .btn-secondary {
+    background-color: #818181;
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+
+}
+
+/* profile */
+
+.profile-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group label {
+    font-weight: bold;
+}
+
+.form-control[readonly] {
+    background-color: #e9ecef;
+}
+
+.plots .modal-dialog {
+    width: 450px;
+    /* הגדלת רוחב החלון */
+    height: 600px;
+    /* גובה המותאם לתוכן */
+    max-width: 100%;
+    /* התאמה למסכים קטנים */
+    border-radius: 10px;
+    /* פינות מעוגלות */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* צל קל */
+    display: flex;
+    flex-direction: column;
+    /* יישור התוכן אנכית */
+    background-color: white;
+    /* רקע לבן */
+    padding: 20px;
+    /* ריווח פנימי */
+    border: none;
+    /* ביטול מסגרות נוספות */
+}
+
+.plots .modal-body {
+    width: 100%;
+    /* התאמה לרוחב המודל */
+    height: 100%;
+    /* התאמה לגובה המודל */
+    overflow-y: auto;
+    /* גלילה אנכית במקרה הצורך */
+    text-align: right;
+    /* יישור הטקסט לימין */
+    direction: rtl;
+    /* כיוון כתיבה מימין לשמאל */
+    word-wrap: break-word;
+    /* שבירת מילים ארוכות */
+    box-sizing: border-box;
+    /* כולל padding בחישוב הרוחב */
+    flex-grow: 1;
+    /* נותן עדיפות למילוי גובה עבור גוף המודל */
+}
+
+.plots .modal-content {
+    width: 100%;
+    /* התאמת הרוחב למסגרת */
+    height: 100%;
+    /* התאמת הגובה למסגרת */
+    display: flex;
+    flex-direction: column;
+    /* חלוקה אנכית של התוכן */
+}
+
+.select-plot .modal-dialog {
+    width: 350px;
+    /* הגדלת רוחב החלון */
+    height: 220px;
+    /* גובה המותאם לתוכן */
+    max-width: 100%;
+    /* התאמה למסכים קטנים */
+    border-radius: 10px;
+    /* פינות מעוגלות */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* צל קל */
+    display: flex;
+    flex-direction: column;
+    /* יישור התוכן אנכית */
+    background-color: white;
+    /* רקע לבן */
+    padding: 20px;
+    /* ריווח פנימי */
+    border: none;
+    /* ביטול מסגרות נוספות */
+}
+
+.select-plot .modal-body {
+    width: 100%;
+    /* התאמה לרוחב המודל */
+    height: 100%;
+    /* התאמה לגובה המודל */
+    overflow-y: auto;
+    /* גלילה אנכית במקרה הצורך */
+    text-align: center;
+    /* יישור הטקסט לימין */
+    direction: rtl;
+    /* כיוון כתיבה מימין לשמאל */
+    word-wrap: break-word;
+    /* שבירת מילים ארוכות */
+    box-sizing: border-box;
+    /* כולל padding בחישוב הרוחב */
+    flex-grow: 1;
+    /* נותן עדיפות למילוי גובה עבור גוף המודל */
+}
+
+.select-plot .modal-content {
+    width: 100%;
+    /* התאמת הרוחב למסגרת */
+    height: 100%;
+    /* התאמת הגובה למסגרת */
+    display: flex;
+    flex-direction: column;
+    /* חלוקה אנכית של התוכן */
+}
+
+#singleView {
+    display: none;
 }
