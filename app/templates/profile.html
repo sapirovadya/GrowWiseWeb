@@ -141,7 +141,8 @@
                 </div>
                 <div class="form-group mb-3">
                     <label for="email">אימייל</label>
-                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required
+                        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
                 </div>
                 <div class="form-group mb-3">
                     <label for="role">תפקיד</label>
@@ -178,36 +179,79 @@
 
     <script src="/static/js/main.js"></script>
     <script>
+        function showAlert(title, message, options = {}) {
+            const { onClose = null, refreshPage = false, restoreForm = false, formId = null } = options;
+            const alertBox = document.getElementById("customAlert");
+            alertBox.querySelector(".alert-title").textContent = title;
+            alertBox.querySelector(".alert-message").textContent = message;
+            alertBox.style.display = "block";
+            alertBox.classList.add("fade-in");
+
+            const closeButton = alertBox.querySelector(".alert-close");
+            closeButton.onclick = () => {
+                alertBox.classList.remove("fade-in");
+                alertBox.style.display = "none";
+
+                if (refreshPage) {
+                    location.reload(); // Refresh the page for success case
+                }
+
+                if (restoreForm && formId) {
+                    const form = document.getElementById(formId);
+                    if (form) {
+                        form.reset(); // Reset the form for the failure case
+                    }
+                }
+
+                if (typeof onClose === "function") {
+                    onClose(); // Execute any additional logic passed via options
+                }
+            };
+        }
 
         function closeAlert() {
             const alertBox = document.getElementById("customAlert");
             alertBox.style.display = "none";
         }
 
-        document.getElementById('firstName').addEventListener('input', function (event) {
-            this.value = this.value.replace(/[^א-תa-zA-Z\s]/g, ''); // מסיר תווים שאינם אותיות בעברית, אנגלית או רווחים
-        });
+        const validateNameInput = (input) => {
+            input.addEventListener("input", (event) => {
+                const value = event.target.value;
+                const validValue = value.replace(/[^a-zA-Zא-ת\s]/g, ""); // הסרת תווים שאינם אותיות
+                if (value !== validValue) {
+                    event.target.value = validValue;
+                }
 
-        document.getElementById('lastName').addEventListener('input', function (event) {
-            this.value = this.value.replace(/[^א-תa-zA-Z\s]/g, ''); // מסיר תווים שאינם אותיות בעברית, אנגלית או רווחים
-        });
+                // בדיקה אם השדה ריק
+                if (validValue === "") {
+                    input.setCustomValidity("נא הזן שם המכיל רק אותיות");
+                } else {
+                    input.setCustomValidity("");
+                }
+            });
+        };
 
-        function saveChanges() {
-            const formData = new FormData(document.getElementById('profileForm'));
+        // בדיקת תבנית אימייל עם הגבלה בזמן אמת
+        const validateEmailInput = (input) => {
+            input.addEventListener("input", (event) => {
+                const value = event.target.value;
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-            fetch('/users/save_profile', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    showAlert("הצלחה", data.message);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert("שגיאה", data.message);
-                });
-        }
+                if (!emailPattern.test(value)) {
+                    input.setCustomValidity("כתובת האימייל אינה תקינה. יש לכלול את הסימן @ ואת הסיומת (לדוגמה: name@example.com).");
+                } else {
+                    input.setCustomValidity("");
+                }
+            });
+        };
+
+        // הפעלת בדיקות עבור שם פרטי ושם משפחה
+        validateNameInput(document.getElementById("firstName"));
+        validateNameInput(document.getElementById("lastName"));
+
+        // הפעלת בדיקות עבור אימייל
+        validateEmailInput(document.getElementById("email"));
+
 
         function changePassword() {
             window.location.href = '/users/change_password';

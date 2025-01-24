@@ -146,7 +146,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <button class="btn-detail" onclick="openModal(
+                        <button class="btn-detail" onclick="openEmployeeModal(
                             '{{ employee.id }}', 
                             '{{ employee.first_name }}', 
                             '{{ employee.last_name }}', 
@@ -237,55 +237,6 @@
 
     <script src="/static/js/main.js"></script>
     <script>
-        let currentEmployeeEmail = ""; // משתנה גלובלי לשמירת האימייל של העובד הנבחר
-        function openModal(id, firstName, lastName, email, role, isApproved) {
-            const modal = document.getElementById("detailsModal");
-            const firstNameField = document.getElementById("detail-first-name");
-            const lastNameField = document.getElementById("detail-last-name");
-            const emailField = document.getElementById("detail-email");
-            const roleField = document.getElementById("detail-role");
-            const actions = document.getElementById("modal-actions");
-            // הגדרת תרגום התפקיד
-            const roleText = role === "employee" ? "עובד" : role === "co_manager" ? "שותף" : "לא ידוע";
-            // הגדרת נתונים בחלון הקופץ
-            firstNameField.textContent = firstName;
-            lastNameField.textContent = lastName;
-            emailField.textContent = email;
-            roleField.textContent = roleText;
-            // ניקוי כפתורים
-            actions.innerHTML = "";
-            // הוספת כפתורי אישור ודחייה אם המשתמש לא מאושר
-            if (isApproved == 0) {
-                actions.innerHTML = `
-            <button class="btn btn-success btn-lg" onclick="approveUser('${id}')">אשר</button>
-            <button class="btn btn-danger btn-lg ms-3" onclick="rejectUser('${id}')">דחה</button>
-        `;
-            }
-            // הצגת המודל
-            modal.style.display = "flex";
-        }
-        function approveUser(id) {
-            fetch(`/users/manager/approve_user/${id}`, {
-                method: 'POST'
-            })
-                .then(response => response.json())
-                .then(data => {
-                    showAlert(data.message);
-                    closeModal();
-                })
-                .catch(error => console.error('Error:', error));
-        }
-        function rejectUser(id) {
-            fetch(`/users/manager/reject_user/${id}`, {
-                method: 'DELETE'
-            })
-                .then(response => response.json())
-                .then(data => {
-                    showAlert(data.message);
-                    closeModal();
-                })
-                .catch(error => console.error('Error:', error));
-        }
         document.querySelector('.btn-close').addEventListener('click', function () {
             const modal = document.getElementById('detailsModal');
             modal.style.display = 'none'; // סגירת המודל
@@ -300,140 +251,56 @@
             }
         });
 
+        function showAlert(title, message, options = {}) {
+            const { onSuccess = null, restoreModal = null, restoreData = null } = options;
 
-        function closeOnOutsideClick(event) {
-            const taskModal = document.getElementById("taskModal");
-            const taskModalContent = document.getElementById("taskModalContent");
+            const alertBox = document.getElementById("customAlert");
+            alertBox.querySelector(".alert-title").textContent = title;
+            alertBox.querySelector(".alert-message").textContent = message;
 
-            // בדיקה אם הלחיצה התבצעה מחוץ למודל של משימה
-            if (taskModal.style.display === "flex" &&
-                !taskModalContent.contains(event.target)) {
-                closeTaskModal();
-            }
-        }
+            alertBox.style.display = "block";
+            alertBox.classList.add("fade-in");
 
+            const closeButton = alertBox.querySelector(".alert-close");
 
-        function openTaskModal(employeeEmail, employeeName) {
-            currentEmployeeEmail = employeeEmail;
-            document.getElementById("taskModal").style.display = "flex";
-            document.getElementById("taskName").value = "";
-            document.getElementById("taskContent").value = "";
-            document.getElementById("dueDate").value = "";
-        }
+            closeButton.onclick = () => {
+                alertBox.classList.remove("fade-in");
+                alertBox.style.display = "none";
 
-        // פותח את חלון המשימות
-        function openTaskModal(employeeEmail, employeeName) {
-            currentEmployeeEmail = employeeEmail; // שמירת האימייל של העובד הנבחר
-            const modal = document.getElementById("taskModal");
-            modal.style.display = "flex"; // הצגת החלון
-            // איפוס שדות הטופס
-            document.getElementById("taskName").value = "";
-            document.getElementById("taskContent").value = "";
-            document.getElementById("dueDate").value = "";
-            // מאזין ללחיצה מחוץ לחלון
-            document.addEventListener("mousedown", closeOnOutsideClick);
-        }
-        // סוגר את חלון המשימות
-        function closeTaskModal() {
-            const modal = document.getElementById("taskModal");
-            modal.style.display = "none"; // הסתרת החלון
-            // הסרת המאזין ללחיצה מחוץ לחלון
-            document.removeEventListener("mousedown", closeOnOutsideClick);
-        }
+                // Handle success actions like closing modals or refreshing the page
+                if (onSuccess) {
+                    onSuccess();
+                }
 
-        // שמירת משימה
-        function saveTask() {
-            const taskName = document.getElementById("taskName").value;
-            const taskContent = document.getElementById("taskContent").value;
-            const dueDate = document.getElementById("dueDate").value;
-            // בדיקה שכל השדות מלאים
-            if (!taskName || !taskContent || !dueDate) {
-                showAlert("שגיאה", "יש למלא את כל השדות.");
-                return;
-            }
-            // הכנת נתוני המשימה
-            const taskData = {
-                giver_email: "{{ session['email'] }}", // המייל של המנהל המחובר
-                employee_email: currentEmployeeEmail, // המייל של העובד שנבחר
-                task_name: taskName,
-                task_content: taskContent,
-                due_date: dueDate,
-                status: "in_progress" // סטטוס המשימה
-            };
-            // שליחת הנתונים לשרת
-            fetch("/task/tasks", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(taskData) // הפיכת הנתונים ל-JSON
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("שגיאה בשמירת המשימה.");
+                // Restore a modal or input form if there's an error
+                if (restoreModal && restoreData) {
+                    const modal = document.getElementById(restoreModal);
+                    const form = document.getElementById(restoreData.formId);
+
+                    // Restore form values if available
+                    if (form && restoreData.lastData) {
+                        for (const [key, value] of Object.entries(restoreData.lastData)) {
+                            const field = form.elements[key];
+                            if (field) {
+                                field.value = value;
+                            }
+                        }
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    showAlert("הצלחה", data.message); // הצגת הודעה
-                    closeTaskModal(); // סגירת החלון
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    showAlert("שגיאה", "שגיאה בשמירת המשימה.");
-                });
+
+                    // Show modal again
+                    if (modal) {
+                        modal.style.display = "flex";
+                    }
+                }
+            };
         }
-        function deleteEmployee(employeeId) {
-            showCustomConfirm("האם אתה בטוח שברצונך למחוק את העובד?", () => { // העברת פונקציה אנונימית
-                fetch(`/users/manager/deleteuser/${employeeId}`, {
-                    method: 'DELETE'
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.message) {
-                            showAlert("הצלחה", data.message); // הודעת הצלחה
-                        } else {
-                            showAlert("שגיאה", "לא ניתן למחוק את המשתמש.");
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showAlert("שגיאה", "שגיאה במחיקת המשתמש.");
-                    });
-            });
-        }
+
         function closeAlert() {
             const alertBox = document.getElementById("customAlert");
             alertBox.style.display = "none";
             location.reload(); // רענון הדף
         }
-        function showCustomConfirm(message, onConfirm) {
-            const confirmBox = document.getElementById("customConfirm");
-            const messageBox = confirmBox.querySelector(".alert-message");
-            const yesButton = document.getElementById("confirmYes");
-            const noButton = document.getElementById("confirmNo");
 
-            messageBox.textContent = message;
-            confirmBox.style.display = "block";
-
-            // טיפול בכפתור אישור
-            yesButton.onclick = function () {
-                confirmBox.style.display = "none";
-                if (typeof onConfirm === "function") { // בדיקה שהפרמטר הוא פונקציה
-                    onConfirm();
-                }
-            };
-
-            // טיפול בכפתור ביטול
-            noButton.onclick = function () {
-                confirmBox.style.display = "none";
-            };
-        }
 
         document.addEventListener("DOMContentLoaded", async function () {
             const shortWeatherDiv = document.getElementById("weather-info-short");

@@ -97,6 +97,7 @@ def update_israel_cities():
      
 @app.route('/')
 def home():
+    session.clear()  # מנקה את הסשן
     return render_template('index.html')
 
 if __name__ == '__main__':
