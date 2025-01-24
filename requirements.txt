@@ -9,4 +9,5 @@ python-dotenv
 Flask-Session
 pytest-mock
 gunicorn
+openai
 
