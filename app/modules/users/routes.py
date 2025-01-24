@@ -59,7 +59,7 @@ def signup():
             user = Manager().signup(data)
             user["password"] = hashed_password
             db.manager.insert_one(user)
-            return jsonify({"message": "Manager registered successfully"}), 200
+            return jsonify({"message": "תהליך רישום המנהל עבר בהצלחה"}), 200
 
         elif role == "employee" or role == "co_manager":
             if not manager_email:
@@ -74,20 +74,20 @@ def signup():
                 user = Employee().signup(data)
                 user["password"] = hashed_password
                 db.employee.insert_one(user)
-                return jsonify({"message": "Employee registered successfully"}), 200
+                return jsonify({"message": "תהליך רישום העובד עבר בהצלחה"}), 200
             
             if role == "co_manager":
                 db.manager.update_one({"email": manager_email}, {"$addToSet": {"co_managers": email}})
                 user = Co_Manager().signup(data)
                 user["password"] = hashed_password
                 db.co_manager.insert_one(user)
-                return jsonify({"message": "Co-manager registered successfully"}), 200
+                return jsonify({"message": "תהליך רישום השותף עבר בהצלחה"}), 200
         
         elif  role == "job_seeker":
             user = Job_Seeker().signup(data)
             user["password"] = hashed_password
             db.job_seeker.insert_one(user)
-            return jsonify({"message": "Job-Seeker registered successfully"}), 200
+            return jsonify({"message": "תהליך רישום מחפש התנדבות עבר בהצלחה"}), 200
 
         return jsonify({"message": "Invalid role provided"}), 400
 

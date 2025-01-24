@@ -252,7 +252,7 @@
     </div>
 
     <!-- Update crop window -->
-    <div id="updateModal" class="modal">
+    <div id="updateModal" class="modal update-crop">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -404,93 +404,7 @@
 
     <script src="/static/js/main.js"></script>
     <script>
-
-
-        //Update the irrigation amount
-        function checkAndOpenIrrigationModal(plotId) {
-            document.getElementById('irrigationModal').setAttribute('data-plot-id', plotId);
-            document.getElementById('irrigationModal').style.display = 'flex';
-        }
-
-        function closeIrrigationModal() {
-            const modal = document.getElementById('irrigationModal');
-            if (modal) {
-                modal.style.display = 'none';
-                document.getElementById('irrigationAmount').value = '';
-            }
-        }
-
-        async function updateIrrigation() {
-            const irrigationAmount = document.getElementById('irrigationAmount').value;
-            const plotId = document.getElementById('irrigationModal').getAttribute('data-plot-id');
-
-            if (!irrigationAmount || isNaN(irrigationAmount) || irrigationAmount <= 0) {
-                showAlert('נא להזין כמות השקיה תקינה.');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/Plots/update_irrigation/${plotId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ irrigation_amount: parseFloat(irrigationAmount) })
-                });
-
-                if (response.ok) {
-                    showAlert("ההשקיה עודכנה בהצלחה!");
-                    closeIrrigationModal();
-                } else {
-                    const errorData = await response.json();
-                    showAlert(`שגיאה: ${errorData.error}`);
-                }
-            } catch (error) {
-                console.error(error);
-                showAlert('שגיאה בעת שליחת הבקשה לשרת.');
-            }
-        }
-
-
         //Update the crops
-        async function openUpdateModal(plotId) {
-            document.getElementById('updateModal').setAttribute('data-plot-id', plotId);
-            document.getElementById('updateModal').style.display = 'flex';
-
-            // טען את רשימת הקטגוריות
-            await loadCategories();
-        }
-
-        async function loadCategories() {
-            const categorySelect = document.getElementById('cropCategory');
-            categorySelect.innerHTML = '<option value="none">ללא</option>'; // איפוס
-
-            try {
-                // קריאת הקטגוריות מהשרת
-                const response = await fetch('/Plots/get_crop_categories');
-                if (!response.ok) {
-                    throw new Error(`שגיאה בטעינת קטגוריות: ${response.status}`);
-                }
-
-                const data = await response.json();
-                data.categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    categorySelect.appendChild(option);
-                });
-
-                // הוספת אירוע לשינוי הקטגוריה
-                categorySelect.addEventListener('change', () => {
-                    const selectedCategory = categorySelect.value;
-                    loadCrops(selectedCategory); // קריאה לטעינת גידולים בעת שינוי קטגוריה
-                });
-            } catch (error) {
-                console.error('שגיאה בטעינת קטגוריות:', error);
-                showAlert('שגיאה בעת טעינת הקטגוריות.');
-            }
-        }
-
         async function loadCrops(cropCategory) {
             const cropSelect = document.getElementById('crop');
             const cropDiv = document.getElementById('cropDiv');
@@ -526,69 +440,6 @@
             }
         }
 
-        function resetCropField() {
-            const cropSelect = document.getElementById('crop');
-            const cropDiv = document.getElementById('cropDiv');
-            cropDiv.style.display = 'none';
-            cropSelect.innerHTML = '<option value="none">ללא</option>'; // איפוס
-        }
-
-
-        async function submitUpdate() {
-            const cropCategory = document.getElementById('cropCategory').value;
-            const crop = document.getElementById('crop').value;
-            const sowDate = document.getElementById('sowDate').value;
-            const quantity_Planted = document.getElementById('quantityPlanted').value;
-            const plotId = document.getElementById('updateModal').getAttribute('data-plot-id');
-
-            // בדיקות תקינות
-            if (!quantity_Planted || !sowDate || crop === "none" || cropCategory === "none") {
-                showAlert('נא למלא את כל השדות.');
-                return;
-            }
-            if (cropCategory === "none") {
-                showAlert('נא בחר סוג גידול.');
-                return;
-            }
-            else if (crop === "none") {
-                showAlert('נא בחר גידול.');
-                return;
-            }
-            else if (!sowDate) {
-                showAlert('נא בחר את תאריך הזריעה.');
-                return;
-            }
-            else if (!quantity_Planted) {
-                showAlert('נא בחר את הכמות שזרעת.');
-                return;
-            }
-            const payload = {
-                crop_category: cropCategory,
-                crop: crop,
-                sow_date: sowDate,
-                quantity_planted: quantity_Planted
-            };
-
-            try {
-                // שליחת עדכון לשרת
-                const response = await fetch(`/Plots/update_plot/${plotId}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    showAlert('פרטי החלקה עודכנו בהצלחה!');
-                    closeUpdateModal();
-                } else {
-                    const error = await response.json();
-                    showAlert(`שגיאה: ${error.error}`);
-                }
-            } catch (error) {
-                console.error('שגיאה בעת עדכון:', error);
-                showAlert('שגיאה בעת שליחת הבקשה לשרת.');
-            }
-        }
         function closeUpdateModal() {
             const modal = document.getElementById('updateModal');
             modal.style.display = 'none';
@@ -629,10 +480,7 @@
             }
         });
 
-        function closeGrowthForecastModal() {
-            const modal = document.getElementById("growthForecastModal");
-            modal.style.display = "none";
-        }
+
         document.getElementById('sowDate').addEventListener('input', () => {
             const sowDate = document.getElementById('sowDate').value;
             const quantityPlantedDiv = document.getElementById('quantityPlantedDiv');
@@ -656,52 +504,6 @@
 
         let selectedPlotId = null; // משתנה לשמירת ה-ID של החלקה
 
-        function openArchiveModal(plotId) {
-            selectedPlotId = plotId; // שמירת ה-ID של החלקה שנבחרה
-            const modal = document.getElementById('archiveModal');
-            modal.style.display = 'flex';
-        }
-
-
-        function closeArchiveModal() {
-            const modal = document.getElementById('archiveModal');
-            modal.style.display = 'none';
-            document.getElementById('cropYield').value = ''; // איפוס תיבת הטקסט
-        }
-
-        async function finalizePlot() {
-            const cropYield = document.getElementById('cropYield').value;
-
-            if (!cropYield || cropYield <= 0) {
-                showAlert('נא להזין כמות יבול תקינה.');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/Plots/archive_plot/${selectedPlotId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        harvest_date: new Date().toISOString().split('T')[0], // תאריך של היום
-                        crop_yield: parseFloat(cropYield)
-                    })
-                });
-
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else if (response.ok) {
-                    showAlert('החלקה הועברה לארכיון בהצלחה!', null, '/Plots/track_greenhouse');
-                } else {
-                    const errorData = await response.json();
-                    showAlert(`שגיאה: ${errorData.error}`);
-                }
-            } catch (error) {
-                console.error(error);
-                showAlert('שגיאה בעת שליחת הבקשה לשרת.');
-            }
-        }
 
         document.addEventListener("DOMContentLoaded", async function () {
             const shortWeatherDiv = document.getElementById("weather-info-short");
@@ -749,20 +551,74 @@
             document.getElementById("detailedWeatherModal").style.display = "none";
         }
 
-        function closeAlert(redirectUrl = null) {
+        function showAlert(title, message, options = {}) {
+            const {
+                redirectUrl = null,
+                isSuccess = false,
+                restoreForm = false,
+                formId = null,
+                modalId = null,
+                closeModal = null,
+                refreshPage = false
+            } = options;
+
+            const alertBox = document.getElementById("customAlert");
+            alertBox.querySelector(".alert-title").textContent = title;
+            alertBox.querySelector(".alert-message").textContent = message;
+            alertBox.style.display = "block";
+            alertBox.classList.add("fade-in");
+
+            // שמירת נתוני הטופס והחלון במקרה של שגיאה
+            if (restoreForm && formId && modalId) {
+                const form = document.getElementById(formId);
+                if (form) {
+                    window.lastFormData = new FormData(form); // שמירת נתוני הטופס
+                    window.lastModalId = modalId; // שמירת מזהה החלון
+                }
+            }
+
+            // הגדרת פעולה בעת סגירת ההודעה
+            const closeButton = alertBox.querySelector(".alert-close");
+            closeButton.onclick = () => closeAlert({ redirectUrl, isSuccess, closeModal, refreshPage });
+        }
+
+        function closeAlert({ redirectUrl = null, isSuccess = false, closeModal = null, refreshPage = false } = {}) {
             const alertBox = document.getElementById("customAlert");
             alertBox.classList.remove("fade-in");
             alertBox.style.display = "none";
 
-            // בדיקה אם יש כתובת להפניה
-            if (redirectUrl) {
-                window.location.href = redirectUrl; // מפנה לדף הרצוי
+            if (isSuccess) {
+                // סגירת חלון במקרה של הצלחה
+                if (closeModal) {
+                    closeModal();
+                }
+                if (refreshPage) {
+                    location.reload();
+                }
+                if (redirectUrl) {
+                    window.location.href = redirectUrl;
+                }
             } else {
-                location.reload(); // רענן את הדף אם אין כתובת להפניה
+                // שחזור טופס והחלון במקרה של שגיאה
+                if (window.lastFormData && window.lastModalId) {
+                    const modal = document.getElementById(window.lastModalId);
+                    const form = document.getElementById(window.lastModalId).querySelector('form');
+
+                    if (form && window.lastFormData) {
+                        for (const [name, value] of window.lastFormData.entries()) {
+                            const field = form.elements[name];
+                            if (field) {
+                                field.value = value;
+                            }
+                        }
+                    }
+
+                    if (modal) {
+                        modal.style.display = "flex";
+                    }
+                }
             }
         }
-
-
     </script>
 
 </body>

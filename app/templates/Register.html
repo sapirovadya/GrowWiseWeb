@@ -49,6 +49,7 @@
                 <button type="button" class="navbar-toggler ms-auto me-0" data-bs-toggle="collapse"
                     data-bs-target="#navbarCollapse">
                     <span class="navbar-toggler-icon"></span>
+                    <span class="menu-text ms-2">תפריט</span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto">
@@ -62,9 +63,8 @@
         </div>
     </div>
     <!-- Navbar End -->
-
     <!-- Page Header Start -->
-    <div class="container-fluid page-header py-2 mb-1 wow fadeIn" data-wow-delay="0.1s">
+    <div class="container-fluid page-header py-2 mb-1 wow" data-wow-delay="0.1s">
         <div class="container text-center py-5">
             <h1 class="display-2 text-dark mb-4 animated slideInDown">הרשמה</h1>
         </div>
@@ -141,7 +141,8 @@
     </div>
 
     <!-- Footer Start -->
-    <div class="container-fluid bg-dark footer mt-3 py-3 wow fadeIn" data-wow-delay="0.1s">
+    <div class="container-fluid bg-dark footer mt-3 py-3 wow" data-wow-delay="0.1s">
+        <br>
         <div class="container py-4">
             <div class="row g-5">
                 <div class="col-lg-3 col-md-6">
@@ -266,27 +267,27 @@
 
             // בדיקות שדות
             if (!firstName || !lastName || !email || !password || !role) {
-                showAlert("שגיאה", "יש למלא את כל השדות");
+                showAlert("שגיאה", "יש למלא את כל השדות", { restoreForm: true, formId: "registerForm" });
                 return;
             }
 
             if (!emailPattern.test(email)) {
-                showAlert("שגיאה", "כתובת האימייל אינה תקינה. יש להזין כתובת חוקית.");
+                showAlert("שגיאה", "כתובת האימייל אינה תקינה. יש להזין כתובת חוקית.", { restoreForm: true, formId: "registerForm" });
                 return;
             }
 
             if (!passwordPattern.test(password)) {
-                showAlert("שגיאה", "הסיסמה אינה עומדת בדרישות. יש להזין סיסמה באורך 8-16 תווים, עם אות גדולה באנגלית, מספר וסימן מיוחד.");
+                showAlert("שגיאה", "הסיסמה אינה עומדת בדרישות. יש להזין סיסמה באורך 8-16 תווים, עם אות גדולה באנגלית, מספר וסימן מיוחד.", { restoreForm: true, formId: "registerForm" });
                 return;
             }
 
             if (role === "manager" && !location) {
-                showAlert("שגיאה", "יש לבחור את מיקום המשק.");
+                showAlert("שגיאה", "יש לבחור את מיקום המשק.", { restoreForm: true, formId: "registerForm" });
                 return;
             }
 
             if ((role === "co_manager" || role === "employee") && !managerEmail) {
-                showAlert("שגיאה", "יש להזין את כתובת האימייל של המנהל.");
+                showAlert("שגיאה", "יש להזין את כתובת האימייל של המנהל.", { restoreForm: true, formId: "registerForm" });
                 return;
             }
 
@@ -312,14 +313,13 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    showAlert("הצלחה", result.message);
-                    window.location.href = "/"; // הפניה לדף הבית
+                    showAlert("הצלחה", result.message, { redirectUrl: "/" });
                 } else {
-                    showAlert("שגיאה", result.message || "אירעה שגיאה בעת שליחת הטופס.");
+                    showAlert("שגיאה", result.message || "אירעה שגיאה בעת שליחת הטופס.", { restoreForm: true, formId: "registerForm" });
                 }
             } catch (error) {
                 console.error("Error submitting form:", error);
-                showAlert("שגיאה", "אירעה שגיאה בשרת. נסה שנית מאוחר יותר.");
+                showAlert("שגיאה", "אירעה שגיאה בשרת. נסה שנית מאוחר יותר.", { restoreForm: true, formId: "registerForm" });
             }
         });
 
@@ -361,7 +361,7 @@
 
             } catch (error) {
                 console.error("Error loading cities:", error.message);
-                showAlert("שגיאה בטעינת רשימת הערים.");
+                showAlert("שגיאה", "שגיאה בטעינת רשימת הערים.");
             }
         };
 
@@ -387,13 +387,50 @@
                 loadCities();
             }
         });
+        function showAlert(title, message, options = {}) {
+            const { redirectUrl = null, restoreForm = false, formId = null } = options;
+
+            const alertBox = document.getElementById("customAlert");
+            alertBox.querySelector(".alert-title").textContent = title;
+            alertBox.querySelector(".alert-message").textContent = message;
+            alertBox.style.display = "block";
+            alertBox.classList.add("fade-in");
+
+            // שמירת המידע במידת הצורך
+            if (restoreForm && formId) {
+                const form = document.getElementById(formId);
+                if (form) {
+                    window.lastFormData = new FormData(form); // שמירת נתוני הטופס
+                }
+            }
+
+            // טיפול בלחיצה על כפתור סגירה
+            const closeButton = alertBox.querySelector(".alert-close");
+            closeButton.onclick = () => closeAlert({ redirectUrl, restoreForm, formId });
+        }
 
 
-        function closeAlert() {
+        function closeAlert({ redirectUrl = null, restoreForm = false, formId = null } = {}) {
             const alertBox = document.getElementById("customAlert");
             alertBox.classList.remove("fade-in");
             alertBox.style.display = "none";
+
+            if (redirectUrl) {
+                window.location.href = redirectUrl; // הפניה לדף הבית או כתובת URL אחרת
+            } else if (restoreForm && formId) {
+                // שחזור נתוני הטופס
+                const form = document.getElementById(formId);
+                if (form && window.lastFormData) {
+                    for (const [name, value] of window.lastFormData.entries()) {
+                        const field = form.elements[name];
+                        if (field) {
+                            field.value = value;
+                        }
+                    }
+                }
+            }
         }
+
 
     </script>
 
