@@ -1,0 +1,9 @@
+services:
+  webapp:
+    build: .
+    ports:
+      - "0:5000"
+    volumes:
+      - ./app:/app
+    env_file:
+      - .env
