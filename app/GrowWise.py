@@ -1,4 +1,4 @@
-from flask import Flask,render_template, request, url_for, redirect,session
+from flask import Flask, render_template, request, url_for, redirect, session
 import pymongo
 from dotenv import load_dotenv
 import os
@@ -15,7 +15,7 @@ from modules.weather.routes import weather_bp
 
 import json
 
-  # עדכן את הנתיב בהתאם
+# עדכן את הנתיב בהתאם
 
 load_dotenv()
 app = Flask(__name__)
@@ -26,23 +26,23 @@ app.db = client.get_database("dataGrow")
 
 app.secret_key = os.getenv("APP_SECRET")
 
-app.register_blueprint(users_bp_main, url_prefix='/users')
-app.register_blueprint(employee_bp, url_prefix='/employee')
-app.register_blueprint(manager_bp, url_prefix='/users/manager')
-app.register_blueprint(co_manager_bp, url_prefix='/co_manager')
-app.register_blueprint(job_seeker_bp, url_prefix='/job_seeker')
-app.register_blueprint(plot_bp, url_prefix='/Plots')
-app.register_blueprint(task_bp, url_prefix='/task')
+app.register_blueprint(users_bp_main, url_prefix="/users")
+app.register_blueprint(employee_bp, url_prefix="/employee")
+app.register_blueprint(manager_bp, url_prefix="/users/manager")
+app.register_blueprint(co_manager_bp, url_prefix="/co_manager")
+app.register_blueprint(job_seeker_bp, url_prefix="/job_seeker")
+app.register_blueprint(plot_bp, url_prefix="/Plots")
+app.register_blueprint(task_bp, url_prefix="/task")
 app.register_blueprint(logout_bp)
-app.register_blueprint(weather_bp, url_prefix='/weather')
+app.register_blueprint(weather_bp, url_prefix="/weather")
 
 
 def update_crops_data():
     collection = app.db["crops_options"]
-    
+
     try:
         # קריאת הקובץ
-        with open('app/static/data/crops_data.json', 'r', encoding='utf-8') as file:
+        with open("app/static/data/crops_data.json", "r", encoding="utf-8") as file:
             crops_data = json.load(file)
 
         # מחיקת הנתונים הקיימים
@@ -56,12 +56,13 @@ def update_crops_data():
     except Exception as e:
         print(f"Error occurred while updating crops: {str(e)}")
 
+
 def update_crops_data():
     collection = app.db["crops_options"]
-    
+
     try:
         # קריאת הקובץ
-        with open('app/static/data/crops_data.json', 'r', encoding='utf-8') as file:
+        with open("app/static/data/crops_data.json", "r", encoding="utf-8") as file:
             crops_data = json.load(file)
 
         # מחיקת הנתונים הקיימים
@@ -74,13 +75,14 @@ def update_crops_data():
         print("New data loaded successfully into MongoDB!")
     except Exception as e:
         print(f"Error occurred while updating crops: {str(e)}")
+
 
 def update_israel_cities():
     collection = app.db["israel_cities"]  # שם האוסף לערים בישראל
 
     try:
         # קריאת הקובץ JSON עם רשימת הערים
-        with open('app/static/data/israel_cities.json', 'r', encoding='utf-8') as file:
+        with open("app/static/data/israel_cities.json", "r", encoding="utf-8") as file:
             data = json.load(file)
             cities = data["israel_cities"]  # גישה לרשימת הערים בקובץ JSON
 
@@ -94,14 +96,15 @@ def update_israel_cities():
 
     except Exception as e:
         print(f"Error occurred while updating Israel cities: {str(e)}")
-     
-@app.route('/')
+
+
+@app.route("/")
 def home():
     session.clear()  # מנקה את הסשן
-    return render_template('index.html')
+    return render_template("index.html")
 
-if __name__ == '__main__':
-    
-    #update_crops_data()
-    #update_israel_cities()
-    app.run(debug=True)
+
+if __name__ == "__main__":
+    # update_crops_data()
+    # update_israel_cities()
+    app.run(host="0.0.0.0", debug=True)
