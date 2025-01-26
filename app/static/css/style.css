@@ -19,10 +19,6 @@ body {
     padding: 0;
 }
 
-body>*:not(.footer) {
-    flex: 1;
-}
-
 h1,
 h2,
 h3,
@@ -110,18 +106,19 @@ textarea {
     transition: .5s;
 }
 
+
 .navbar .navbar-brand {
     position: absolute;
     padding: 0;
     width: 170px;
-    height: 135px;
+    height: 100px;
     top: 0;
     left: 0;
 }
 
 .navbar .navbar-nav .nav-link {
     margin-right: 35px;
-    padding: 25px 0;
+    padding: 30px 0;
     color: var(--dark);
     font-weight: 600;
     text-transform: uppercase;
@@ -398,7 +395,6 @@ textarea {
     display: block;
     border: none;
     padding: 7px;
-    height: 190px;
 }
 
 .carousel-inner img {
@@ -637,14 +633,15 @@ span.me-2 {
 }
 
 .section-divider {
+    background-color: transparent;
     border: none;
     border-top: 3px solid #8fb23e;
     margin-top: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
 }
 
 .secondary-navbar {
-    margin-top: 20px;
+    margin-top: 10px;
     z-index: 999;
 }
 
@@ -1820,7 +1817,6 @@ button.btn-light:hover {
     padding: 20px 0;
 }
 
-
 @media (min-width: 577px) {
 
     .mobile-buttons,
@@ -1921,6 +1917,9 @@ button.btn-light:hover {
 
     .navbar {
         margin-bottom: 0 !important;
+        padding: 0.5rem 1rem;
+        /* ריווחים קטנים יותר */
+        height: auto;
     }
 
     .navbar-toggler {
