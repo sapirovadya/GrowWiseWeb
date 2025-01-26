@@ -9,5 +9,5 @@ python-dotenv
 Flask-Session
 pytest-mock
 gunicorn
-openai
+openai==0.27
 requests
