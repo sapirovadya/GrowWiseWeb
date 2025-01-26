@@ -10,4 +10,4 @@ Flask-Session
 pytest-mock
 gunicorn
 openai
-
+requests
