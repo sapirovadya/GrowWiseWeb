@@ -450,9 +450,9 @@
         document.getElementById("growthForecastButton").addEventListener("click", async () => {
             const modal = document.getElementById("growthForecastModal");
             const forecastText = document.getElementById("growthForecastText");
-
+            
             // הצגת הודעת טעינה
-            forecastText.textContent = "טוען תחזית...";
+            forecastText.innerHTML = "<p>טוען תחזית...</p>";
             modal.style.display = "flex";
 
             try {
@@ -474,9 +474,12 @@
                 }
 
                 const data = await response.json();
-                forecastText.textContent = data.forecast || "שגיאה בקבלת התחזית.";
+                forecastText.innerHTML = `
+                    <p>${data.forecast || "לא נמצאו נתוני תחזית."}</p>
+                    <div style="color: green; margin-top: 10px;">בהצלחה בגידול!</div>
+                `;
             } catch (error) {
-                forecastText.textContent = "שגיאה: " + error.message;
+                forecastText.innerHTML = `<p style="color: red;">שגיאה: ${error.message}</p>`;
             }
         });
 
