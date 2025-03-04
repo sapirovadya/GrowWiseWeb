@@ -1,0 +1,167 @@
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify,session
+import pymongo
+from datetime import datetime
+from dotenv import load_dotenv
+import os
+import pytz
+from modules.attendance.models import attendance
+
+
+attendance_bp = Blueprint('attendance_bp', __name__, url_prefix='/attendance')
+
+mongo_key = os.getenv("MONGO_KEY")
+client = pymongo.MongoClient(mongo_key)
+db = client.get_database("dataGrow")
+attendance_collection = db.attendance
+attendance_model = attendance()
+
+@attendance_bp.route('/report_page', methods=['GET'])
+def report_attendance_page():
+    return render_template('attendance.html')
+
+
+@attendance_bp.route('/report', methods=['POST'])
+def report_attendance():
+
+    if 'email' not in session or session.get('role') != 'employee':
+        return jsonify({'message': 'גישה נדחתה'}), 403
+
+    data = request.json
+    employee_email = session['email']
+    first_name = session.get('first_name')
+    last_name = session.get('last_name')
+    manager_email = session.get('manager_email')
+    action = data.get('action')
+
+    if action == 'check_in':
+        check_in_time = datetime.now() #convert time
+        new_attendance = {
+            "email": employee_email,
+            "manager_email": manager_email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "check_in": check_in_time, 
+            "check_out": None,
+            "total_hours": None
+        }
+        attendance_collection.insert_one(new_attendance)
+        return jsonify({'message': 'שעת הכניסה נשמרה בהצלחה', 'check_in': check_in_time})
+
+    elif action == 'check_out':
+        last_record = attendance_collection.find_one({"email": employee_email, "check_out": None})
+
+        if not last_record:
+            return jsonify({'message': 'לא נמצאה כניסה פתוחה'})
+
+        check_out_time = datetime.now()
+        check_in_time = last_record["check_in"]
+        total_hours = (check_out_time - check_in_time).total_seconds() / 3600.0
+
+        attendance_collection.update_one(
+            {"_id": last_record["_id"]},
+            {"$set": {"check_out": check_out_time, "total_hours": round(total_hours, 2)}}
+        )
+
+        return jsonify({'message': f'שעת היציאה נשמרה, סה"כ {total_hours:.2f} שעות עבודה', 'check_out': check_out_time})
+
+    return jsonify({'message': 'פעולה לא חוקית'}), 400
+
+
+
+@attendance_bp.route('/user_records', methods=['GET'])
+def get_user_attendance():
+    if 'email' not in session or session.get('role') != 'employee':
+        return jsonify({'message': 'גישה נדחתה'}), 403
+
+    employee_email = session['email']
+
+    records = list(attendance_collection.find({"email": employee_email}, {"_id": 0}))
+    
+    for record in records:
+        if "check_in" in record and record["check_in"]:
+            record["check_in"] = record["check_in"].strftime("%Y-%m-%d %H:%M:%S")
+        if "check_out" in record and record["check_out"]:
+            record["check_out"] = record["check_out"].strftime("%Y-%m-%d %H:%M:%S")
+
+
+    return jsonify({'attendance_records': records})
+
+@attendance_bp.route('/manager_records', methods=['GET'])
+def get_manager_attendance():
+    if 'email' not in session or session.get('role') not in ['manager', 'co_manager']:
+        return jsonify({'message': 'גישה נדחתה'}), 403
+
+    if session['role'] == 'manager':
+        manager_email = session['email']
+    
+    elif session['role'] == 'co_manager':
+        manager_email = session.get('manager_email') 
+
+    records = list(attendance_collection.find({"manager_email": manager_email}, {"_id": 0}))
+
+    for record in records:
+        if "check_in" in record and record["check_in"]:
+            record["check_in"] = record["check_in"].strftime("%Y-%m-%d %H:%M:%S")   
+        if "check_out" in record and record["check_out"]:
+            record["check_out"] = record["check_out"].strftime("%Y-%m-%d %H:%M:%S")
+
+
+    return jsonify({'attendance_records': records})
+
+@attendance_bp.route('/manager_page', methods=['GET'])
+def attendance_manager_page():
+    if 'email' not in session or session.get('role') not in ['manager', 'co_manager']:
+        return redirect(url_for('users_bp_main.login'))
+    
+    return render_template('attendance_manager.html')
+
+
+@attendance_bp.route('/employees_list', methods=['GET'])
+def get_employees_list():
+    """ מחזיר למנהל רשימת עובדים לבחירה בדיווח ידני """
+    if 'email' not in session or session.get('role') not in ['manager', 'co_manager']:
+        return jsonify({'message': 'גישה נדחתה'}), 403
+
+    manager_email = session['email'] if session['role'] == 'manager' else session.get('manager_email')
+
+    employees = list(db.employee.find({"manager_email": manager_email}, {"_id": 0, "email": 1, "first_name": 1, "last_name": 1}))
+
+    return jsonify({'employees': employees})
+
+
+@attendance_bp.route('/manual_report', methods=['POST'])
+def manual_attendance_report():
+    """ מנהל מוסיף דיווח נוכחות ידני עבור עובד """
+    if 'email' not in session or session.get('role') not in ['manager', 'co_manager']:
+        return jsonify({'message': 'גישה נדחתה'}), 403
+
+    data = request.json
+    employee_email = data.get('email')
+    check_in_time = data.get('check_in')
+    check_out_time = data.get('check_out')
+
+    if not employee_email or not check_in_time or not check_out_time:
+        return jsonify({'message': 'נא לספק את כל הנתונים'}), 400
+
+    check_in_time = datetime.fromisoformat(check_in_time).replace(tzinfo=pytz.utc)
+    check_out_time = datetime.fromisoformat(check_out_time).replace(tzinfo=pytz.utc)
+    total_hours = (check_out_time - check_in_time).total_seconds() / 3600.0
+
+    employee = db.employee.find_one({"email": employee_email}, {"_id": 0, "first_name": 1, "last_name": 1})
+
+    new_attendance = {
+        "email": employee_email,
+        "manager_email": employee.get("manager_email"),
+        "first_name": employee.get("first_name"),
+        "last_name": employee.get("last_name"),
+        "check_in": check_in_time,
+        "check_out": check_out_time,
+        "total_hours": round(total_hours, 2)
+    }
+
+    attendance_collection.insert_one(new_attendance)
+
+    return jsonify({'message': 'הדיווח נשמר בהצלחה!'})
+
+
+

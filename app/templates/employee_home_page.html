@@ -100,6 +100,9 @@
                                     <a href='/task/alltasks.html' class="dropdown-item">המשימות
                                         שלי</a>
                                     {% endif %}
+                                    {% if session['role'] == "employee" %}
+                                    <a href="{{ url_for('attendance_bp.report_attendance_page') }}" class="dropdown-item">דיווח נוכחות</a>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -134,10 +137,10 @@
     <hr class="section-divider">
 
     <div class="main-content">
-        <!-- כותרת -->
-        <h1>שלום, {{ name }}</h1>
 
-        <!-- עלים -->
+        <h1>שלום, {{ first_name }}</h1>
+
+        <!-- Leafs -->
         <div class="leaf-container">
             <div class="leaf" onclick="navigateTo('track_greenhouse')">
                 <img src="/static/img/leaf.png" alt="מעקב">
@@ -152,6 +155,11 @@
                 <img src="/static/img/leaf.png" alt="מלאי">
                 <span>המשימות שלי</span>
             </div>
+            <div class="leaf" onclick="navigateTo('attendance')">
+                <img src="/static/img/leaf.png" alt="דיווח נוכחות">
+                <span>דיווח נוכחות</span>
+            </div>
+            
         </div>
     </div>
 
@@ -172,6 +180,7 @@
                 'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
                 'archive': '{{ url_for("plot_bp.archive") }}',
                 'task': '/task/alltasks.html',
+                'attendance': '{{ url_for("attendance_bp.report_attendance_page") }}',
                 'inventory': '#',
             };
 

@@ -121,7 +121,13 @@
         <hr class="section-divider">
         <button class="btn-details" onclick="window.location.href='/task/alltasks.html'"
             style="height: 40px; font-size: 18px; font-weight: bold;">כל
-            המשימות</button>
+            המשימות
+        </button>
+        <button class="btn-details" onclick="window.location.href='{{url_for('attendance_bp.attendance_manager_page')}}'"
+            style="height: 40px; font-size: 18px; font-weight: bold;">
+            נוכחות עובדים
+        </button>
+            
         <table class="employee-table">
             <thead>
                 <tr>
