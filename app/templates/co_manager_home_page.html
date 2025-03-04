@@ -35,40 +35,56 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
                 <div class="d-flex justify-content-between align-items-center w-100">
-                    <div class="logout-icon" style="display: inline-block;">
-                        <a href="#" onclick="logout(); return false;">
-                            <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
-                        </a>
-                    </div>
-                    <div class="notification-icon" style="position: relative; display: inline-block;">
-                        <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
-                            height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
-                        <div class="notification-badge" id="notificationBadge" style="display: none;">!</div>
-                        <div id="notificationModal" class="notification-modal"
-                            style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
-                            <div style="padding: 15px;">
-                                <h5 style="margin-bottom: 10px;">התראות</h5>
-                                <hr class="section-divider">
-                                <div id="notifications-list">
-                                    <p>טוען התראות...</p>
-                                </div>
-                                <hr class="section-divider">
-                                <button type="button" class="btn btn-sm btn-danger" style="margin-top: 10px;"
-                                    onclick="closeNotifications()">סגור</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="user" style="position: relative; display: inline-block;">
-                        <a href="{{ url_for('users_bp_main.profile_page') }}">
-                            <img id="userIcon" src="/static/img/user.png" alt="User Icon" height="30" width="30"
-                                style="cursor: pointer;">
-                        </a>
-                    </div>
 
+                    <!-- כפתור תפריט למובייל -->
+                    <button type="button" class="navbar-toggler ms-auto me-0" data-bs-toggle="collapse"
+                        data-bs-target="#navbarCollapse">
+                        <span class="navbar-toggler-icon"></span>
+                        <span class="menu-text ms-2">תפריט</span>
+                    </button>
 
+                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% elif session['role'] == "employee" %}
+                    <a href="{{ url_for('employee_bp.employee_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% elif session['role'] == "job_seeker" %}
+                    <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('home') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% endif %}
+                    <!-- תפריט ניווט (דסקטופ ומובייל) -->
                     <div class="collapse navbar-collapse" id="navbarCollapse">
                         <div class="navbar-nav ms-auto">
-                            <!-- כפתור "בית" מותאם לפי role -->
+                            {% if session['role'] %}
+                            <!-- אם המשתמש מחובר -->
+                            <div class="d-none d-lg-flex align-items-center">
+                                <div class="logout-icon me-3">
+                                    <a href="#" onclick="logout(); return false;">
+                                        <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
+                                    </a>
+                                </div>
+                                <div class="notification-icon me-3">
+                                    <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notifications"
+                                        height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
+                                    <div class="notification-badge" id="notificationBadge" style="display: none;">!
+                                    </div>
+                                </div>
+                                <div class="user me-3">
+                                    <a href="{{ url_for('users_bp_main.profile_page') }}">
+                                        <img id="userIcon" src="/static/img/user.png" alt="User" height="30" width="30">
+                                    </a>
+                                </div>
+                                <!-- מזג האוויר -->
+                            </div>
+                            {% endif %}
                             {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                             <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
                             {% elif session['role'] == "employee" %}
@@ -76,40 +92,55 @@
                             {% elif session['role'] == "job_seeker" %}
                             <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}"
                                 class="nav-item nav-link">בית</a>
+                            {% else %}
+                            <a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
                             {% endif %}
-                            <!-- Dropdown של דפים -->
-                            <div class="nav-item dropdown position-relative">
+                            {% if session['role'] == "manager" or session['role'] == "co_manager" or
+                            session['role'] == "employee"%} <div class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
                                 <div class="dropdown-menu bg-light rounded-0 m-0">
                                     <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
-                                        חלקות/חממות</a>
-                                    <a href='{{ url_for("plot_bp.archive") }}' class="dropdown-item">ארכיון
-                                        חלקות/חממות</a>
+                                        חלקות</a>
+                                    {% if session['role'] == "employee" %}
+                                    <a href="{{ url_for('attendance_bp.report_attendance_page') }}"
+                                        class="dropdown-item">דיווח נוכחות</a>
+                                    <a href="{{ url_for('manager_bp.get_employees_list') }}"
+                                        class="dropdown-item">המשימות שלי</a>
+
+                                    {% endif %}
                                     {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                                    <a href="{{ url_for('plot_bp.archive') }}" class="dropdown-item">ארכיון</a>
                                     <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
                                         שלי</a>
-                                    {% endif %}
-                                    {% if session['role'] == "employee" %}
-                                    <a href='/task/alltasks.html' class="dropdown-item">המשימות
-                                        שלי</a>
+                                    <a href='/task/alltasks.html' class="dropdown-item">כל המשימות</a>
+                                    <a href="{{url_for('attendance_bp.attendance_manager_page')}}"
+                                        class="dropdown-item">נוכחות עובדים</a>
                                     {% endif %}
                                 </div>
                             </div>
-
+                            {% endif %}
+                            <!-- 🏠 לכל המשתמשים -->
                             <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
                             <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
+                            {% if session['role'] %}
+                            <div class="d-lg-none mt-3">
+                                <div class="nav-item">
+                                    <a href="#" onclick="toggleNotifications()" class="nav-link">התראות</a>
+                                </div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('users_bp_main.profile_page') }}" class="nav-link">הפרופיל
+                                        שלי</a>
+                                </div>
+
+                                <div class="nav-item">
+                                    <a href="#" onclick="logout(); return false;" class="nav-link">התנתק</a>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
-                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand"> <img class="img-fluid"
-                            src="/static/img/logo_growwise.png" alt="Logo"></a>
-                    {% elif session['role'] == "employee" %}
-                    <a href="{{ url_for('employee_bp.employee_home_page') }}" class="navbar-brand"><img
-                            class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo"></a>
-                    {% elif session['role'] == "job_seeker" %}
-                    <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}" class="navbar-brand"><img
-                            class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo"></a>
-                    {% endif %}
+                    {% if session['role'] %}
+
                     <div id="weather-info-short" class="d-flex align-items-center">
                         <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
                             style="width: 24px; height: 24px; margin-right: 8px;">
@@ -117,18 +148,18 @@
                             <strong>{{ city }}</strong> - {{ temperature }}°C
                         </span>
                     </div>
+                    {% endif %}
                 </div>
             </nav>
         </div>
     </div>
     <!-- Navbar End -->
-
     <!-- Main Content Start -->
     <hr class="section-divider">
 
     <div class="main-content">
         <!-- כותרת -->
-        <h1>שלום, {{ name }}</h1>
+        <h1>שלום, {{ first_name }}</h1>
 
         <!-- עלים -->
         <div class="leaf-container">
@@ -160,17 +191,21 @@
                 <img src="/static/img/leaf.png" alt="מלאי">
                 <span>אספקה ומלאי</span>
             </div>
-            <div class="leaf" onclick="navigateTo('shop')">
+            <div class="leaf" onclick="navigateTo('jobs')">
                 <img src="/static/img/leaf.png" alt="חנות">
-                <span>חנות אונליין</span>
+                <span>רשת חברתית לפרסום משרות</span>
             </div>
         </div>
     </div>
-    <!-- Main Content End -->
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
+    <!-- טעינת Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     <script src="/static/js/main.js"></script>
     <script>
@@ -183,7 +218,7 @@
                 'team': '{{ url_for("manager_bp.get_employees_list") }}',
                 'calculator': '#',
                 'inventory': '#',
-                'shop': '#'
+                'jobs': '{{ url_for("posts_bp.social_feed") }}' // הוספת הנתיב לדף רשת חברתית
             };
 
             if (urls[page]) {
