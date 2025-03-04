@@ -11,6 +11,9 @@ from modules.users.routes import logout_bp
 from modules.Plots.routes import plot_bp
 from modules.task.routes import task_bp
 from modules.weather.routes import weather_bp
+from modules.posts.routes import posts_bp
+from modules.attendance.routes import attendance_bp
+
 
 
 import json
@@ -35,7 +38,8 @@ app.register_blueprint(plot_bp, url_prefix="/Plots")
 app.register_blueprint(task_bp, url_prefix="/task")
 app.register_blueprint(logout_bp)
 app.register_blueprint(weather_bp, url_prefix="/weather")
-
+app.register_blueprint(posts_bp, url_prefix="/posts")
+app.register_blueprint(attendance_bp, url_prefix='/attendance')
 
 def update_crops_data():
     collection = app.db["crops_options"]

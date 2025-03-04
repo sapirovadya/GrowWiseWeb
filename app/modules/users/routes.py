@@ -114,7 +114,8 @@ def login():
             
             # מנהל נמצא ומאושר
             session['email'] = email
-            session['name'] = manager.get('first_name')
+            session['first_name'] = manager.get('first_name')
+            session['last_name'] = manager.get('last_name')
             session['role'] = 'manager'
             
 
@@ -135,7 +136,8 @@ def login():
 
             # מנהל נמצא ומאושר
             session['email'] = email
-            session['name'] = co_manager.get('first_name')
+            session['first_name'] = co_manager.get('first_name')
+            session['last_name'] = co_manager.get('last_name')
             session['role'] = 'co_manager'
             session['manager_email'] = co_manager.get('manager_email')
 
@@ -160,7 +162,8 @@ def login():
             # עובד נמצא ומאושר
             session['email'] = email
             session['role'] = 'employee'
-            session['name'] = employee.get('first_name')
+            session['first_name'] = employee.get('first_name')
+            session['last_name'] = employee.get('last_name')
             session['manager_email'] = employee.get('manager_email')
 
             return jsonify({
@@ -176,7 +179,8 @@ def login():
                 return jsonify({"message": "one of the detail is incorrect"}), 400
             
             session['email'] = email
-            session['name'] = job_seeker.get('first_name')
+            session['first_name'] = job_seeker.get('first_name')
+            session['last_name'] = job_seeker.get('last_name')
             session['role'] = 'job_seeker'
             
 
@@ -419,3 +423,44 @@ def logout():
 @users_bp_main.route('/contact', methods=['GET'])
 def contact():
     return render_template('contact.html')
+
+@users_bp_main.route('/info/<email>', methods=['GET'])
+def get_user_info(email):
+    # רשימת הטבלאות לבדיקה
+    collections = ["manager", "co_manager", "employee", "job_seeker"]
+
+    user = None
+    for collection_name in collections:
+        collection = db[collection_name]
+        user = collection.find_one({"email": email}, {"_id": 0, "first_name": 1, "last_name": 1, "role": 1, "manager_email": 1})
+        if user:
+            user["role"] = user.get("role", collection_name)  # תיוג לפי הטבלה, אלא אם כן קיים שדה 'role'
+            break  # מצאנו את המשתמש, אין צורך להמשיך
+
+    if not user:
+        return jsonify({"error": "משתמש לא נמצא"}), 404
+
+    # התאמת תיאור התפקיד
+    role_texts = {
+        "manager": "בעל משק חקלאי",
+        "co_manager": "בעל משק חקלאי",
+        "job_seeker": "מתנדב/מחפש עבודה",
+        "employee": "עובד משק"
+    }
+    user["role_text"] = role_texts.get(user["role"], "משתמש רגיל")
+
+    # אם המשתמש הוא מנהל, ניקח ממנו את ה-location
+    if user["role"] == "manager":
+        user["location"] = db["manager"].find_one({"email": email}, {"_id": 0, "location": 1}) or {}
+        user["location"] = user["location"].get("location", "לא צויין")
+
+    # אם המשתמש הוא שותף (`co_manager`) או עובד (`employee`), נשלוף את ה-location מה-manager
+    elif user["role"] in ["co_manager", "employee"]:
+        manager_email = user.get("manager_email")
+        if manager_email:  # לוודא שהשדה קיים ולא `None`
+            manager = db["manager"].find_one({"email": manager_email}, {"_id": 0, "location": 1}) or {}
+            user["location"] = manager.get("location", "לא צויין")
+
+    return jsonify(user), 200
+
+

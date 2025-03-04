@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he">
 
 <head>
     <meta charset="utf-8">
     <title>GrowWise</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-
     <link href="/static/img/favicon.ico" rel="icon">
 
     <!-- Google Web Fonts -->
@@ -157,27 +156,47 @@
     </div>
     <!-- Navbar End -->
 
-    <!-- Main Content Start -->
     <hr class="section-divider">
+    <br>
+    <div class="container">
+        <!-- אזור פרסום פוסט -->
+        <form id="newPostForm">
+            <textarea id="newPostContent" class="form-control" placeholder="מה תרצה לפרסם?"></textarea>
+            <button type="submit" class="btn btn-primary mt-2">פרסם</button>
+        </form>
+        <hr class="section-divider">
 
-    <div class="main-content">
-        <!-- כותרת -->
-        <h1>שלום, {{ first_name }}</h1>
-
-        <!-- עלים -->
-        <div class="leaf-container">
-            <div class="leaf" onclick="navigateTo('jobs')">
-                <img src="/static/img/leaf.png" alt="חנות">
-                <span>רשת חברתית לפרסום משרות</span>
+        <!-- הצגת פוסטים -->
+        <div id="postsContainer" data-user-email="{{ session['email'] }}"></div>
+    </div>
+    <!-- חלון מודאלי לפרטי משתמש -->
+    <div id="userInfoModal" class="modal fade" tabindex="-1" style="display: none;">
+        <div class="modal-dialog modal-dialog-user-info">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">פרטי המשתמש</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- כאן יוצגו פרטי המשתמש -->
+                </div>
             </div>
         </div>
+    </div>
+
+    <!-- Alert Box -->
+    <div id="customAlert" class="alert-box" style="display:none;">
+        <h5 class="alert-title" id="alertTitle">כותרת</h5>
+        <p class="alert-message" id="alertMessage">הודעה</p>
+        <button id="alertConfirm" class="alert-close">אישור</button>
+        <button class="alert-close" onclick="$('#customAlert').fadeOut();">סגור</button>
     </div>
 
     <!-- Back to Top -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
             class="bi bi-arrow-up"></i></a>
 
-    <!-- Libraries -->
+    <!-- JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
@@ -189,27 +208,29 @@
 
     <script src="/static/js/main.js"></script>
     <script>
-        function navigateTo(page) {
-            const urls = {
-                'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
-                'archive': '#',
-                'optimal_management': '#',
-                'reports': '#',
-                'team': '{{ url_for("manager_bp.get_employees_list") }}',
-                'calculator': '#',
-                'inventory': '#',
-                'jobs': '{{ url_for("posts_bp.social_feed") }}' // הוספת הנתיב לדף רשת חברתית
-            };
+        document.addEventListener("DOMContentLoaded", async function () {
+            //מזג אוויר
+            const shortWeatherDiv = document.getElementById("weather-info-short");
 
-            if (urls[page]) {
-                window.location.href = urls[page];
+            try {
+                const response = await fetch("/weather");
+                if (!response.ok) {
+                    throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // עדכון התצוגה הקצרה בסרגל הכלים
+                shortWeatherDiv.innerHTML = `
+                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                    <strong>${data.city}</strong> ${data.temperature}°C
+                `;
+            } catch (error) {
+                console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
+                shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
             }
-        }
-
-
+        });
     </script>
-
-
 </body>
 
 </html>
