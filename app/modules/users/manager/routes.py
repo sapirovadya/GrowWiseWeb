@@ -28,8 +28,8 @@ def manager_home_page():
     if 'email' not in session:  # בדיקה אם המשתמש מחובר
         return redirect(url_for('users_bp_main.login'))  # אם לא, החזר לדף ההתחברות
     
-    name = session.get('name')  # קבלת שם המנהל מה-session
-    return render_template("manager_home_page.html", name=name)
+    first_name = session.get('first_name')  # קבלת שם המנהל מה-session
+    return render_template("manager_home_page.html", first_name=first_name)
 
 @manager_bp.route("/myteam", methods=['GET'])
 def get_employees_list():

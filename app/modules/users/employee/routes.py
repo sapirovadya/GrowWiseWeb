@@ -18,10 +18,10 @@ db = client.get_database("dataGrow")
 
 @employee_bp.route("/employeepage", methods=['GET'])
 def employee_home_page():
-    if 'email' not in session:  # בדיקה אם המשתמש מחובר
-        return redirect(url_for('users_bp_main.login'))  # אם לא, החזר לדף ההתחברות
+    if 'email' not in session: 
+        return redirect(url_for('users_bp_main.login')) 
     
-    name = session.get('name')  # קבלת שם המנהל מה-session
-    return render_template("employee_home_page.html", name=name)
+    first_name = session.get('first_name') 
+    return render_template("employee_home_page.html", first_name=first_name)
 
 

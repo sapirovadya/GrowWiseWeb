@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="utf-8">
+    <title>GrowWise</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/static/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Playfair+Display:wght@700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS Libraries -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- CSS של Owl Carousel -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+
+    <!-- Bootstrap CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/static/css/style.css" rel="stylesheet">
+
+</head>
+
+<body>
+<!-- Navbar Start -->
+<div class="container-fluid bg-white sticky-top">
+    <div class="container">
+        <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
+            <div class="d-flex justify-content-between align-items-center w-100">
+
+                <!-- כפתור תפריט למובייל -->
+                <button type="button" class="navbar-toggler ms-auto me-0" data-bs-toggle="collapse"
+                    data-bs-target="#navbarCollapse">
+                    <span class="navbar-toggler-icon"></span>
+                    <span class="menu-text ms-2">תפריט</span>
+                </button>
+
+                {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
+                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                </a>
+                {% elif session['role'] == "employee" %}
+                <a href="{{ url_for('employee_bp.employee_home_page') }}" class="navbar-brand">
+                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                </a>
+                {% elif session['role'] == "job_seeker" %}
+                <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}" class="navbar-brand">
+                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                </a>
+                {% else %}
+                <a href="{{ url_for('home') }}" class="navbar-brand">
+                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                </a>
+                {% endif %}
+                <!-- תפריט ניווט (דסקטופ ומובייל) -->
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <div class="navbar-nav ms-auto">
+                        {% if session['role'] %}
+                        <!-- אם המשתמש מחובר -->
+                        <div class="d-none d-lg-flex align-items-center">
+                            <div class="logout-icon me-3">
+                                <a href="#" onclick="logout(); return false;">
+                                    <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
+                                </a>
+                            </div>
+                            <div class="notification-icon me-3">
+                                <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notifications"
+                                    height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
+                                <div class="notification-badge" id="notificationBadge" style="display: none;">!
+                                </div>
+                            </div>
+                            <div class="user me-3">
+                                <a href="{{ url_for('users_bp_main.profile_page') }}">
+                                    <img id="userIcon" src="/static/img/user.png" alt="User" height="30" width="30">
+                                </a>
+                            </div>
+                            <!-- מזג האוויר -->
+                        </div>
+                        {% endif %}
+                        {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                        <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
+                        {% elif session['role'] == "employee" %}
+                        <a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
+                        {% elif session['role'] == "job_seeker" %}
+                        <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}"
+                            class="nav-item nav-link">בית</a>
+                        {% else %}
+                        <a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
+                        {% endif %}
+                        {% if session['role'] == "manager" or session['role'] == "co_manager" or
+                        session['role'] == "employee"%} <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
+                            <div class="dropdown-menu bg-light rounded-0 m-0">
+                                <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
+                                    חלקות</a>
+                                {% if session['role'] == "employee" %}
+                                <a href="{{ url_for('attendance_bp.report_attendance_page') }}"
+                                    class="dropdown-item">דיווח נוכחות</a>
+                                {% endif %}
+                                {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                                <a href="{{ url_for('plot_bp.archive') }}" class="dropdown-item">ארכיון</a>
+                                <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
+                                    שלי</a>
+                                <a href='/task/alltasks.html' class="dropdown-item">כל המשימות</a>
+                                <a href="{{url_for('attendance_bp.attendance_manager_page')}}"
+                                    class="dropdown-item">נוכחות עובדים</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <!-- 🏠 לכל המשתמשים -->
+                        <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
+                        <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
+                        {% if session['role'] %}
+                        <div class="d-lg-none mt-3">
+                            <div class="nav-item">
+                                <a href="#" onclick="toggleNotifications()" class="nav-link">התראות</a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{{ url_for('users_bp_main.profile_page') }}" class="nav-link">הפרופיל
+                                    שלי</a>
+                            </div>
+
+                            <div class="nav-item">
+                                <a href="#" onclick="logout(); return false;" class="nav-link">התנתק</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if session['role'] %}
+
+                <div id="weather-info-short" class="d-flex align-items-center">
+                    <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
+                        style="width: 24px; height: 24px; margin-right: 8px;">
+                    <span>
+                        <strong>{{ city }}</strong> - {{ temperature }}°C
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </nav>
+    </div>
+</div>
+<!-- Navbar End -->
+
+    <!-- פס חוצץ -->
+    <hr class="section-divider">
+
+    <div class="container">
+        <h1>דיווח נוכחות</h1>
+        <hr class="section-divider">
+        <button class="btn-check-in w-50" onclick="reportAttendance('check_in')">כניסה</button>
+        <button class="btn-check-out w-50" onclick="reportAttendance('check_out')" style="display: none;">יציאה</button>
+        <p id="message"></p>
+    </div>
+    <div class="container mt-4">
+        <h2>היסטוריית נוכחות</h2>
+        <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>שם פרטי</th>
+                    <th>שם משפחה</th>
+                    <th>תאריך כניסה</th>
+                    <th>תאריך יציאה</th>
+                    <th>זמן עבודה בפועל (שעות)</th>
+                </tr>
+            </thead>
+            <tbody id="attendanceTableBody">
+            </tbody>
+        </table>
+     </div>
+    </div>
+    <!-- Alert Box -->
+    <div id="customAlert" class="alert-box" style="display:none;">
+        <h5 class="alert-title">כותרת</h5>
+        <p class="alert-message">הודעה</p>
+        <button class="alert-close btn btn-primary" onclick="closeAlert()">סגור</button>
+    </div>
+
+    <!-- אלרט מותאם אישית עם כפתורי אישור וביטול -->
+    <div id="customConfirm" class="alert-box" style="display: none;">
+        <h5 class="alert-title">אישור</h5>
+        <p class="alert-message"></p>
+        <button class="alert-close" id="confirmYes">אישור</button>
+        <button class="alert-close" id="confirmNo" style="background-color: var(--secondary);">בטל</button>
+    </div>
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
+            class="bi bi-arrow-up"></i></a>
+
+    <!-- JavaScript -->
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
+    <!-- טעינת Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+
+
+        function showAlert(title, message, options = {}) {
+            const { onSuccess = null, restoreModal = null, restoreData = null } = options;
+
+            const alertBox = document.getElementById("customAlert");
+            alertBox.querySelector(".alert-title").textContent = title;
+            alertBox.querySelector(".alert-message").textContent = message;
+
+            alertBox.style.display = "block";
+            alertBox.classList.add("fade-in");
+
+            const closeButton = alertBox.querySelector(".alert-close");
+
+            closeButton.onclick = () => {
+                alertBox.classList.remove("fade-in");
+                alertBox.style.display = "none";
+
+                // Handle success actions like closing modals or refreshing the page
+                if (onSuccess) {
+                    onSuccess();
+                }
+
+                // Restore a modal or input form if there's an error
+                if (restoreModal && restoreData) {
+                    const modal = document.getElementById(restoreModal);
+                    const form = document.getElementById(restoreData.formId);
+
+                    // Restore form values if available
+                    if (form && restoreData.lastData) {
+                        for (const [key, value] of Object.entries(restoreData.lastData)) {
+                            const field = form.elements[key];
+                            if (field) {
+                                field.value = value;
+                            }
+                        }
+                    }
+
+                    // Show modal again
+                    if (modal) {
+                        modal.style.display = "flex";
+                    }
+                }
+            };
+        }
+
+        function closeAlert() {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.style.display = "none";
+            location.reload(); // רענון הדף
+        }
+
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            const shortWeatherDiv = document.getElementById("weather-info-short");
+
+            try {
+                const response = await fetch("/weather");
+                if (!response.ok) {
+                    throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // עדכון התצוגה הקצרה בסרגל הכלים
+                shortWeatherDiv.innerHTML = `
+                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                    <strong>${data.city}</strong> ${data.temperature}°C
+                `;
+            } catch (error) {
+                console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
+                shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+            }
+
+            // טעינת התראות
+            try {
+                const notificationsResponse = await fetch("/users/get_notifications");
+                const notificationsData = await notificationsResponse.json();
+
+                showNotificationBadge(notificationsData.new_notifications_count); // עדכון העיגול האדום עם מספר ההתראות החדשות
+            } catch (error) {
+                console.error("Error fetching notifications:", error);
+            }
+
+        });
+
+
+        //Attendance
+        function reportAttendance(action) {
+            fetch(`/attendance/report`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("message").textContent = data.message;
+                loadAttendanceRecords();
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        }
+
+    </script>
+
+</body>
+
+</html>

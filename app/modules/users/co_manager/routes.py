@@ -20,6 +20,6 @@ def co_manager_home_page():
     if 'email' not in session: 
         return redirect(url_for('users_bp_main.login'))  
     
-    name = session.get('name')
-    return render_template("co_manager_home_page.html", name=name)
+    first_name = session.get('first_name')
+    return render_template("co_manager_home_page.html", first_name=first_name)
 
