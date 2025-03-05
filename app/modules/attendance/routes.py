@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 import pytz
 from modules.attendance.models import attendance
-
+from bson import ObjectId
 
 attendance_bp = Blueprint('attendance_bp', __name__, url_prefix='/attendance')
 
@@ -75,7 +75,20 @@ def get_user_attendance():
 
     employee_email = session['email']
 
-    records = list(attendance_collection.find({"email": employee_email}, {"_id": 0}))
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+
+    # records = list(attendance_collection.find({"email": employee_email}, {"_id": 0}))
+    
+    records = list(attendance_collection.find({
+        "email": employee_email,
+        "check_in": {
+            "$gte": datetime(current_year, current_month, 1), 
+            "$lt": datetime(current_year, current_month + 1, 1) if current_month < 12 
+                else datetime(current_year + 1, 1, 1)
+        }
+    }))
     
     for record in records:
         if "check_in" in record and record["check_in"]:
@@ -97,9 +110,24 @@ def get_manager_attendance():
     elif session['role'] == 'co_manager':
         manager_email = session.get('manager_email') 
 
-    records = list(attendance_collection.find({"manager_email": manager_email}, {"_id": 0}))
+    # קבלת התאריך של היום
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+
+    # records = list(attendance_collection.find({"manager_email": manager_email}))
+
+    records = list(attendance_collection.find({
+            "manager_email": manager_email,
+            "check_in": {
+                "$gte": datetime(current_year, current_month, 1), 
+                "$lt": datetime(current_year, current_month + 1, 1) if current_month < 12 
+                    else datetime(current_year + 1, 1, 1)
+            }
+        }))
 
     for record in records:
+        record['_id'] = str(record['_id'])
         if "check_in" in record and record["check_in"]:
             record["check_in"] = record["check_in"].strftime("%Y-%m-%d %H:%M:%S")   
         if "check_out" in record and record["check_out"]:
@@ -107,6 +135,7 @@ def get_manager_attendance():
 
 
     return jsonify({'attendance_records': records})
+
 
 @attendance_bp.route('/manager_page', methods=['GET'])
 def attendance_manager_page():
@@ -147,7 +176,7 @@ def manual_attendance_report():
     check_out_time = datetime.fromisoformat(check_out_time).replace(tzinfo=pytz.utc)
     total_hours = (check_out_time - check_in_time).total_seconds() / 3600.0
 
-    employee = db.employee.find_one({"email": employee_email}, {"_id": 0, "first_name": 1, "last_name": 1})
+    employee = db.employee.find_one({"email": employee_email}, {"_id": 0, "first_name": 1, "last_name": 1, "manager_email": 1})
 
     new_attendance = {
         "email": employee_email,
@@ -164,4 +193,55 @@ def manual_attendance_report():
     return jsonify({'message': 'הדיווח נשמר בהצלחה!'})
 
 
+@attendance_bp.route('/update_attendance', methods=['POST'])
+def update_attendance():
+    if 'email' not in session or session.get('role') not in ['manager', 'co_manager']:
+        return jsonify({'message': 'גישה נדחתה'}), 403
+
+    data = request.json
+    attendance_id = data.get('id')
+    check_in_time = data.get('check_in')
+    check_out_time = data.get('check_out')
+
+    if not attendance_id or not check_in_time or not check_out_time:
+        return jsonify({'message': 'נתונים חסרים'}), 400
+
+    try:
+        print(f"Received ID: {attendance_id}")
+        print(f"Check-in: {check_in_time}, Check-out: {check_out_time}")
+
+        check_in_time = datetime.fromisoformat(check_in_time)
+        check_out_time = datetime.fromisoformat(check_out_time)
+
+        total_hours = (check_out_time - check_in_time).total_seconds() / 3600.0
+
+        result = attendance_collection.update_one(
+            {"_id": ObjectId(attendance_id)},
+            {"$set": {"check_in": check_in_time, "check_out": check_out_time, "total_hours": round(total_hours, 2)}}
+        )
+
+        if result.modified_count == 0:
+            return jsonify({'message': 'לא בוצע עדכון, ייתכן שהנתון לא קיים'}), 404
+
+        return jsonify({'message': 'הדיווח עודכן בהצלחה!'})
+
+    except ValueError as ve:
+        return jsonify({'message': f'שגיאה בפורמט התאריך: {str(ve)}'}), 400
+    except Exception as e:
+        return jsonify({'message': f'שגיאה בעדכון הנתונים: {str(e)}'}), 500
+
+
+@attendance_bp.route('/get_record/<record_id>', methods=['GET'])
+def get_attendance_record(record_id):
+    try:
+        record = attendance_collection.find_one({"_id": ObjectId(record_id)})
+        if not record:
+            return jsonify({"error": "רשומה לא נמצאה"}), 404
+
+        return jsonify({
+            "check_in": record["check_in"].strftime("%Y-%m-%dT%H:%M"),
+            "check_out": record["check_out"].strftime("%Y-%m-%dT%H:%M")
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 

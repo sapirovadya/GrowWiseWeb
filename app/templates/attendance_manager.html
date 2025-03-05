@@ -185,23 +185,71 @@
     </div>
     
         <h1>נוכחות עובדים</h1>
-        <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>שם פרטי</th>
-                    <th>שם משפחה</th>
-                    <th>אימייל</th>
-                    <th>תאריך כניסה</th>
-                    <th>תאריך יציאה</th>
-                    <th>זמן עבודה בפועל (שעות)</th>
-                </tr>
-            </thead>
-            <tbody id="attendanceManagerTableBody">
-               
-            </tbody>
-        </table>
+        <div class="container mt-4 attendance-manager">
+            <!-- שדה חיפוש -->
+            <label for="searchEmployee">חפש לפי שם עובד:</label>
+            <input type="text" id="searchEmployee" class="form-control" onkeyup="filterAttendanceRecords()" placeholder="הקלד שם עובד...">
+        
+            <!-- טבלת הנוכחות -->
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>שם פרטי</th>
+                            <th>שם משפחה</th>
+                            <th>אימייל</th>
+                            <th>תאריך כניסה</th>
+                            <th>תאריך יציאה</th>
+                            <th>זמן עבודה בפועל (שעות)</th>
+                            <th>עריכה</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceManagerTableBody">
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ record.first_name }}</td>
+                            <td>{{ record.last_name }}</td>
+                            <td>{{ record.email }}</td>
+                            <td>{{ record.check_in }}</td>
+                            <td>{{ record.check_out }}</td>
+                            <td>{{ record.total_hours }}</td>
+                            <td style="text-align: left;">
+                                <button class="btn btn-warning edit-btn"
+                                    onclick="openEditModal('{{ record._id }}')">
+                                    <i class="bi bi-pencil-square"></i> ערוך
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+
+    <!-- חלון קופץ (מודל) לעריכת נוכחות -->
+    <div id="editAttendanceModal" class="modal" style="display: none;">
+        <div class="modal-content edit-attendance-modal">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>עריכת נוכחות</h2>
+
+            <input type="hidden" id="editAttendanceId">
+
+            <label for="editCheckIn">שעת כניסה:</label>
+            <input type="datetime-local" id="editCheckIn" class="form-control">
+
+            <label for="editCheckOut">שעת יציאה:</label>
+            <input type="datetime-local" id="editCheckOut" class="form-control">
+            <br>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="saveAttendanceChanges()">שמור</button>
+                <button class="btn btn-danger" onclick="closeEditModal()">ביטול</button>
+            </div>
+        </div>
     </div>
+
+
     </div>
 
 
