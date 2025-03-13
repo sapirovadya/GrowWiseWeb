@@ -72,9 +72,23 @@
                                     </a>
                                 </div>
                                 <div class="notification-icon me-3">
-                                    <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notifications"
-                                        height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
+                                    <img id="notificationIcon" src="/static/img/Notifications.png"
+                                        alt="Notification Icon" height="30" width="30" onclick="toggleNotifications()"
+                                        style="cursor: pointer;">
                                     <div class="notification-badge" id="notificationBadge" style="display: none;">!
+                                    </div>
+                                    <div id="notificationModal" class="notification-modal"
+                                        style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
+                                        <div style="padding: 15px;">
+                                            <h5 style="margin-bottom: 10px;">התראות</h5>
+                                            <hr class="section-divider">
+                                            <div id="notifications-list">
+                                                <p>טוען התראות...</p>
+                                            </div>
+                                            <hr class="section-divider">
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                style="margin-top: 10px;" onclick="closeNotifications()">סגור</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="user me-3">
@@ -82,9 +96,9 @@
                                         <img id="userIcon" src="/static/img/user.png" alt="User" height="30" width="30">
                                     </a>
                                 </div>
-                                <!-- מזג האוויר -->
                             </div>
                             {% endif %}
+                            <!--כפתור ״בית״-->
                             {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                             <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
                             {% elif session['role'] == "employee" %}
@@ -95,26 +109,31 @@
                             {% else %}
                             <a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
                             {% endif %}
+                            <!--כפתור ״דפים״-->
                             {% if session['role'] == "manager" or session['role'] == "co_manager" or
                             session['role'] == "employee"%} <div class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
                                 <div class="dropdown-menu bg-light rounded-0 m-0">
                                     <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
                                         חלקות</a>
+
                                     {% if session['role'] == "employee" %}
                                     <a href="{{ url_for('attendance_bp.report_attendance_page') }}"
                                         class="dropdown-item">דיווח נוכחות</a>
                                     <a href="{{ url_for('manager_bp.get_employees_list') }}"
                                         class="dropdown-item">המשימות שלי</a>
 
-                                    {% endif %}
-                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                                    {% elif session['role'] == "manager" or session['role'] == "co_manager" %}
                                     <a href="{{ url_for('plot_bp.archive') }}" class="dropdown-item">ארכיון</a>
                                     <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
                                         שלי</a>
                                     <a href='/task/alltasks.html' class="dropdown-item">כל המשימות</a>
                                     <a href="{{url_for('attendance_bp.attendance_manager_page')}}"
                                         class="dropdown-item">נוכחות עובדים</a>
+                                    <a href="{{ url_for('supply_bp.supply_inventory') }}" class="dropdown-item">מלאי
+                                        ואספקה</a>
+                                    <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
+                                        הוצאות</a>
                                     {% endif %}
                                 </div>
                             </div>
@@ -140,7 +159,6 @@
                         </div>
                     </div>
                     {% if session['role'] %}
-
                     <div id="weather-info-short" class="d-flex align-items-center">
                         <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
                             style="width: 24px; height: 24px; margin-right: 8px;">
@@ -157,10 +175,11 @@
     <!-- Main Content Start -->
     <hr class="section-divider">
 
-    <div class="main-content">
+    <div class="container mb-2">
         <!-- כותרת -->
-        <h1>שלום, {{ first_name }}</h1>
-
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="title">שלום, {{ first_name }}</h1>
+        </div>
         <!-- עלים -->
         <div class="leaf-container">
             <div class="leaf" onclick="navigateTo('track_greenhouse')">
@@ -189,7 +208,7 @@
             </div>
             <div class="leaf" onclick="navigateTo('inventory')">
                 <img src="/static/img/leaf.png" alt="מלאי">
-                <span>אספקה ומלאי</span>
+                <span>לוגיסטיקה וניהול</span>
             </div>
             <div class="leaf" onclick="navigateTo('jobs')">
                 <img src="/static/img/leaf.png" alt="חנות">
@@ -217,8 +236,8 @@
                 'reports': '#',
                 'team': '{{ url_for("manager_bp.get_employees_list") }}',
                 'calculator': '#',
-                'inventory': '#',
-                'jobs': '{{ url_for("posts_bp.social_feed") }}' // הוספת הנתיב לדף רשת חברתית
+                'inventory': '{{ url_for("manager_bp.logistic_management") }}',
+                'jobs': '{{ url_for("posts_bp.social_feed") }}'
             };
 
             if (urls[page]) {

@@ -37,71 +37,14 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
                 <div class="d-flex justify-content-between align-items-center w-100">
-                    <div class="logout-icon" style="display: inline-block;">
-                        <a href="#" onclick="logout(); return false;">
-                            <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
-                        </a>
-                    </div>
-                    <div class="notification-icon" style="position: relative; display: inline-block;">
-                        <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
-                            height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
-                        <div class="notification-badge" id="notificationBadge" style="display: none;">!</div>
-                        <div id="notificationModal" class="notification-modal"
-                            style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
-                            <div style="padding: 15px;">
-                                <h5 style="margin-bottom: 10px;">התראות</h5>
-                                <hr class="section-divider">
-                                <div id="notifications-list">
-                                    <p>טוען התראות...</p>
-                                </div>
-                                <hr class="section-divider">
-                                <button type="button" class="btn btn-sm btn-danger" style="margin-top: 10px;"
-                                    onclick="closeNotifications()">סגור</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="user" style="position: relative; display: inline-block;">
-                        <a href="{{ url_for('users_bp_main.profile_page') }}">
-                            <img id="userIcon" src="/static/img/user.png" alt="User Icon" height="30" width="30"
-                                style="cursor: pointer;">
-                        </a>
-                    </div>
 
+                    <!-- כפתור תפריט למובייל -->
+                    <button type="button" class="navbar-toggler ms-auto me-0" data-bs-toggle="collapse"
+                        data-bs-target="#navbarCollapse">
+                        <span class="navbar-toggler-icon"></span>
+                        <span class="menu-text ms-2">תפריט</span>
+                    </button>
 
-                    <div class="collapse navbar-collapse" id="navbarCollapse">
-                        <div class="navbar-nav ms-auto">
-                            <!-- כפתור "בית" מותאם לפי role -->
-                            {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                            <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
-                            {% elif session['role'] == "employee" %}
-                            <a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
-                            {% elif session['role'] == "job_seeker" %}
-                            <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}"
-                                class="nav-item nav-link">בית</a>
-                            {% endif %}
-                            <!-- Dropdown של דפים -->
-                            <div class="nav-item dropdown position-relative">
-                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
-                                <div class="dropdown-menu bg-light rounded-0 m-0">
-                                    <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
-                                        חלקות/חממות</a>
-                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                                    <a href='{{ url_for("plot_bp.archive") }}' class="dropdown-item">ארכיון
-                                        חלקות/חממות</a>
-                                    <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
-                                        שלי</a>
-                                    {% endif %}
-                                    {% if session['role'] == "employee" %}
-                                    <a href='/task/alltasks.html' class="dropdown-item">המשימות
-                                        שלי</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
-                            <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
-                        </div>
-                    </div>
                     {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                     <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
                         <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
@@ -110,7 +53,114 @@
                     <a href="{{ url_for('employee_bp.employee_home_page') }}" class="navbar-brand">
                         <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
                     </a>
+                    {% elif session['role'] == "job_seeker" %}
+                    <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('home') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
                     {% endif %}
+                    <!-- תפריט ניווט (דסקטופ ומובייל) -->
+                    <div class="collapse navbar-collapse" id="navbarCollapse">
+                        <div class="navbar-nav ms-auto">
+                            {% if session['role'] %}
+                            <!-- אם המשתמש מחובר -->
+                            <div class="d-none d-lg-flex align-items-center">
+                                <div class="logout-icon me-3">
+                                    <a href="#" onclick="logout(); return false;">
+                                        <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
+                                    </a>
+                                </div>
+                                <div class="notification-icon me-3">
+                                    <img id="notificationIcon" src="/static/img/Notifications.png"
+                                        alt="Notification Icon" height="30" width="30" onclick="toggleNotifications()"
+                                        style="cursor: pointer;">
+                                    <div class="notification-badge" id="notificationBadge" style="display: none;">!
+                                    </div>
+                                    <div id="notificationModal" class="notification-modal"
+                                        style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
+                                        <div style="padding: 15px;">
+                                            <h5 style="margin-bottom: 10px;">התראות</h5>
+                                            <hr class="section-divider">
+                                            <div id="notifications-list">
+                                                <p>טוען התראות...</p>
+                                            </div>
+                                            <hr class="section-divider">
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                style="margin-top: 10px;" onclick="closeNotifications()">סגור</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="user me-3">
+                                    <a href="{{ url_for('users_bp_main.profile_page') }}">
+                                        <img id="userIcon" src="/static/img/user.png" alt="User" height="30" width="30">
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <!--כפתור ״בית״-->
+                            {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                            <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
+                            {% elif session['role'] == "employee" %}
+                            <a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
+                            {% elif session['role'] == "job_seeker" %}
+                            <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}"
+                                class="nav-item nav-link">בית</a>
+                            {% else %}
+                            <a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
+                            {% endif %}
+                            <!--כפתור ״דפים״-->
+                            {% if session['role'] == "manager" or session['role'] == "co_manager" or
+                            session['role'] == "employee"%} <div class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
+                                <div class="dropdown-menu bg-light rounded-0 m-0">
+                                    <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
+                                        חלקות</a>
+
+                                    {% if session['role'] == "employee" %}
+                                    <a href="{{ url_for('attendance_bp.report_attendance_page') }}"
+                                        class="dropdown-item">דיווח נוכחות</a>
+                                    <a href="{{ url_for('manager_bp.get_employees_list') }}"
+                                        class="dropdown-item">המשימות שלי</a>
+
+                                    {% elif session['role'] == "manager" or session['role'] == "co_manager" %}
+                                    <a href="{{ url_for('plot_bp.archive') }}" class="dropdown-item">ארכיון</a>
+                                    <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
+                                        שלי</a>
+                                    <a href='/task/alltasks.html' class="dropdown-item">כל המשימות</a>
+                                    <a href="{{url_for('attendance_bp.attendance_manager_page')}}"
+                                        class="dropdown-item">נוכחות עובדים</a>
+                                    <a href="{{ url_for('supply_bp.supply_inventory') }}" class="dropdown-item">מלאי
+                                        ואספקה</a>
+                                    <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
+                                        הוצאות</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            <!-- 🏠 לכל המשתמשים -->
+                            <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
+                            <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
+                            {% if session['role'] %}
+                            <div class="d-lg-none mt-3">
+                                <div class="nav-item">
+                                    <a href="#" onclick="toggleNotifications()" class="nav-link">התראות</a>
+                                </div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('users_bp_main.profile_page') }}" class="nav-link">הפרופיל
+                                        שלי</a>
+                                </div>
+
+                                <div class="nav-item">
+                                    <a href="#" onclick="logout(); return false;" class="nav-link">התנתק</a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if session['role'] %}
                     <div id="weather-info-short" class="d-flex align-items-center">
                         <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
                             style="width: 24px; height: 24px; margin-right: 8px;">
@@ -118,13 +168,12 @@
                             <strong>{{ city }}</strong> - {{ temperature }}°C
                         </span>
                     </div>
+                    {% endif %}
                 </div>
             </nav>
         </div>
     </div>
-
     <!-- Navbar End -->
-
     <!-- פס חוצץ -->
     <hr class="section-divider">
     <!-- כפתור הוספת חלקה/חממה -->
@@ -183,8 +232,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="plotForm">
-                        <input type="hidden" name="plot_type" id="plotType">
-
+                        <input type="hidden" id="plotType" name="plot_type">
                         <div class="mb-3">
                             <label for="plotName" class="form-label">שם החלקה</label>
                             <input type="text" id="plotName" name="plot_name" class="form-control" required>
@@ -197,12 +245,8 @@
                             <label for="width" class="form-label">רוחב</label>
                             <input type="number" id="width" name="width" class="form-control" min="1" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="cropCategory" class="form-label">סוג הגידול</label>
-                            <select id="cropCategory" name="crop_category" class="form-select" onchange="loadCrops()">
-                                <option value="none">ללא</option>
-                            </select>
-                        </div>
+                        <input type="hidden" id="cropCategory" name="crop_category">
+
                         <div class="mb-3" id="cropDiv" style="display: none;">
                             <label for="crop" class="form-label">גידול</label>
                             <select id="crop" name="crop" class="form-select">
@@ -220,7 +264,6 @@
                         </div>
                         <button type="button" class="btn btn-primary" onclick="savePlot()">שמירה</button>
                         <button type="button" class="btn btn-secondary" onclick="closePlotForm()">סגירה</button>
-
                     </form>
 
                 </div>
@@ -397,7 +440,20 @@
             }
 
         });
+        document.addEventListener("DOMContentLoaded", function () {
+            let sowDateInput = document.getElementById('sowDate');
+            let quantityPlantedInput = document.getElementById('quantityPlanted');
 
+            if (sowDateInput) {
+                sowDateInput.addEventListener('input', () => {
+                    if (quantityPlantedInput) {
+                        quantityPlantedInput.disabled = !sowDateInput.value;
+                    }
+                });
+            } else {
+                console.error("❌ שגיאה: השדה sowDate לא נמצא");
+            }
+        });
         document.getElementById('sowDate').addEventListener('input', () => {
             const sowDate = document.getElementById('sowDate').value;
             const quantityPlantedDiv = document.getElementById('quantityPlantedDiv');
@@ -474,7 +530,6 @@
                 }
             }
         }
-
 
     </script>
 </body>

@@ -35,40 +35,70 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
                 <div class="d-flex justify-content-between align-items-center w-100">
-                    <div class="logout-icon" style="display: inline-block;">
-                        <a href="#" onclick="logout(); return false;">
-                            <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
-                        </a>
-                    </div>
-                    <div class="notification-icon" style="position: relative; display: inline-block;">
-                        <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
-                            height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
-                        <div class="notification-badge" id="notificationBadge" style="display: none;">!</div>
-                        <div id="notificationModal" class="notification-modal"
-                            style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
-                            <div style="padding: 15px;">
-                                <h5 style="margin-bottom: 10px;">התראות</h5>
-                                <hr class="section-divider">
-                                <div id="notifications-list">
-                                    <p>טוען התראות...</p>
-                                </div>
-                                <hr class="section-divider">
-                                <button type="button" class="btn btn-sm btn-danger" style="margin-top: 10px;"
-                                    onclick="closeNotifications()">סגור</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="user" style="position: relative; display: inline-block;">
-                        <a href="{{ url_for('users_bp_main.profile_page') }}">
-                            <img id="userIcon" src="/static/img/user.png" alt="User Icon" height="30" width="30"
-                                style="cursor: pointer;">
-                        </a>
-                    </div>
 
+                    <!-- כפתור תפריט למובייל -->
+                    <button type="button" class="navbar-toggler ms-auto me-0" data-bs-toggle="collapse"
+                        data-bs-target="#navbarCollapse">
+                        <span class="navbar-toggler-icon"></span>
+                        <span class="menu-text ms-2">תפריט</span>
+                    </button>
 
+                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% elif session['role'] == "employee" %}
+                    <a href="{{ url_for('employee_bp.employee_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% elif session['role'] == "job_seeker" %}
+                    <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('home') }}" class="navbar-brand">
+                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                    </a>
+                    {% endif %}
+                    <!-- תפריט ניווט (דסקטופ ומובייל) -->
                     <div class="collapse navbar-collapse" id="navbarCollapse">
                         <div class="navbar-nav ms-auto">
-                            <!-- כפתור "בית" מותאם לפי role -->
+                            {% if session['role'] %}
+                            <!-- אם המשתמש מחובר -->
+                            <div class="d-none d-lg-flex align-items-center">
+                                <div class="logout-icon me-3">
+                                    <a href="#" onclick="logout(); return false;">
+                                        <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
+                                    </a>
+                                </div>
+                                <div class="notification-icon me-3">
+                                    <img id="notificationIcon" src="/static/img/Notifications.png"
+                                        alt="Notification Icon" height="30" width="30" onclick="toggleNotifications()"
+                                        style="cursor: pointer;">
+                                    <div class="notification-badge" id="notificationBadge" style="display: none;">!
+                                    </div>
+                                    <div id="notificationModal" class="notification-modal"
+                                        style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
+                                        <div style="padding: 15px;">
+                                            <h5 style="margin-bottom: 10px;">התראות</h5>
+                                            <hr class="section-divider">
+                                            <div id="notifications-list">
+                                                <p>טוען התראות...</p>
+                                            </div>
+                                            <hr class="section-divider">
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                style="margin-top: 10px;" onclick="closeNotifications()">סגור</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="user me-3">
+                                    <a href="{{ url_for('users_bp_main.profile_page') }}">
+                                        <img id="userIcon" src="/static/img/user.png" alt="User" height="30" width="30">
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <!--כפתור ״בית״-->
                             {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                             <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
                             {% elif session['role'] == "employee" %}
@@ -76,35 +106,59 @@
                             {% elif session['role'] == "job_seeker" %}
                             <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}"
                                 class="nav-item nav-link">בית</a>
+                            {% else %}
+                            <a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
                             {% endif %}
-                            <!-- Dropdown של דפים -->
-                            <div class="nav-item dropdown position-relative">
+                            <!--כפתור ״דפים״-->
+                            {% if session['role'] == "manager" or session['role'] == "co_manager" or
+                            session['role'] == "employee"%} <div class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
                                 <div class="dropdown-menu bg-light rounded-0 m-0">
                                     <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
-                                        חלקות/חממות</a>
-                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                                        חלקות</a>
+
+                                    {% if session['role'] == "employee" %}
+                                    <a href="{{ url_for('attendance_bp.report_attendance_page') }}"
+                                        class="dropdown-item">דיווח נוכחות</a>
+                                    <a href="{{ url_for('manager_bp.get_employees_list') }}"
+                                        class="dropdown-item">המשימות שלי</a>
+
+                                    {% elif session['role'] == "manager" or session['role'] == "co_manager" %}
+                                    <a href="{{ url_for('plot_bp.archive') }}" class="dropdown-item">ארכיון</a>
                                     <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
                                         שלי</a>
+                                    <a href='/task/alltasks.html' class="dropdown-item">כל המשימות</a>
+                                    <a href="{{url_for('attendance_bp.attendance_manager_page')}}"
+                                        class="dropdown-item">נוכחות עובדים</a>
+                                    <a href="{{ url_for('supply_bp.supply_inventory') }}" class="dropdown-item">מלאי
+                                        ואספקה</a>
+                                    <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
+                                        הוצאות</a>
                                     {% endif %}
                                 </div>
                             </div>
-
+                            {% endif %}
+                            <!-- 🏠 לכל המשתמשים -->
                             <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
                             <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
+                            {% if session['role'] %}
+                            <div class="d-lg-none mt-3">
+                                <div class="nav-item">
+                                    <a href="#" onclick="toggleNotifications()" class="nav-link">התראות</a>
+                                </div>
+                                <div class="nav-item">
+                                    <a href="{{ url_for('users_bp_main.profile_page') }}" class="nav-link">הפרופיל
+                                        שלי</a>
+                                </div>
+
+                                <div class="nav-item">
+                                    <a href="#" onclick="logout(); return false;" class="nav-link">התנתק</a>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                        <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
-                            <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                        </a>
-                        {% elif session['role'] == "employee" %}
-                        <a href="{{ url_for('employee_bp.employee_home_page') }}" class="navbar-brand">
-                            <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                        </a>
-                        {% endif %}
-                    </div>
+                    {% if session['role'] %}
                     <div id="weather-info-short" class="d-flex align-items-center">
                         <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
                             style="width: 24px; height: 24px; margin-right: 8px;">
@@ -112,20 +166,15 @@
                             <strong>{{ city }}</strong> - {{ temperature }}°C
                         </span>
                     </div>
-
-
-
-
-
+                    {% endif %}
                 </div>
             </nav>
         </div>
     </div>
     <!-- Navbar End -->
-
     <!-- פס חוצץ -->
     <hr class="section-divider">
-    <div class="container mt-4">
+    <div class="container mt-2">
         <div class="row">
             <div class="d-flex justify-content-between align-items-center">
                 <h1>פרטי החלקה</h1>
@@ -261,9 +310,9 @@
                 </div>
                 <div class="modal-body">
                     <form id="updatePlotForm">
-                        <div class="mb-3">
+                        <div class="mb-3" id="cropCategoryDiv">
                             <label for="cropCategory" class="form-label">סוג גידול</label>
-                            <select id="cropCategory" name="crop_category" class="form-select" onchange="loadCrops()">
+                            <select id="cropCategory" name="crop_category" class="form-select">
                                 <option value="none">ללא</option>
                             </select>
                         </div>
@@ -291,6 +340,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- irrigation window-->
     <div id="irrigationModal" class="modal irrigationModal">
@@ -341,8 +391,17 @@
                     <p><strong>לחות:</strong> {{ humidity }}%</p>
                     <p><strong>רוח:</strong> {{ wind_speed }} קמ"ש</p>
                     <p><strong>תחזית לגשם:</strong> {{ precipitation }}</p>
+                    <p><strong>תחזית גשם לימים הקרובים:</strong></p>
+                    <ul style="list-style: none; padding: 0;">
+                        {% for day in rain_forecast %}
+                        <li>
+                            <strong>{{ day.date }}</strong>:
+                            {{ day.rain_mm }} מ"מ,
+                            {{ day.rain_probability }}% סיכוי לגשם
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
-
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeWeatherModal()">סגור</button>
                 </div>
@@ -362,6 +421,12 @@
                         <label for="cropYield" class="form-label">כמות היבול בקצירה זו (בק״ג)</label>
                         <input type="number" id="cropYield" name="crop_yield" class="form-control" min="0" step="0.01">
                     </div>
+                    <!-- 🔹 שדה חדש: מחיר לק״ג שנמכר -->
+                    <div class="mb-3">
+                        <label for="priceYield" class="form-label">מחיר לק״ג שנמכר</label>
+                        <input type="number" id="priceYield" name="price_yield" class="form-control" min="0"
+                            step="0.01">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-done" onclick="finalizePlot()">סיום חלקה</button>
@@ -370,6 +435,7 @@
             </div>
         </div>
     </div>
+
 
     <div id="customAlert" class="alert-box" style="display:none;">
         <h5 class="alert-title">כותרת</h5>
@@ -450,7 +516,7 @@
         document.getElementById("growthForecastButton").addEventListener("click", async () => {
             const modal = document.getElementById("growthForecastModal");
             const forecastText = document.getElementById("growthForecastText");
-            
+
             // הצגת הודעת טעינה
             forecastText.innerHTML = "<p>טוען תחזית...</p>";
             modal.style.display = "flex";
@@ -505,9 +571,6 @@
         });
 
 
-        let selectedPlotId = null; // משתנה לשמירת ה-ID של החלקה
-
-
         document.addEventListener("DOMContentLoaded", async function () {
             const shortWeatherDiv = document.getElementById("weather-info-short");
             const detailedWeatherButton = document.getElementById("detailedWeatherButton");
@@ -527,17 +590,36 @@
                 <strong>${data.city}</strong> ${data.temperature}°C
                  `;
 
-                // עדכון התחזית המורחבת במודל
-                detailedWeatherInfo.innerHTML = `
+                let forecastHTML = `
                     <p><strong>עיר:</strong> ${data.city}</p>
                     <p><strong>טמפרטורה:</strong> ${data.temperature}°C</p>
                     <p><strong>לחות:</strong> ${data.humidity}%</p>
                     <p><strong>רוח:</strong> ${data.wind_speed} קמ"ש</p>
                     <p><strong>תיאור:</strong> ${data.weather_description}</p>
-                    <p><strong>תחזית לגשם:</strong> ${data.precipitation}</p>
+                    <p><strong>גשם נוכחי:</strong> ${data.precipitation_now}</p>
+                    <h5>תחזית גשם לימים הקרובים</h5>
+                    <ul style="list-style: none; padding: 0;">
                 `;
 
-                // אירוע להצגת מודל התחזית המורחבת
+                // בדיקה האם יש תחזית גשם
+                if (data.rain_forecast && data.rain_forecast.length > 0) {
+                    data.rain_forecast.forEach(day => {
+                        forecastHTML += `
+                    <li>
+                        <strong>${day.date}</strong>: 
+                        ${day.rain_mm} מ"מ, 
+                        ${day.rain_probability}% סיכוי לגשם
+                    </li>
+                `;
+                    });
+                } else {
+                    forecastHTML += "<li> אין נתוני תחזית זמינים.</li>";
+                }
+
+                forecastHTML += "</ul>";
+
+                detailedWeatherInfo.innerHTML = forecastHTML;
+
                 detailedWeatherButton.addEventListener("click", () => {
                     document.getElementById("detailedWeatherModal").style.display = "flex";
                 });
@@ -553,6 +635,15 @@
         function closeWeatherModal() {
             document.getElementById("detailedWeatherModal").style.display = "none";
         }
+        document.addEventListener("DOMContentLoaded", function () {
+            const alertBox = document.getElementById("customAlert");
+            if (!alertBox) {
+                console.error("❌ שגיאה: האלמנט 'customAlert' לא נמצא ב-DOM.");
+                return;
+            }
+
+            alertBox.classList.contains("fade-in"); // לא יגרום לקריסה אם האלמנט לא קיים
+        });
 
         function showAlert(title, message, options = {}) {
             const {
@@ -560,9 +651,7 @@
                 isSuccess = false,
                 restoreForm = false,
                 formId = null,
-                modalId = null,
-                closeModal = null,
-                refreshPage = false
+                modalId = null
             } = options;
 
             const alertBox = document.getElementById("customAlert");
@@ -571,57 +660,31 @@
             alertBox.style.display = "block";
             alertBox.classList.add("fade-in");
 
-            // שמירת נתוני הטופס והחלון במקרה של שגיאה
-            if (restoreForm && formId && modalId) {
-                const form = document.getElementById(formId);
-                if (form) {
-                    window.lastFormData = new FormData(form); // שמירת נתוני הטופס
-                    window.lastModalId = modalId; // שמירת מזהה החלון
-                }
-            }
-
-            // הגדרת פעולה בעת סגירת ההודעה
             const closeButton = alertBox.querySelector(".alert-close");
-            closeButton.onclick = () => closeAlert({ redirectUrl, isSuccess, closeModal, refreshPage });
+            closeButton.onclick = () => closeAlert({ redirectUrl, isSuccess, restoreForm, formId, modalId });
         }
 
-        function closeAlert({ redirectUrl = null, isSuccess = false, closeModal = null, refreshPage = false } = {}) {
+        function closeAlert({ redirectUrl = null, isSuccess = false, restoreForm = false, formId = null, modalId = null } = {}) {
             const alertBox = document.getElementById("customAlert");
             alertBox.classList.remove("fade-in");
             alertBox.style.display = "none";
 
-            if (isSuccess) {
-                // סגירת חלון במקרה של הצלחה
-                if (closeModal) {
-                    closeModal();
-                }
-                if (refreshPage) {
-                    location.reload();
-                }
-                if (redirectUrl) {
-                    window.location.href = redirectUrl;
-                }
-            } else {
-                // שחזור טופס והחלון במקרה של שגיאה
-                if (window.lastFormData && window.lastModalId) {
-                    const modal = document.getElementById(window.lastModalId);
-                    const form = document.getElementById(window.lastModalId).querySelector('form');
-
-                    if (form && window.lastFormData) {
-                        for (const [name, value] of window.lastFormData.entries()) {
-                            const field = form.elements[name];
-                            if (field) {
-                                field.value = value;
-                            }
+            if (isSuccess && redirectUrl) {
+                window.location.href = redirectUrl;
+            } else if (restoreForm && formId && modalId) {
+                const form = document.getElementById(formId);
+                if (form) {
+                    for (const field of form.elements) {
+                        if (window.lastFormData && window.lastFormData[field.name]) {
+                            field.value = window.lastFormData[field.name];
                         }
                     }
-
-                    if (modal) {
-                        modal.style.display = "flex";
-                    }
                 }
+                document.getElementById(modalId).style.display = "flex";
             }
         }
+
+
     </script>
 
 </body>
