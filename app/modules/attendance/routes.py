@@ -91,6 +91,7 @@ def get_user_attendance():
     }))
     
     for record in records:
+        record['_id'] = str(record['_id'])
         if "check_in" in record and record["check_in"]:
             record["check_in"] = record["check_in"].strftime("%Y-%m-%d %H:%M:%S")
         if "check_out" in record and record["check_out"]:

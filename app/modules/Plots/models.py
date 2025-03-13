@@ -4,7 +4,7 @@ import uuid
 
 
 class Plot:
-    def __init__(self, plot_name, plot_type, width, length, manager_email, crop_category="none", crop="none", sow_date=None,quantity_planted = None, last_irrigation_date=None,total_irrigation_amount=None,harvest_date = None, crop_yield=None):
+    def __init__(self, plot_name, plot_type, width, length, manager_email, crop_category="none", crop="none", sow_date=None,quantity_planted = None, last_irrigation_date=None,total_irrigation_amount=None,harvest_date = None, crop_yield=None, price_yield=None):
         self.id = str(uuid.uuid4())
         self.plot_name = plot_name
         self.plot_type = plot_type
@@ -19,6 +19,7 @@ class Plot:
         self.total_irrigation_amount = total_irrigation_amount
         self.harvest_date = harvest_date
         self.crop_yield = crop_yield
+        self.price_yield = price_yield
 
 
     def to_dict(self):
@@ -37,5 +38,5 @@ class Plot:
             "last_irrigation_date": self.last_irrigation_date,
             "harvest_date": self.harvest_date,
             "crop_yield": self.crop_yield,
-
+            "price_yield": self.price_yield,
         }

@@ -172,3 +172,12 @@ def delete_user(user_id):
             return jsonify({'message': 'שגיאה: משתמש לא נמצא'}), 404
     except Exception as e:
         return jsonify({'message': 'שגיאה בשרת', 'error': str(e)}), 500
+
+
+@manager_bp.route('/logistics_management')
+def logistic_management():
+    return render_template('Logistics.html')
+
+@manager_bp.route('/expense')
+def expense_page():
+    return render_template('expense.html')

@@ -3,8 +3,10 @@ import pymongo
 from datetime import datetime
 from dotenv import load_dotenv, find_dotenv
 import os
+import uuid  # מחולל ID ייחודיים
 from modules.Plots.models import Plot
 import openai
+from bson import ObjectId
 from datetime import datetime
 
 load_dotenv(find_dotenv())
@@ -101,28 +103,18 @@ def track_greenhouse():
     print(email)
     print(manager_email)
     print(role)
-    # כאן ניתן להשתמש בנתונים או להעביר אותם ל-Template
     return render_template('track_greenhouse.html', email=email, manager_email=manager_email, name=name, role=role)
 
 @plot_bp.route("/save_plot", methods=["POST"])
 def save_plot():
-    data = request.form
-
-    # בדיקת שדות חובה
-    required_fields = ["plot_name", "plot_type", "width", "length"]
-    missing_fields = [field for field in required_fields if not data.get(field)]
-    if missing_fields:
-        return jsonify({"error": f"שדות חסרים: {', '.join(missing_fields)}"}), 400
-
-    # בדיקת קיום role ו-email ב-session
-    if "role" not in session or "email" not in session:
-        return jsonify({"error": "משתמש לא מחובר או שאין לו תפקיד מתאים."}), 403
-
     try:
-        # קביעת אימייל של המנהל
-        role = session["role"]
+        plot_id =str(uuid.uuid4())
+        data = request.json
+        role = session.get("role")
+        email = session.get("email")
+
         if role == "manager":
-            manager_email = session["email"]
+            manager_email = email
         elif role in ["employee", "co_manager"]:
             manager_email = session.get("manager_email")
         else:
@@ -131,22 +123,59 @@ def save_plot():
         if not manager_email:
             return jsonify({"error": "שגיאה בזיהוי מנהל המשק."}), 400
 
-        # יצירת אובייקט Plot חדש
-        new_plot = Plot(
-            plot_name=data.get("plot_name"),
-            plot_type=data.get("plot_type"),
-            width=float(data.get("width")),
-            length=float(data.get("length")),
-            manager_email=manager_email,
-            crop_category=data.get("crop_category", "none"),
-            crop=data.get("crop", "none"),
-            sow_date=data.get("sow_date"),
-            quantity_planted=data.get("quantity_planted"),
+        plot_name = data.get("plot_name")
+        plot_type = data.get("plot_type")
+        width = data.get("width")
+        length = data.get("length")
 
-        )
+        if not plot_name or not plot_type:
+            return jsonify({"error": "שם החלקה וסוג החלקה הם שדות חובה."}), 400
+        if width is None or width <= 0:
+            return jsonify({"error": "רוחב חייב להיות מספר חיובי."}), 400
+        if length is None or length <= 0:
+            return jsonify({"error": "אורך חייב להיות מספר חיובי."}), 400
 
-        # שמירה ל-DB
-        db.plots.insert_one(new_plot.to_dict())
+        crop_category = data.get("crop_category", "none")
+        crop_name = data.get("crop", "none")
+        sow_date = data.get("sow_date") if crop_category != "none" and crop_name != "none" else ""
+        quantity_planted = data.get("quantity_planted")
+
+        if crop_category != "none" and crop_name != "none":
+            if not sow_date:
+                return jsonify({"error": "נא למלא את תאריך הזריעה"}), 400
+            if not quantity_planted or quantity_planted <= 0:
+                return jsonify({"error": "נא למלא כמות זריעה תקינה (בק״ג)."}), 400
+
+            crop_entry = db.supply.find_one({"email": manager_email, "name": crop_name, "category": "גידול"})
+            if not crop_entry or crop_entry["quantity"] < quantity_planted:
+                return jsonify({"error": f"הזנת כמות הגדולה מהמלאי. ניתן לשתול עד {crop_entry['quantity']} ק\"ג."}), 400
+
+            db.supply.update_one(
+                {"email": manager_email, "name": crop_name, "category": "גידול"},
+                {"$inc": {"quantity": -quantity_planted}}
+            )
+        else:
+            quantity_planted = ""
+
+        new_plot = {
+            "_id": plot_id,  # שמירה כמחרוזת
+            "plot_name": plot_name,
+            "plot_type": plot_type,
+            "width": width,
+            "length": length,
+            "manager_email": manager_email,
+            "crop_category": crop_category,
+            "crop": crop_name,
+            "sow_date": sow_date,
+            "quantity_planted": quantity_planted,
+            "last_irrigation_date": None,
+            "total_irrigation_amount": None,
+            "harvest_date": None,
+            "crop_yield": None,
+            "price_yield": None
+        }
+
+        db.plots.insert_one(new_plot)
         return jsonify({"message": "החלקה נשמרה בהצלחה!"}), 201
 
     except Exception as e:
@@ -202,90 +231,130 @@ def get_plots():
     return jsonify({"plots": plots}), 200
 
 
+@plot_bp.route('/get_plot/<plot_id>', methods=['GET'])
+def get_plot(plot_id):
+    try:
+        plot = db.plots.find_one({"_id": str(plot_id)})
+        if not plot:
+            return jsonify({"error": "Plot not found"}), 404
+
+        plot["_id"] = str(plot["_id"])  # המרת ObjectId למחרוזת
+        return jsonify(plot), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
 @plot_bp.route('/plot_details', methods=['GET'])
 def plot_details():
-    plot_id = request.args.get('id')  # קבלת ה-ID מה-URL
+    plot_id = request.args.get('id') 
     if not plot_id:
         return "Plot ID is missing.", 400
 
-    # שליפת הנתונים מהמסד
     plot = db.plots.find_one({"_id": plot_id})
     if not plot:
         return "Plot not found.", 404
 
-    # המרת הנתונים לפורמט JSON או העברת המידע לעמוד HTML
     return render_template('plot_details.html', plot=plot)
 
 
 @plot_bp.route('/update_plot/<plot_id>', methods=['POST'])
 def update_plot(plot_id):
     try:
-        # קבלת הנתונים שנשלחו בבקשה
         data = request.get_json()
+        print(f"🔍 קיבלנו נתונים: {data}")  
 
-        # בדיקה האם כל הנתונים הדרושים נשלחו
-        required_fields = ['crop_category', 'crop', 'sow_date', 'quantity_planted']
+        required_fields = ['crop', 'sow_date', 'quantity_planted']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing field: {field}"}), 400
 
-        # בדיקת קיום החלקה ב-DB
         plot = db.plots.find_one({"_id": plot_id})
         if not plot:
             return jsonify({"error": "Plot not found"}), 404
 
-        # עדכון החלקה ב-DB
-        db.plots.update_one(
-            {"_id": plot_id},
-            {
-                "$set": {
-                    "crop_category": data['crop_category'],
-                    "crop": data['crop'],
-                    "sow_date": data['sow_date'],
-                    "quantity_planted": data['quantity_planted']
-                }
-            }
+        manager_email = plot.get("manager_email")
+        crop_name = data['crop']
+        crop_category = data['crop_category']
+        quantity_planted = data['quantity_planted']
+
+        crop_entry = db.supply.find_one({"email": manager_email, "name": crop_name, "category": "גידול"})
+        if not crop_entry or crop_entry["quantity"] < quantity_planted:
+            return jsonify({"error": f"הזנת כמות גדולה מהמלאי. ניתן לשתול עד {crop_entry['quantity']} ק\"ג."}), 400
+
+        db.supply.update_one(
+            {"email": manager_email, "name": crop_name, "category": "גידול"},
+            {"$inc": {"quantity": -quantity_planted}}
         )
+
+        update_result = db.plots.update_one(
+            {"_id": plot_id},
+            {"$set": {
+                "crop_category": str(data["crop_category"]), 
+                "crop": data['crop'],
+                "sow_date": data['sow_date'],
+                "quantity_planted": quantity_planted
+            }}
+        )
+
+        if update_result.modified_count == 0:
+            return jsonify({"error": "לא בוצע עדכון, ייתכן ואין שינוי"}), 400
 
         return jsonify({"message": "Plot updated successfully"}), 200
 
     except Exception as e:
-        print(f"Error: {e}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
-
 
 @plot_bp.route('/update_irrigation/<plot_id>', methods=['POST'])
 def update_irrigation(plot_id):
     try:
-        # בדיקת ID תקין
-        print(f"Received plot ID: {plot_id}")
         data = request.get_json()
         irrigation_amount = data.get('irrigation_amount')
 
         if not irrigation_amount or not isinstance(irrigation_amount, (int, float)) or irrigation_amount <= 0:
             return jsonify({"error": "Invalid irrigation amount"}), 400
 
-        # בדיקה אם החלקה קיימת
+        # Fetch the plot details
         plot = db.plots.find_one({"_id": plot_id})
         if not plot:
             return jsonify({"error": "Plot not found"}), 404
 
-        # חישוב סכום השקיה חדש
-        current_total = plot.get('total_irrigation_amount', 0)
-        if current_total is None:
-            current_total = 0
+        # Determine the email to store
+        user_role = session.get('role')
+        if user_role == "manager":
+            email = session.get('email')
+        else:
+            email = plot.get('manager_email')
+
+        # Get plot name and sow date
+        plot_name = plot.get('plot_name')
+        sow_date = plot.get('sow_date')
+
+        # Update the total irrigation amount
+        current_total = plot.get('total_irrigation_amount', 0) or 0
         new_total = current_total + irrigation_amount
 
-        # עדכון DB
+        # Update the plot with new irrigation data
         db.plots.update_one(
             {"_id": plot_id},
             {
                 "$set": {
                     "total_irrigation_amount": new_total,
-                    "last_irrigation_date": datetime.now().strftime('%Y-%m-%d')
+                    "last_irrigation_date": datetime.utcnow().strftime('%Y-%m-%d')
                 }
             }
         )
+
+        # Create a new irrigation record
+        new_irrigation = {
+            "_id": str(uuid.uuid4()),
+            "email": email,
+            "name": plot_name,
+            "sow_date": sow_date,
+            "quantity_irrigation": irrigation_amount,
+            "Irrigation_date": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        db.irrigation.insert_one(new_irrigation)
 
         return jsonify({"message": "Irrigation updated successfully", "new_total": new_total}), 200
 
@@ -293,12 +362,14 @@ def update_irrigation(plot_id):
         print(f"Error: {e}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
 @plot_bp.route('/archive_plot/<plot_id>', methods=['POST'])
 def archive_plot(plot_id):
     try:
         data = request.get_json()
         harvest_date = data.get('harvest_date')
         crop_yield = data.get('crop_yield')
+        price_yield = data.get('price_yield', None)  # אם המשתמש לא מילא - השדה יישאר None
 
         if not harvest_date or not crop_yield:
             return jsonify({"error": "Missing required fields"}), 400
@@ -309,7 +380,8 @@ def archive_plot(plot_id):
             {
                 "$set": {
                     "harvest_date": harvest_date,
-                    "crop_yield": crop_yield
+                    "crop_yield": crop_yield,       
+                    "price_yield": price_yield  # שמירת המחיר רק אם הוזן
                 }
             }
         )
@@ -329,7 +401,6 @@ def archive():
         return jsonify({"error": "User is not logged in or missing role."}), 403
 
     try:
-        # הגדרת הקריטריון בהתאם לתפקיד המשתמש
         if role == "manager":
             filter_criteria = {"manager_email": email, "harvest_date": {"$ne": None}}
         elif role == "co_manager":
@@ -346,3 +417,65 @@ def archive():
 
     except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@plot_bp.route("/get_harvested_plots", methods=["GET"])
+def get_harvested_plots():
+    try:
+        # שליפת שמות חלקות ייחודיים שעומדים בתנאים
+        unique_plot_names = db.plots.distinct("plot_name", {"harvest_date": {"$ne": None}, "price_yield": None})
+
+        # יצירת רשימה עם החלקות והוספת harvest_date (נשלוף רק את ה-harvest_date הראשון שנמצא לכל חלקה)
+        plots = []
+        for plot_name in unique_plot_names:
+            plot = db.plots.find_one(
+                {"plot_name": plot_name, "harvest_date": {"$ne": None}, "price_yield": None},
+                {"plot_name": 1, "harvest_date": 1, "_id": 0}
+            )
+            if plot:
+                plots.append(plot)
+
+        return jsonify({"plots": plots}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"שגיאה בשליפת החלקות: {str(e)}"}), 500
+
+
+@plot_bp.route("/get_crop_details", methods=["GET"])
+def get_crop_details():
+    plot_name = request.args.get("plot_name")
+    sow_date = request.args.get("sow_date")
+
+    plot = db.plots.find_one({"plot_name": plot_name, "sow_date": sow_date}, {"crop": 1, "crop_yield": 1})
+    
+    if not plot:
+        return jsonify({"error": "לא נמצאו נתונים"}), 404
+
+    return jsonify({"crop": plot.get("crop", ""), "crop_yield": plot.get("crop_yield", 0)})
+
+# עדכון מחיר לק"ג תפוקה
+@plot_bp.route("/update_price_yield", methods=["POST"])
+def update_price_yield():
+    data = request.json
+    plot_name = data.get("plot_name")
+    sow_date = data.get("sow_date")
+    price_yield = float(data.get("price_yield"))
+
+    db.plots.update_one({"plot_name": plot_name, "sow_date": sow_date}, {"$set": {"price_yield": price_yield}})
+    return jsonify({"message": "המחיר נשמר בהצלחה"})
+
+@plot_bp.route("/get_sow_dates", methods=["GET"])
+def get_sow_dates():
+    plot_name = request.args.get("plot_name")
+
+    if not plot_name:
+        return jsonify({"error": "Missing plot_name"}), 400
+
+    try:
+        dates = db.plots.find({"plot_name": plot_name, "sow_date": {"$ne": None}, "price_yield": None}, {"sow_date": 1, "_id": 0})
+        date_list = [plot["sow_date"] for plot in dates if "sow_date" in plot]
+
+        return jsonify({"dates": date_list}), 200
+    except Exception as e:
+        return jsonify({"error": f"שגיאה בשליפת תאריכי זריעה: {str(e)}"}), 500
+

@@ -159,11 +159,20 @@ function closeOnOutsideClick(event) {
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
+    if (document.getElementById("attendanceTableBody")) {
+        loadAttendanceRecords();
+    }
+
+    if (document.getElementById("attendanceManagerTableBody")) {
+        loadManagerAttendanceRecords();
+    }
+
     try {
         const notificationsResponse = await fetch("/users/get_notifications");
         const notificationsData = await notificationsResponse.json();
 
         showNotificationBadge(notificationsData.new_notifications_count);
+
     } catch (error) {
         console.error("Error fetching notifications:", error);
     }
@@ -188,34 +197,34 @@ function logout() {
 }
 
 // catagory of crop
-async function loadCategories() {
-    const categorySelect = document.getElementById('cropCategory');
-    categorySelect.innerHTML = '<option value="none">ללא</option>';
+// async function loadCategories() {
+//     const categorySelect = document.getElementById('cropCategory');
+//     categorySelect.innerHTML = '<option value="none">ללא</option>';
 
-    try {
-        const response = await fetch('/Plots/get_crop_categories');
-        if (!response.ok) {
-            throw new Error(`שגיאה בטעינת קטגוריות: ${response.status}`);
-        }
+//     try {
+//         const response = await fetch('/Plots/get_crop_categories');
+//         if (!response.ok) {
+//             throw new Error(`שגיאה בטעינת קטגוריות: ${response.status}`);
+//         }
 
-        const data = await response.json();
+//         const data = await response.json();
 
-        data.categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category;
-            option.textContent = category;
-            categorySelect.appendChild(option);
-        });
-        categorySelect.addEventListener('change', () => {
-            const selectedCategory = categorySelect.value;
-            loadCrops(selectedCategory);
-        });
+//         data.categories.forEach(category => {
+//             const option = document.createElement('option');
+//             option.value = category;
+//             option.textContent = category;
+//             categorySelect.appendChild(option);
+//         });
+//         categorySelect.addEventListener('change', () => {
+//             const selectedCategory = categorySelect.value;
+//             loadCrops(selectedCategory);
+//         });
 
-    } catch (error) {
-        console.error('שגיאה בטעינת קטגוריות:', error);
-        showAlert('שגיאה', 'שגיאה בעת טעינת הקטגוריות.', { restoreForm: false }); // הצגת הודעה למשתמש
-    }
-}
+//     } catch (error) {
+//         console.error('שגיאה בטעינת קטגוריות:', error);
+//         showAlert('שגיאה', 'שגיאה בעת טעינת הקטגוריות.', { restoreForm: false }); // הצגת הודעה למשתמש
+//     }
+// }
 //update irrigation
 function checkAndOpenIrrigationModal(plotId) {
     document.getElementById('irrigationModal').setAttribute('data-plot-id', plotId);
@@ -257,8 +266,7 @@ async function updateIrrigation() {
         if (response.ok) {
             showAlert('הצלחה', 'ההשקיה עודכנה בהצלחה!', {
                 isSuccess: true,
-                closeModal: closeIrrigationModal,
-                refreshPage: true
+                redirectUrl: `/Plots/plot_details?id=${plotId}`
             });
         } else {
             const errorData = await response.json();
@@ -279,12 +287,42 @@ async function updateIrrigation() {
 }
 
 // update plots
-
+let selectedPlotId = null;
 async function openUpdateModal(plotId) {
-    document.getElementById('updateModal').setAttribute('data-plot-id', plotId);
-    document.getElementById('updateModal').style.display = 'flex';
+    if (!plotId) {
+        console.error("שגיאה: לא התקבל ID חוקי לחלקה.");
+        return;
+    }
+    selectedPlotId = plotId;
+    const modal = document.getElementById("updateModal");
+    let cropSelect = document.getElementById("crop");
+    let cropCategoryDiv = document.getElementById("cropCategoryDiv");
+    cropCategoryDiv.style.display = "none";
 
-    await loadCategories();
+    modal.style.display = "flex";
+    modal.setAttribute("data-plot-id", plotId);
+
+    try {
+        const response = await fetch("/supply/available_crops");
+        if (!response.ok) throw new Error("שגיאה בטעינת הגידולים");
+
+        const crops = await response.json();
+        cropSelect.innerHTML = '<option value="none">ללא</option>';
+
+        crops.forEach(crop => {
+            if (crop.quantity > 0) {
+                let option = document.createElement("option");
+                option.value = crop.name;
+                option.textContent = `${crop.name} (זמין: ${crop.quantity} ק"ג)`;
+                option.dataset.quantity = crop.quantity;
+                cropSelect.appendChild(option);
+            }
+        });
+        cropDiv.style.display = crops.length > 1 ? "block" : "none";
+
+    } catch (error) {
+        console.error("שגיאה בטעינת הגידולים:", error);
+    }
 }
 
 function resetCropField() {
@@ -295,63 +333,61 @@ function resetCropField() {
 }
 
 async function submitUpdate() {
-    const cropCategory = document.getElementById('cropCategory').value;
-    const crop = document.getElementById('crop').value;
-    const sowDate = document.getElementById('sowDate').value;
-    const quantity_Planted = document.getElementById('quantityPlanted').value;
-    const plotId = document.getElementById('updateModal').getAttribute('data-plot-id');
-
-    if (!quantity_Planted || !sowDate || crop === "none" || cropCategory === "none") {
-        const errorMessage =
-            !cropCategory || cropCategory === "none" ? 'נא בחר סוג גידול.' :
-                !crop || crop === "none" ? 'נא בחר גידול.' :
-                    !sowDate ? 'נא בחר את תאריך הזריעה.' :
-                        !quantity_Planted ? 'נא בחר את הכמות שזרעת.' :
-                            'נא למלא את כל השדות.';
-
-        showAlert('שגיאה', errorMessage, {
-            restoreForm: true,
-            formId: 'updatePlotForm',
-            modalId: 'updateModal'
-        });
+    const plotId = selectedPlotId;
+    if (!plotId) {
+        showAlert("שגיאה", "לא ניתן לעדכן ללא ID חלקה.");
         return;
     }
+    await updateCropCategory();
+    const cropCategoryElement = document.getElementById("cropCategory");
 
-    const payload = {
-        crop_category: cropCategory,
-        crop: crop,
-        sow_date: sowDate,
-        quantity_planted: quantity_Planted
-    };
+    let cropCategory = cropCategoryElement.value;
+    if (!cropCategory || cropCategory === "none") {
+        cropCategory = cropCategoryElement.getAttribute("data-category") || "none";
+    }
+    const cropField = document.getElementById("crop");
+    const sowDateField = document.getElementById("sowDate");
+    const quantityPlantedField = document.getElementById("quantityPlanted");
 
+    const crop = cropField.value;
+    const sowDate = sowDateField.value;
+    const quantityPlanted = parseFloat(quantityPlantedField.value);
+
+    if (!crop || crop === "none") {
+        showAlert("שגיאה", "נא לבחור גידול.");
+        return;
+    }
+    if (!sowDate) {
+        showAlert("שגיאה", "נא למלא את תאריך הזריעה.");
+        return;
+    }
+    if (!quantityPlanted || quantityPlanted <= 0) {
+        showAlert("שגיאה", "נא למלא כמות זריעה תקינה (בק״ג).");
+        return;
+    }
     try {
         const response = await fetch(`/Plots/update_plot/${plotId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                crop_category: cropCategory,
+                crop: crop,
+                sow_date: sowDate,
+                quantity_planted: quantityPlanted
+            })
         });
 
         if (response.ok) {
-            showAlert('הצלחה', 'פרטי החלקה עודכנו בהצלחה!', {
+            showAlert("הצלחה", "החלקה התעדכנה בהצלחה!", {
                 isSuccess: true,
-                closeModal: closeUpdateModal,
-                refreshPage: true
+                redirectUrl: `/Plots/plot_details?id=${plotId}`
             });
         } else {
-            const error = await response.json();
-            showAlert('שגיאה', `שגיאה: ${error.error}`, {
-                restoreForm: true,
-                formId: 'updatePlotForm',
-                modalId: 'updateModal'
-            });
+            const errorData = await response.json();
+            showAlert("שגיאה", errorData.error, { restoreForm: true, formId: "updatePlotForm", modalId: "updateModal" });
         }
     } catch (error) {
-        console.error('שגיאה בעת עדכון:', error);
-        showAlert('שגיאה', 'שגיאה בעת שליחת הבקשה לשרת.', {
-            restoreForm: true,
-            formId: 'updatePlotForm',
-            modalId: 'updateModal'
-        });
+        showAlert("שגיאה", "שגיאה בלתי צפויה בעדכון.");
     }
 }
 
@@ -359,6 +395,7 @@ function closeUpdateModal() {
     const modal = document.getElementById('updateModal');
     modal.style.display = 'none';
     document.getElementById('updatePlotForm').reset();
+    document.getElementById("cropCategoryDiv").style.display = "none";
 }
 
 function closeGrowthForecastModal() {
@@ -382,7 +419,7 @@ function closeArchiveModal() {
 
 async function finalizePlot() {
     const cropYield = document.getElementById('cropYield').value;
-
+    const priceYield = document.getElementById("priceYield").value || null;
     if (!cropYield || cropYield <= 0) {
         showAlert('נא להזין כמות יבול תקינה.');
         return;
@@ -395,8 +432,9 @@ async function finalizePlot() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                harvest_date: new Date().toISOString().split('T')[0], // תאריך של היום
-                crop_yield: parseFloat(cropYield)
+                harvest_date: new Date().toISOString().split('T')[0], // today
+                crop_yield: parseFloat(cropYield),
+                price_yield: priceYield ? parseFloat(priceYield) : null
             })
         });
 
@@ -415,81 +453,142 @@ async function finalizePlot() {
 }
 
 // plot form
-function openPlotForm(type) {
-    const plotTypeInput = document.getElementById('plotType');
-    const selectTypeModal = document.getElementById('selectTypeModal');
-    const plotFormModal = document.getElementById('plotFormModal');
 
-    plotTypeInput.value = type;
+async function openPlotForm(type) {
+    setTimeout(() => {
+        const plotTypeInput = document.getElementById("plotType");
+        plotTypeInput.value = type;
+    }, 100); // 
+
+    let plotFormModal = document.getElementById('plotFormModal');
+    let cropSelect = document.getElementById('crop');
+    let cropCategoryField = document.getElementById('cropCategory');
+    let selectTypeModal = document.getElementById('selectTypeModal');
+    let cropDiv = document.getElementById('cropDiv');
+    let sowDateDiv = document.getElementById('sowDateDiv');
+    let quantityPlantedDiv = document.getElementById('quantityPlantedDiv');
+
     selectTypeModal.style.display = 'none';
     plotFormModal.style.display = 'flex';
-    loadCategories();
+    // איפוס הטופס
+    document.getElementById('plotForm').reset();
+    sowDateDiv.style.display = 'none';
+    quantityPlantedDiv.style.display = 'none';
+
+    try {
+        const response = await fetch("/supply/available_crops");
+        if (!response.ok) throw new Error("שגיאה בטעינת רשימת הגידולים");
+
+        const crops = await response.json();
+        cropSelect.innerHTML = '<option value="none">ללא</option>';
+
+        crops.forEach(crop => {
+            if (crop.quantity > 0) {
+                let option = document.createElement("option");
+                option.value = crop.name;
+                option.textContent = `${crop.name} (זמין: ${crop.quantity} ק"ג)`;
+                option.dataset.quantity = crop.quantity;
+                cropSelect.appendChild(option);
+            }
+        });
+
+        cropDiv.style.display = crops.length > 1 ? "block" : "none";
+
+
+    } catch (error) {
+        console.error("שגיאה בטעינת רשימת הגידולים:", error);
+    }
+    document.getElementById('crop').addEventListener('change', function () {
+        updateCropCategory();
+        const selectedCrop = this.value;
+        const sowDateDiv = document.getElementById('sowDateDiv');
+        const quantityPlantedDiv = document.getElementById('quantityPlantedDiv');
+        const cropCategoryField = document.getElementById('cropCategory');
+
+        if (selectedCrop === "none") {
+            sowDateDiv.style.display = 'none';
+            quantityPlantedDiv.style.display = 'none';
+            cropCategoryField.value = "none";
+        } else {
+            sowDateDiv.style.display = 'block';
+            quantityPlantedDiv.style.display = 'block';
+        }
+
+    });
+
+    document.getElementById('quantityPlanted').addEventListener('input', function () {
+        const selectedCrop = document.getElementById("crop");
+        const quantityPlantedInput = this;
+        const availableQuantity = parseFloat(selectedCrop.options[selectedCrop.selectedIndex].dataset.quantity);
+
+        if (quantityPlantedInput.value > availableQuantity) {
+            showAlert("שגיאה", `הזנת מספר הגדול יותר מהכמות במלאי - אתה יכול לשתול עד ${availableQuantity} ק"ג.`);
+            quantityPlantedInput.value = availableQuantity;
+        }
+    });
 }
 
 
+
+
 async function savePlot() {
-    const plotName = document.getElementById('plotName').value.trim();
-    const length = document.getElementById('length').value.trim();
-    const width = document.getElementById('width').value.trim();
-    const cropCategory = document.getElementById('cropCategory').value;
-    const crop = document.getElementById('crop').value;
-    const sowDate = document.getElementById('sowDate').value;
-    const quantityPlanted = document.getElementById('quantityPlanted').value.trim();
+    const plotTypeInput = document.getElementById('plotType');
+    const plotNameField = document.getElementById('plotName');
+    const lengthField = document.getElementById('length');
+    const widthField = document.getElementById('width');
+    const cropCategoryField = document.getElementById('cropCategory');
+    const cropField = document.getElementById('crop');
+    const sowDateField = document.getElementById('sowDate');
+    const quantityPlantedField = document.getElementById('quantityPlanted');
 
-    if (!plotName || !length || !width) {
-        showAlert("שגיאה", 'יש למלא את השדות: שם החלקה, אורך ורוחב.', {
-            restoreForm: true,
-            formId: "plotForm",
-            modalId: "plotFormModal"
-        });
+    if (!plotTypeInput.value.trim()) {
+        showAlert("שגיאה", "סוג החלקה הוא שדה חובה.");
         return;
     }
-    if (length <= 0 || width <= 0) {
-        showAlert("שגיאה", 'אורך ורוחב חייבים להיות גדולים מ-0.', {
-            restoreForm: true,
-            formId: "plotForm",
-            modalId: "plotFormModal"
-        });
+    if (!plotNameField.value.trim()) {
+        showAlert("שגיאה", "שם החלקה הוא שדה חובה.");
+        return;
+    }
+    if (!lengthField.value.trim() || parseFloat(lengthField.value) <= 0) {
+        showAlert("שגיאה", "אורך חייב להיות מספר חיובי.");
+        return;
+    }
+    if (!widthField.value.trim() || parseFloat(widthField.value) <= 0) {
+        showAlert("שגיאה", "רוחב חייב להיות מספר חיובי.");
         return;
     }
 
-    if (cropCategory !== 'none' && (!crop || !sowDate)) {
-        showAlert("שגיאה", 'נא למלא את השדות גידול ותאריך זריעה.', {
-            restoreForm: true,
-            formId: "plotForm",
-            modalId: "plotFormModal"
+    let cropCategory = cropField.value === "none" ? "none" : cropCategoryField.value;
+    let crop = cropField.value !== "none" ? cropField.value : "none";
+    let sowDate = sowDateField && sowDateField.value ? sowDateField.value : "";
+    let quantityPlanted = quantityPlantedField && quantityPlantedField.value ? parseFloat(quantityPlantedField.value) : "";
+
+    const plotData = {
+        plot_type: plotTypeInput.value.trim(),
+        plot_name: plotNameField.value.trim(),
+        length: parseFloat(lengthField.value),
+        width: parseFloat(widthField.value),
+        crop_category: cropCategory,
+        crop: crop,
+        sow_date: sowDate,
+        quantity_planted: quantityPlanted
+    };
+
+    try {
+        const response = await fetch('/Plots/save_plot', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(plotData)
         });
-        return;
-    }
-    if (cropCategory !== 'none' && crop !== 'none' && sowDate) {
-        if (!quantityPlanted || quantityPlanted <= 0) {
-            showAlert("שגיאה", 'נא למלא כמות זרעית גדולה מ-0.', {
-                restoreForm: true,
-                formId: "plotForm",
-                modalId: "plotFormModal"
-            });
-            return;
+
+        if (response.ok) {
+            showAlert("הצלחה", "החלקה נשמרה בהצלחה!", { isSuccess: true, redirectUrl: "/Plots/track_greenhouse" });
+        } else {
+            const errorData = await response.json();
+            showAlert("שגיאה", errorData.error);
         }
-    }
-
-    const formData = new FormData(document.getElementById('plotForm'));
-    const response = await fetch('/Plots/save_plot', {
-        method: 'POST',
-        body: formData
-    });
-
-    if (response.ok) {
-        showAlert("הצלחה", 'החלקה נשמרה בהצלחה!', {
-            isSuccess: true,
-            redirectUrl: "/Plots/track_greenhouse"
-        });
-    } else {
-        const errorData = await response.json();
-        showAlert("שגיאה", errorData.error, {
-            restoreForm: true,
-            formId: "plotForm",
-            modalId: "plotFormModal"
-        });
+    } catch (error) {
+        showAlert("שגיאה", "שגיאה בלתי צפויה בשמירה.");
     }
 }
 
@@ -842,7 +941,8 @@ function saveTask() {
 //social_feed
 $(document).ready(function () {
     function fetchPosts() {
-        let loggedInUserEmail = $("#postsContainer").data("user-email"); // קבלת המייל של המשתמש המחובר
+
+        const loggedInUserEmail = $("#postsContainer").data("user-email"); // קבלת המייל של המשתמש המחובר
 
         $.get("/posts/", function (data) {
             $("#postsContainer").empty();
@@ -1147,15 +1247,6 @@ document.addEventListener("click", function (event) {
 
 
 // attendance
-document.addEventListener("DOMContentLoaded", function () {
-    if (document.getElementById("attendanceTableBody")) {
-        loadAttendanceRecords();
-    }
-
-    if (document.getElementById("attendanceManagerTableBody")) {
-        loadManagerAttendanceRecords();
-    }
-});
 
 // attendance to worker
 function loadAttendanceRecords() {
@@ -1352,13 +1443,13 @@ function saveAttendanceChanges() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, check_in: checkIn, check_out: checkOut })
     })
-    .then(response => response.json())
-    .then(data => {
-        alert(data.message);
-        closeEditModal();
-        location.reload();
-    })
-    .catch(error => console.error('Error:', error));
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            closeEditModal();
+            location.reload();
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 //חדש
@@ -1371,7 +1462,7 @@ function filterAttendanceRecords() {
     for (let i = 0; i < rows.length; i++) {
         const firstName = rows[i].getElementsByTagName("td")[0]?.textContent.toLowerCase() || "";
         const lastName = rows[i].getElementsByTagName("td")[1]?.textContent.toLowerCase() || "";
-        
+
         if (firstName.includes(input) || lastName.includes(input)) {
             rows[i].style.display = "";
         } else {
@@ -1379,3 +1470,506 @@ function filterAttendanceRecords() {
         }
     }
 }
+
+function goBack() {
+    if (document.referrer) {
+        window.history.back();
+    } else {
+        window.location.href = "{{ url_for('home') }}";
+    }
+}
+
+
+async function loadCropsForUpdate(category, selectedCrop = null) {
+    const cropSelect = document.getElementById("crop");
+    const cropDiv = document.getElementById("cropDiv");
+
+    if (!category || category === "none") {
+        cropDiv.style.display = "none";
+        cropSelect.innerHTML = '<option value="none">ללא</option>';
+        return;
+    }
+
+    try {
+        const response = await fetch("/supply/available_crops");
+        if (!response.ok) throw new Error("שגיאה בטעינת הגידולים");
+
+        const crops = await response.json();
+
+        cropSelect.innerHTML = '<option value="none">ללא</option>';
+        crops.forEach(crop => {
+            let option = document.createElement("option");
+            option.value = crop.name;
+            option.textContent = `${crop.name} (זמין: ${crop.quantity} ק"ג)`;
+            option.dataset.quantity = crop.quantity;
+            cropSelect.appendChild(option);
+        });
+
+        cropDiv.style.display = crops.length > 0 ? "block" : "none";
+
+        if (selectedCrop) {
+            cropSelect.value = selectedCrop;
+        }
+    } catch (error) {
+        console.error(" שגיאה בטעינת הגידולים:", error);
+    }
+}
+
+async function updateCropCategory() {
+    let cropSelect = document.getElementById('crop');
+    let cropCategoryField = document.getElementById('cropCategory');
+
+    if (!cropSelect || !cropCategoryField) {
+        console.error(" שגיאה: אחד השדות לא נמצא ב-DOM");
+        return;
+    }
+
+    let selectedCrop = cropSelect.value;
+    if (selectedCrop === "none") {
+        cropCategoryField.value = "none";
+        cropCategoryField.setAttribute("data-category", "none");
+        return;
+    }
+
+    try {
+        const response = await fetch("/static/data/crops_data.json");
+        if (!response.ok) throw new Error(" שגיאה בטעינת הקובץ crop_data.json");
+
+        const data = await response.json();
+        let foundCategory = "none";
+        data.forEach(entry => {
+            if (entry.values.includes(selectedCrop)) {
+                foundCategory = entry.category;
+            }
+        });
+        if (cropCategoryField) {
+            cropCategoryField.value = foundCategory;
+            cropCategoryField.setAttribute("data-category", foundCategory);
+        } else {
+            console.error(" שגיאה: cropCategoryField עדיין לא נמצא ב-DOM.");
+        }
+
+    } catch (error) {
+        console.error(" שגיאה בטעינת קטגוריית הגידול:", error);
+    }
+}
+
+
+
+async function saveSupply() {
+    let sessionEmail;
+
+    if (sessionRole === "manager") {
+        sessionEmail = sessionUserEmail;
+    } else {
+        sessionEmail = sessionManagerEmail;
+    }
+    const category = document.getElementById("productCategory").value;
+    let productName;
+    if (category === "גידול") {
+        productName = document.getElementById("productName").value;
+    } else {
+        productName = document.getElementById("productNameInput").value.trim();
+    }
+
+    const quantity = parseFloat(document.getElementById("quantity").value);
+    const unitPrice = parseFloat(document.getElementById("unitPrice").value);
+    const purchaseDate = document.getElementById("purchaseDate").value;
+
+    if (!productName || isNaN(quantity) || quantity <= 0 || isNaN(unitPrice) || unitPrice <= 0 || !purchaseDate) {
+        showAlert("שגיאה", "נא להזין מספרים גדולים מ-0 לכמות ולמחיר!", true);
+        return;
+    }
+
+    const supplyData = {
+        category: category,
+        name: productName,
+        quantity: quantity,
+        email: sessionEmail
+    };
+
+    const purchaseData = {
+        category: category,
+        name: productName,
+        quantity: quantity,
+        unit_price: unitPrice,
+        purchase_date: purchaseDate,
+    };
+
+    try {
+        const response = await fetch("/supply/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(supplyData),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || "שגיאה בהוספת הפריט למלאי");
+        }
+
+        const purchaseResponse = await fetch("/expenses/purchase/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(purchaseData),
+        });
+
+        if (!purchaseResponse.ok) {
+            throw new Error("שגיאה בהוספת הרכישה למערכת");
+        }
+
+        showAlert("הצלחה", "המוצר נוסף בהצלחה!", false);
+        closeSupplyModal();
+
+    } catch (error) {
+        console.error("שגיאה בהוספת המוצר:", error);
+        showAlert("שגיאה", error.message, true, supplyData);
+    }
+}
+
+
+async function openSupplyModal(category) {
+    document.getElementById("productCategory").value = category;
+    const productNameContainer = document.getElementById("productNameContainer");
+
+    if (category === "גידול") {
+        productNameContainer.innerHTML = `
+            <label for="productName">שם המוצר:</label>
+            <select id="productName" required>
+                <option value="">בחר גידול</option>
+            </select>
+        `;
+
+        const productNameSelect = document.getElementById("productName");
+
+        try {
+            const response = await fetch("/static/data/crops_data.json");
+            const data = await response.json();
+
+            // מעבר על כל הקטגוריות והוספתן לרשימה
+            data.forEach(cat => {
+                const optgroup = document.createElement("optgroup");
+                optgroup.label = cat.category; // שם הקטגוריה (פירות, ירקות, גידולי שדה וכו')
+
+                cat.values.forEach(crop => {
+                    const option = document.createElement("option");
+                    option.value = crop;
+                    option.textContent = crop;
+                    optgroup.appendChild(option);
+                });
+
+                productNameSelect.appendChild(optgroup);
+            });
+
+        } catch (error) {
+            console.error("שגיאה בטעינת רשימת הגידולים:", error);
+            productNameSelect.innerHTML = '<option value="">שגיאה בטעינה</option>';
+        }
+    } else {
+        // אם מדובר ב"מוצר כללי" או "הדברה", נציג תיבת טקסט
+        productNameContainer.innerHTML = `
+            <label for="productNameInput">שם המוצר:</label>
+            <input type="text" id="productNameInput" placeholder="הכנס שם מוצר" required>
+        `;
+    }
+
+    document.getElementById("supplyModal").style.display = "block";
+}
+
+function closeSupplyModal() {
+    const modal = document.getElementById("supplyModal");
+    if (modal) {
+        modal.style.display = "none";
+
+        document.getElementById("productCategory").value = "";
+        if (document.getElementById("productName")) {
+            document.getElementById("productName").value = "";
+        }
+        if (document.getElementById("productNameInput")) {
+            document.getElementById("productNameInput").value = "";
+        }
+        document.getElementById("quantity").value = "";
+        document.getElementById("unitPrice").value = "";
+        document.getElementById("purchaseDate").value = "";
+    }
+    const alertCloseButton = document.querySelector(".alert-close");
+    if (alertCloseButton) {
+        alertCloseButton.addEventListener("click", function () {
+            window.location.reload();
+        });
+    }
+}
+
+function reopenSupplyModal(previousData) {
+    document.getElementById("productCategory").value = previousData.category;
+    if (previousData.category === "גידול") {
+        document.getElementById("productName").value = previousData.name;
+    } else {
+        document.getElementById("productNameInput").value = previousData.name;
+    }
+    document.getElementById("quantity").value = previousData.quantity;
+    document.getElementById("supplyModal").style.display = "block";
+}
+
+async function editSupply(productName, currentQuantity) {
+    selectedProduct = productName;
+    selectedCategory = "";
+
+    const modal = document.getElementById("editSupplyModal");
+    if (!modal) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/supply/get_category?name=${encodeURIComponent(productName)}`);
+        const data = await response.json();
+
+        if (!response.ok || !data.category) {
+            throw new Error("שגיאה בשליפת קטגוריית המוצר");
+        }
+
+        selectedCategory = data.category;
+
+        document.getElementById("editProductName").value = productName;
+        document.getElementById("editQuantity").value = "";
+        document.getElementById("editUnitPrice").value = "";
+        document.getElementById("editPurchaseDate").value = "";
+        modal.style.display = "block";
+
+    } catch (error) {
+        showAlert("שגיאה", "לא ניתן לטעון את פרטי המוצר", true);
+    }
+}
+
+async function purchaseSupply() {
+    if (!selectedProduct) {
+        showAlert("שגיאה", "לא נבחר מוצר לרכישה!", true);
+        return;
+    }
+    const quantityToAdd = parseFloat(document.getElementById("editQuantity").value);
+    const unitPrice = parseFloat(document.getElementById("editUnitPrice").value);
+    const purchaseDate = document.getElementById("editPurchaseDate").value;
+
+    if (!selectedProduct || isNaN(quantityToAdd) || quantityToAdd <= 0 || isNaN(unitPrice) || unitPrice <= 0 || !purchaseDate) {
+        showAlert("שגיאה", "נא להזין ערכים תקינים!", true);
+        return;
+    }
+
+    const purchaseData = {
+        name: selectedProduct,
+        category: selectedCategory,
+        quantity: quantityToAdd,
+        unit_price: unitPrice,
+        purchase_date: purchaseDate
+    };
+
+    try {
+        const supplyResponse = await fetch("/supply/update_supply_quantity", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: selectedProduct,
+                category: selectedCategory,
+                quantity: quantityToAdd
+            })
+        });
+
+        if (!supplyResponse.ok) {
+            throw new Error("שגיאה בעדכון הכמות בטבלת המלאי");
+        }
+
+        const purchaseResponse = await fetch("/expenses/purchase/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(purchaseData),
+        });
+
+        if (!purchaseResponse.ok) {
+            throw new Error("שגיאה בהוספת הרכישה למערכת");
+        }
+
+        showAlert("הצלחה", "הרכישה נשמרה בהצלחה!", false);
+
+        closeEditSupplyModal();
+
+    } catch (error) {
+        showAlert("שגיאה", error.message, true);
+    }
+}
+
+function closeEditSupplyModal() {
+    const modal = document.getElementById("editSupplyModal");
+    if (modal) {
+        modal.style.display = "none";
+
+        document.getElementById("editQuantity").value = "";
+        document.getElementById("editUnitPrice").value = "";
+        document.getElementById("editPurchaseDate").value = "";
+    }
+
+    const alertCloseButton = document.querySelector(".alert-close");
+    if (alertCloseButton) {
+        alertCloseButton.addEventListener("click", function () {
+            window.location.reload();
+        });
+    }
+}
+
+// הכנסת מחיר לקו״ב
+function openWaterPriceModal() {
+    document.getElementById("waterPriceModal").style.display = "flex";
+}
+
+function closeWaterPriceModal() {
+    document.getElementById("waterPriceModal").style.display = "none";
+    document.getElementById("waterPrice").value = "";
+    document.getElementById("waterDate").value = "";
+}
+
+async function saveWaterPrice() {
+    const waterPrice = document.getElementById("waterPrice").value;
+    const waterDate = document.getElementById("waterDate").value;
+
+    if (!waterPrice || !waterDate) {
+        showAlert("שגיאה", "נא מלא את כל השדות", false);
+        return;
+    }
+    if (waterPrice <= 0) {
+        showAlert("שגיאה", "נא מלא מחיר חיובי גדול מ-0", false);
+        return;
+    }
+
+    try {
+        const response = await fetch("/expenses/water/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                price: parseFloat(waterPrice),
+                date: waterDate,
+            }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            showAlert("הצלחה", " התעריף נשמר בהצלחה!", false);
+            closeWaterPriceModal();
+        } else {
+            showAlert("שגיאה", result.error, false);
+        }
+    } catch (error) {
+        showAlert("שגיאה", "שגיאה בשליחת הנתונים לשרת.", false);
+    }
+}
+
+async function openYieldPriceModal() {
+    document.getElementById("yieldPriceModal").style.display = "flex";
+    await fetchPlots();
+}
+
+function closeYieldPriceModal() {
+    document.getElementById("yieldPriceModal").style.display = "none";
+}
+
+async function fetchPlots() {
+    try {
+        const response = await fetch("/Plots/get_harvested_plots");
+        const data = await response.json();
+
+        const plotSelect = document.getElementById("plotName");
+        plotSelect.innerHTML = '<option value="">בחר חלקה</option>';
+
+        data.plots.forEach(plot => {
+            const option = document.createElement("option");
+            option.value = plot.plot_name;
+            option.textContent = plot.plot_name;
+            plotSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error("שגיאה בטעינת רשימת החלקות:", error);
+    }
+}
+async function fetchCropDetails() {
+    const plotName = document.getElementById("plotName").value;
+    const sow_date = document.getElementById("sowDate").value;
+    if (!plotName || !sowDate) return;
+
+    try {
+        const response = await fetch(`/Plots/get_crop_details?plot_name=${plotName}&sow_date=${sow_date}`);
+        const data = await response.json();
+
+        if (data.error) {
+            document.getElementById("crop").value = "לא נמצא";
+            document.getElementById("cropYield").value = 0;
+            return;
+        }
+        document.getElementById("crop").value = data.crop || "לא נמצא";
+        document.getElementById("cropYield").value = data.crop_yield || 0;
+
+    } catch (error) {
+        console.error("שגיאה בשליפת פרטי היבול:", error);
+    }
+}
+
+// שמירת המחיר בבסיס הנתונים
+async function saveYieldPrice() {
+    const plotName = document.getElementById("plotName").value;
+    const sow_date = document.getElementById("sowDate").value;
+    const pricePerKg = document.getElementById("pricePerKg").value;
+
+    if (!plotName || !sow_date || !pricePerKg || pricePerKg <= 0) {
+        alert("נא למלא את כל השדות כראוי.");
+        return;
+    }
+
+    try {
+        const response = await fetch("/Plots/update_price_yield", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ plot_name: plotName, sow_date: sow_date, price_yield: pricePerKg }),
+        });
+
+        if (response.ok) {
+            alert("המחיר נשמר בהצלחה!");
+            closeYieldPriceModal();
+        } else {
+            const data = await response.json();
+            alert("שגיאה: " + data.error);
+        }
+    } catch (error) {
+        console.error("שגיאה בשמירת הנתונים:", error);
+    }
+}
+
+async function fetchSowDates() {
+    const plotName = document.getElementById("plotName").value.trim();
+    if (!plotName) return;
+
+    try {
+        const response = await fetch(`/Plots/get_sow_dates?plot_name=${plotName}`);
+        const data = await response.json();
+
+        const sowDateSelect = document.getElementById("sowDate");
+        sowDateSelect.innerHTML = '<option value="">בחר תאריך זריעה</option>';
+
+        if (data.dates.length === 0) {
+            sowDateSelect.innerHTML = '<option value="">אין תאריכים זמינים</option>';
+            return;
+        }
+
+        data.dates.forEach(date => {
+            const option = document.createElement("option");
+            option.value = date;
+            option.textContent = date;
+            sowDateSelect.appendChild(option);
+        });
+        sowDateSelect.addEventListener("change", fetchCropDetails);
+    } catch (error) {
+        console.error("שגיאה בשליפת תאריכי זריעה:", error);
+    }
+}
+
+
+
