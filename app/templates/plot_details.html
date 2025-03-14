@@ -134,6 +134,7 @@
                                         ואספקה</a>
                                     <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
                                         הוצאות</a>
+                                    <a href="{{ url_for('vehicles_bp.vehicles_management_page') }}" class="dropdown-item">כלי שטח</a>
                                     {% endif %}
                                 </div>
                             </div>
@@ -159,13 +160,14 @@
                         </div>
                     </div>
                     {% if session['role'] %}
-                    <div id="weather-info-short" class="d-flex align-items-center">
+                    <div id="weather-info-short" data-city="{{ city }}">
                         <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
                             style="width: 24px; height: 24px; margin-right: 8px;">
                         <span>
                             <strong>{{ city }}</strong> - {{ temperature }}°C
                         </span>
                     </div>
+                    
                     {% endif %}
                 </div>
             </nav>
@@ -233,6 +235,8 @@
                     {{ plot.total_irrigation_amount }} קוב
                     {% endif %}
                 </p>
+                <button id="getIrrigationButton" class="btn btn-primary">קבל המלצת השקיה</button>
+
             </div>
             <div id="weather-info"
                 style="position: absolute; top: 10px; left: 10px; z-index: 1000; background-color: #f8f9fa; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
@@ -377,6 +381,25 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal - המלצת השקיה -->
+<div id="irrigationRecommendationModal" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">המלצת השקיה</h5>
+                <button type="button" class="btn-close" onclick="closeIrrigationModal()"></button>
+            </div>
+            <div class="modal-body">
+                <p id="irrigationRecommendationText">טוען המלצת השקיה...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeIrrigationModal()">סגור</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <div id="detailedWeatherModal" class="modal">
         <div class="modal-dialog">

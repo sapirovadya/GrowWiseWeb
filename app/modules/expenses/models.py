@@ -11,6 +11,10 @@ db = client.get_database("dataGrow")
 purchases_collection = db["purchases"]
 irrigation_collection = db["irrigation"]
 water_collection = db["water"]
+vehicles_collection = db["vehicles"]
+vehicle_service_collection = db["vehicle_service_history"]
+vehicle_test_collection = db["vehicle_test_history"]
+vehicle_insurance_collection = db["vehicle_insurance_history"]
 
 class Purchase:
     def __init__(self, email, category, name, quantity, unit_price, purchase_date=None):
@@ -101,3 +105,43 @@ class Water:
         )
         water_collection.insert_one(new_water.to_dict())
         return new_water.to_dict()
+
+
+class VehicleServiceHistory:
+    
+    def new_service_record(self, data):
+        """ יצירת רשומת טיפול חדשה לכלי שטח """
+        service_id = str(uuid.uuid4())
+        service_record = {
+            "id": service_id,
+            "vehicle_number": data.get("vehicle_number"),  # מספר רכב
+            "service_date": data.get("service_date"),  # תאריך טיפול
+            "service_cost": data.get("service_cost")  # עלות טיפול
+        }
+        return service_record
+
+class VehicleTestHistory:
+    
+    def new_test_record(self, data):
+        """ יצירת רשומת טסט חדשה לכלי שטח """
+        test_id = str(uuid.uuid4())
+        test_record = {
+            "id": test_id,
+            "vehicle_number": data.get("vehicle_number"),  # מספר רכב
+            "test_date": data.get("test_date"),  # תאריך חידוש טסט
+            "test_cost": data.get("test_cost")  # עלות הטסט
+        }
+        return test_record
+
+class VehicleInsuranceHistory:
+    
+    def new_insurance_record(self, data):
+        """ יצירת רשומת ביטוח חדשה לכלי שטח """
+        insurance_id = str(uuid.uuid4())
+        insurance_record = {
+            "id": insurance_id,
+            "vehicle_number": data.get("vehicle_number"),  # מספר רכב
+            "insurance_date": data.get("insurance_date"),  # תאריך ביטוח
+            "insurance_cost": data.get("insurance_cost")  # עלות ביטוח
+        }
+        return insurance_record

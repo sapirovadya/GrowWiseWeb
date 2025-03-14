@@ -100,6 +100,8 @@ MAX_TOKENS = 200
 
 # @weather_bp.route("/irrigation_recommendation", methods=["POST"])
 # def irrigation_recommendation():
+#     print("Received request at /weather/irrigation_recommendation")
+
 #     try:
 #         email = session.get("email")
 #         role = session.get("role")
@@ -118,11 +120,12 @@ MAX_TOKENS = 200
 #             return jsonify({"error": "Manager not found in the database."}), 404
 
 #         city = manager.get("location")
+#         print(f" city value from Flask (Irrigation Recommendation): {city}")
 #         if not city:
 #             return jsonify({"error": "Location not found for the manager."}), 400
 
 #         crop_type = request.json.get("crop_type")
-
+#         print(f" Debug - crop_type from request: {crop_type}")
 #         if not crop_type:
 #             return jsonify({"error": "Missing required fields in the request."}), 400
 
@@ -162,7 +165,8 @@ MAX_TOKENS = 200
 #             f"- תחזית גשם לימים הקרובים:\n"
 #             + "\n".join(rain_forecast) +
 #             f"\n\n"
-#             f"תן המלצה מפורטת לכמות מים מומלצת להשקיה להיום (בליטרים לכל מ\"ר) תוך התחשבות בגשם הצפוי בעתיד."
+#             f"תן המלצה מפורטת לכמות מים מומלצת להשקיה להיום,ציין רק מה שרלוונטי להשקיה (אין צורך לפרט על כל פרמטר אם לא נדרש) (בליטרים לכל מ\"ר) תוך התחשבות בגשם הצפוי בעתיד."
+#             f"give me the output with <p> tags for the sentences "
 #         )
 
 #         response = openai.ChatCompletion.create(
