@@ -21,80 +21,80 @@ MODEL = "gpt-4o"
 TEMPERATURE = 1
 MAX_TOKENS = 200
 
-@weather_bp.route("/", methods=["GET"])
-def get_weather():
-    print(f"Using API Key: {weatherbit_api_key}")
+# @weather_bp.route("/", methods=["GET"])
+# def get_weather():
+#     print(f"Using API Key: {weatherbit_api_key}")
 
-    try:
-        print("Weatherbit API Key:", weatherbit_api_key)
+#     try:
+#         print("Weatherbit API Key:", weatherbit_api_key)
 
-        email = session.get("email")
-        role = session.get("role")
+#         email = session.get("email")
+#         role = session.get("role")
 
-        if role == "manager":
-            manager_email = email
-        elif role in ["employee", "co_manager"]:
-            manager_email = session.get("manager_email")
-            if not manager_email:
-                return jsonify({"error": "Manager email not found for user."}), 403
-        else:
-            return jsonify({"error": "Invalid role."}), 403
+#         if role == "manager":
+#             manager_email = email
+#         elif role in ["employee", "co_manager"]:
+#             manager_email = session.get("manager_email")
+#             if not manager_email:
+#                 return jsonify({"error": "Manager email not found for user."}), 403
+#         else:
+#             return jsonify({"error": "Invalid role."}), 403
 
-        manager = db.manager.find_one({"email": manager_email})
-        if not manager:
-            return jsonify({"error": "Manager not found in the database."}), 404
+#         manager = db.manager.find_one({"email": manager_email})
+#         if not manager:
+#             return jsonify({"error": "Manager not found in the database."}), 404
 
-        city = manager.get("location")
-        if not city:
-            return jsonify({"error": "Location not found for the manager."}), 400
+#         city = manager.get("location")
+#         if not city:
+#             return jsonify({"error": "Location not found for the manager."}), 400
 
 
-        current_url = f"https://api.weatherbit.io/v2.0/current?city={city}&key={weatherbit_api_key}&lang=he"
-        current_response = requests.get(current_url)
+#         current_url = f"https://api.weatherbit.io/v2.0/current?city={city}&key={weatherbit_api_key}&lang=he"
+#         current_response = requests.get(current_url)
 
-        if current_response.status_code != 200:
-            return jsonify({"error": f"Failed to fetch weather data: {current_response.status_code}"}), current_response.status_code
+#         if current_response.status_code != 200:
+#             return jsonify({"error": f"Failed to fetch weather data: {current_response.status_code}"}), current_response.status_code
 
     
 
-        current_data = current_response.json().get("data", [])[0]
-        temperature = current_data.get("temp", "לא זמין")
-        humidity = current_data.get("rh", "לא זמין")
-        wind_speed = current_data.get("wind_spd", "לא זמין")
-        precipitation_now = current_data.get("precip", 0)  # גשם נוכחי
-        weather_description = current_data.get("weather", {}).get("description", "לא זמין")
-        weather_icon = current_data.get("weather", {}).get("icon", None)
+#         current_data = current_response.json().get("data", [])[0]
+#         temperature = current_data.get("temp", "לא זמין")
+#         humidity = current_data.get("rh", "לא זמין")
+#         wind_speed = current_data.get("wind_spd", "לא זמין")
+#         precipitation_now = current_data.get("precip", 0)  # גשם נוכחי
+#         weather_description = current_data.get("weather", {}).get("description", "לא זמין")
+#         weather_icon = current_data.get("weather", {}).get("icon", None)
 
-        forecast_url = f"https://api.weatherbit.io/v2.0/forecast/daily?city={city}&key={weatherbit_api_key}&days=3&lang=he"
-        forecast_response = requests.get(forecast_url)
+#         forecast_url = f"https://api.weatherbit.io/v2.0/forecast/daily?city={city}&key={weatherbit_api_key}&days=3&lang=he"
+#         forecast_response = requests.get(forecast_url)
 
-        if forecast_response.status_code != 200:
-            return jsonify({"error": f"Failed to fetch forecast data: {forecast_response.status_code}"}), forecast_response.status_code
+#         if forecast_response.status_code != 200:
+#             return jsonify({"error": f"Failed to fetch forecast data: {forecast_response.status_code}"}), forecast_response.status_code
 
-        forecast_data = forecast_response.json().get("data", [])
+#         forecast_data = forecast_response.json().get("data", [])
 
-        rain_forecast = [
-            {
-                "date": day["valid_date"],
-                "rain_mm": day.get("precip", 0),
-                "rain_probability": day.get("pop", 0)  # אחוזי סיכוי לגשם
-            }
-            for day in forecast_data
-        ]
+#         rain_forecast = [
+#             {
+#                 "date": day["valid_date"],
+#                 "rain_mm": day.get("precip", 0),
+#                 "rain_probability": day.get("pop", 0)  # אחוזי סיכוי לגשם
+#             }
+#             for day in forecast_data
+#         ]
 
-        return jsonify({
-            "city": city,
-            "temperature": temperature,
-            "humidity": humidity,
-            "wind_speed": wind_speed,
-            "precipitation_now": f"{precipitation_now} מ\"מ" if precipitation_now else "אין גשם כרגע",
-            "weather_description": weather_description,
-            "weather_icon": f"https://www.weatherbit.io/static/img/icons/{weather_icon}.png" if weather_icon else None,
-            "rain_forecast": rain_forecast 
-        }), 200
+#         return jsonify({
+#             "city": city,
+#             "temperature": temperature,
+#             "humidity": humidity,
+#             "wind_speed": wind_speed,
+#             "precipitation_now": f"{precipitation_now} מ\"מ" if precipitation_now else "אין גשם כרגע",
+#             "weather_description": weather_description,
+#             "weather_icon": f"https://www.weatherbit.io/static/img/icons/{weather_icon}.png" if weather_icon else None,
+#             "rain_forecast": rain_forecast 
+#         }), 200
 
-    except Exception as e:
-        return jsonify({"error": f"Server error: {str(e)}"}), 500
+#     except Exception as e:
+#         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
 

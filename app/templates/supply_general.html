@@ -183,14 +183,13 @@
     <div class="container">
         <div class="d-flex align-items-center justify-content-between">
             <h1 class="title mb-0">מלאי ואספקה - מוצרים כללים</h1>
-            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+            <button onclick="goBack()" class="btn btn-primary">חזרה למחסן המלאי</button>
         </div>
         <hr class="section-divider ">
         <div class="d-flex justify-content-between align-items-center">
             <button id="addPlotButton" class="btn button-circle" onclick="openSupplyModal('מוצר כללי')">
                 <img src="/static/img/plus_icon.png">
             </button>
-            <a href="{{ url_for('supply_bp.supply_inventory') }}" class="btn btn-primary">חזרה למחסן המלאי</a>
         </div>
 
         <div class="table-container">

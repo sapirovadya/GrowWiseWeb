@@ -76,7 +76,7 @@ def add_supply():
     email = session["email"]
     category = data.get("category")
     name = data.get("name")
-    quantity = data.get("quantity")
+    quantity = float(data.get("quantity"))
     existing_supply = supply_collection.find_one({"email": email, "category": category, "name": name})
 
     if existing_supply:
@@ -122,9 +122,10 @@ def update_quantity():
 @supply_bp.route("/available_crops", methods=['GET'])
 def get_available_crops():
     try:
-        email = session.get("email") or session.get("manager_email")
-        if not email:
-            return jsonify({"error": "משתמש לא מחובר"}), 403
+        if session.get("role") == "manager":
+            email = session.get("email")
+        else:
+            email = session.get("manager_email")
 
         crops = list(db.supply.find({"email": email, "category": "גידול"}, {"_id": 0, "name": 1, "quantity": 1}))
         return jsonify(crops), 200

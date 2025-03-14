@@ -180,7 +180,10 @@
 
     <div class="container mt-4 attendance-manager">
         <div class="container">
-            <h1 class="title">נוכחות עובדים</h1>
+            <div class="d-flex align-items-center justify-content-between">
+                <h1 class="title">נוכחות עובדים</h1>
+                <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+            </div>
             <hr class="section-divider">
 
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -309,59 +312,66 @@
     <script src="/static/js/main.js"></script>
     <script>
 
-
         function showAlert(title, message, options = {}) {
-            const { onSuccess = null, restoreModal = null, restoreData = null } = options;
+            const { redirectUrl = null, isSuccess = false, restoreForm = false, formId = null, modalId = null } = options;
 
             const alertBox = document.getElementById("customAlert");
             alertBox.querySelector(".alert-title").textContent = title;
             alertBox.querySelector(".alert-message").textContent = message;
-
             alertBox.style.display = "block";
             alertBox.classList.add("fade-in");
 
-            const closeButton = alertBox.querySelector(".alert-close");
-
-            closeButton.onclick = () => {
-                alertBox.classList.remove("fade-in");
-                alertBox.style.display = "none";
-
-                // Handle success actions like closing modals or refreshing the page
-                if (onSuccess) {
-                    onSuccess();
+            // שמירת מידע במידת הצורך לשימוש מאוחר יותר
+            if (restoreForm && formId && modalId) {
+                const form = document.getElementById(formId);
+                if (form) {
+                    window.lastFormData = new FormData(form); // שמירת נתוני הטופס
+                    window.lastModalId = modalId; // שמירת מזהה החלון
                 }
+            }
 
-                // Restore a modal or input form if there's an error
-                if (restoreModal && restoreData) {
-                    const modal = document.getElementById(restoreModal);
-                    const form = document.getElementById(restoreData.formId);
+            // הגדרת פעולה בהתבסס על סוג ההודעה (הצלחה או שגיאה)
+            const closeButton = alertBox.querySelector(".alert-close");
+            closeButton.onclick = () => closeAlert({ redirectUrl, isSuccess });
+        }
 
-                    // Restore form values if available
-                    if (form && restoreData.lastData) {
-                        for (const [key, value] of Object.entries(restoreData.lastData)) {
-                            const field = form.elements[key];
+        function closeAlert({ redirectUrl = null, isSuccess = false } = {}) {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.classList.remove("fade-in");
+            alertBox.style.display = "none";
+
+            if (isSuccess) {
+                // במקרה של הצלחה
+                if (redirectUrl) {
+                    window.location.href = redirectUrl; // מפנה לכתובת URL
+                } else {
+                    location.reload(); // רענון הדף
+                }
+            } else {
+                // במקרה של שגיאה: שחזור הטופס והחלון
+                if (window.lastFormData && window.lastModalId) {
+                    const modal = document.getElementById(window.lastModalId);
+                    const form = document.getElementById('plotForm');
+
+                    // שחזור נתוני הטופס
+                    if (form && window.lastFormData) {
+                        for (const [name, value] of window.lastFormData.entries()) {
+                            const field = form.elements[name];
                             if (field) {
                                 field.value = value;
                             }
                         }
                     }
 
-                    // Show modal again
+                    // פתיחת החלון
                     if (modal) {
                         modal.style.display = "flex";
                     }
                 }
-            };
+            }
         }
-
-        function closeAlert() {
-            const alertBox = document.getElementById("customAlert");
-            alertBox.style.display = "none";
-            location.reload(); // רענון הדף
-        }
-
-
         document.addEventListener("DOMContentLoaded", async function () {
+            //מזג אוויר
             const shortWeatherDiv = document.getElementById("weather-info-short");
 
             try {
@@ -381,17 +391,6 @@
                 console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
                 shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
             }
-
-            // טעינת התראות
-            try {
-                const notificationsResponse = await fetch("/users/get_notifications");
-                const notificationsData = await notificationsResponse.json();
-
-                showNotificationBadge(notificationsData.new_notifications_count); // עדכון העיגול האדום עם מספר ההתראות החדשות
-            } catch (error) {
-                console.error("Error fetching notifications:", error);
-            }
-
         });
 
     </script>

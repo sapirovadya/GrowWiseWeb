@@ -334,6 +334,7 @@ function resetCropField() {
 
 async function submitUpdate() {
     const plotId = selectedPlotId;
+
     if (!plotId) {
         showAlert("שגיאה", "לא ניתן לעדכן ללא ID חלקה.");
         return;
@@ -363,6 +364,11 @@ async function submitUpdate() {
     }
     if (!quantityPlanted || quantityPlanted <= 0) {
         showAlert("שגיאה", "נא למלא כמות זריעה תקינה (בק״ג).");
+        return;
+    }
+    const today = new Date().toISOString().split('T')[0];
+    if (sowDate > today) {
+        showAlert("שגיאה", "לא ניתן להזין תאריך עתידי לזריעה.");
         return;
     }
     try {
@@ -562,7 +568,11 @@ async function savePlot() {
     let crop = cropField.value !== "none" ? cropField.value : "none";
     let sowDate = sowDateField && sowDateField.value ? sowDateField.value : "";
     let quantityPlanted = quantityPlantedField && quantityPlantedField.value ? parseFloat(quantityPlantedField.value) : "";
-
+    const today = new Date().toISOString().split('T')[0];
+    if (sowDate && sowDate > today) {
+        showAlert("שגיאה", "לא ניתן להזין תאריך עתידי לזריעה.");
+        return;
+    }
     const plotData = {
         plot_type: plotTypeInput.value.trim(),
         plot_name: plotNameField.value.trim(),
@@ -1377,8 +1387,13 @@ function submitManualAttendance() {
     const checkInTime = document.getElementById("manualCheckIn").value;
     const checkOutTime = document.getElementById("manualCheckOut").value;
 
+
     if (!employeeEmail || !checkInTime || !checkOutTime) {
-        alert("נא למלא את כל השדות.");
+        showAlert("שגיאה", "נא למלא את כל השדות.", {
+            restoreForm: true,
+            formId: "attendanceForm",
+            modalId: "attendanceModal"
+        });
         return;
     }
 
@@ -1393,11 +1408,21 @@ function submitManualAttendance() {
     })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);
-            closeAttendanceModal();
+            showAlert("הצלחה", data.message, {
+                isSuccess: true,
+                closeModal: closeAttendanceModal,
+                refreshPage: true
+            });
             loadManagerAttendanceRecords();
         })
-        .catch(error => console.error("Error submitting manual attendance:", error));
+        .catch(error => {
+            console.error("Error submitting manual attendance:", error);
+            showAlert("שגיאה", "שגיאה בלתי צפויה בעת שליחת הדיווח.", {
+                restoreForm: true,
+                formId: "attendanceForm",
+                modalId: "attendanceModal"
+            });
+        });
 }
 
 //חדש
@@ -1407,7 +1432,7 @@ function openEditModal(id) {
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                alert("שגיאה: " + data.error);
+                showAlert("שגיאה", data.error, { restoreForm: false });
                 return;
             }
 
@@ -1417,7 +1442,10 @@ function openEditModal(id) {
             document.getElementById('editCheckOut').value = data.check_out.slice(0, 16);
             document.getElementById('editAttendanceModal').style.display = "block";
         })
-        .catch(error => console.error("Error fetching attendance record:", error));
+        .catch(error => {
+            console.error("Error fetching attendance record:", error);
+            showAlert("שגיאה", "שגיאה בלתי צפויה בטעינת נתוני הנוכחות.", { restoreForm: false });
+        });
 }
 
 
@@ -1431,10 +1459,8 @@ function saveAttendanceChanges() {
     let checkIn = document.getElementById('editCheckIn').value;
     let checkOut = document.getElementById('editCheckOut').value;
 
-    console.log("Saving ID:", id); // בדיקה
-
     if (!id) {
-        alert("שגיאה: ה-ID לא זוהה.");
+        showAlert("שגיאה", "ה-ID לא זוהה.", { restoreForm: false });
         return;
     }
 
@@ -1445,11 +1471,20 @@ function saveAttendanceChanges() {
     })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);
-            closeEditModal();
-            location.reload();
+            showAlert("הצלחה", data.message, {
+                isSuccess: true,
+                closeModal: closeEditModal,
+                refreshPage: true
+            });
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error("Error updating attendance:", error);
+            showAlert("שגיאה", "שגיאה בלתי צפויה בעת עדכון הנתונים.", {
+                restoreForm: true,
+                formId: "editAttendanceForm",
+                modalId: "editAttendanceModal"
+            });
+        });
 }
 
 //חדש
@@ -1920,7 +1955,11 @@ async function saveYieldPrice() {
     const pricePerKg = document.getElementById("pricePerKg").value;
 
     if (!plotName || !sow_date || !pricePerKg || pricePerKg <= 0) {
-        alert("נא למלא את כל השדות כראוי.");
+        showAlert("שגיאה", "נא למלא את כל השדות כראוי.", {
+            restoreForm: true,
+            formId: "yieldPriceForm",
+            modalId: "yieldPriceModal"
+        });
         return;
     }
 
@@ -1931,15 +1970,28 @@ async function saveYieldPrice() {
             body: JSON.stringify({ plot_name: plotName, sow_date: sow_date, price_yield: pricePerKg }),
         });
 
+
         if (response.ok) {
-            alert("המחיר נשמר בהצלחה!");
-            closeYieldPriceModal();
+            showAlert("הצלחה", "המחיר נשמר בהצלחה!", {
+                isSuccess: true,
+                closeModal: closeYieldPriceModal,
+                refreshPage: true
+            });
         } else {
             const data = await response.json();
-            alert("שגיאה: " + data.error);
+            showAlert("שגיאה", `שגיאה: ${data.error}`, {
+                restoreForm: true,
+                formId: "yieldPriceForm",
+                modalId: "yieldPriceModal"
+            });
         }
     } catch (error) {
         console.error("שגיאה בשמירת הנתונים:", error);
+        showAlert("שגיאה", "שגיאה בלתי צפויה בעת שמירת הנתונים.", {
+            restoreForm: true,
+            formId: "yieldPriceForm",
+            modalId: "yieldPriceModal"
+        });
     }
 }
 
@@ -1956,9 +2008,9 @@ async function fetchSowDates() {
 
         if (data.dates.length === 0) {
             sowDateSelect.innerHTML = '<option value="">אין תאריכים זמינים</option>';
+            showAlert("שגיאה", "אין תאריכי זריעה זמינים עבור החלקה שנבחרה.", { restoreForm: false });
             return;
         }
-
         data.dates.forEach(date => {
             const option = document.createElement("option");
             option.value = date;
@@ -1968,8 +2020,211 @@ async function fetchSowDates() {
         sowDateSelect.addEventListener("change", fetchCropDetails);
     } catch (error) {
         console.error("שגיאה בשליפת תאריכי זריעה:", error);
+        showAlert("שגיאה", "שגיאה בלתי צפויה בעת שליפת תאריכי הזריעה.", { restoreForm: false });
     }
 }
 
+/* Vehicles */
+$(document).ready(function () {
+    $("#openVehicleModal").click(function () {
+        $("#addVehicleForm")[0].reset();
+        $("#addVehicleModal").modal("show");
+    });
+
+    function formatDate(dateString) {
+        if (!dateString) return "";
+        let date = new Date(dateString);
+        let day = String(date.getDate()).padStart(2, '0');
+        let month = String(date.getMonth() + 1).padStart(2, '0');
+        let year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    function formatDateForInput(dateString) {
+        if (!dateString) return "";
+        let date = new Date(dateString);
+        let day = String(date.getDate()).padStart(2, '0');
+        let month = String(date.getMonth() + 1).padStart(2, '0');
+        let year = date.getFullYear();
+        return `${year}-${month}-${day}`;
+    }
+
+    function loadVehicles(searchQuery = "") {
+        $.get("/vehicles/get", function (data) {
+            $("#vehicleTable").empty();
+            data.forEach(vehicle => {
+                const vehicleNumber = String(vehicle.vehicle_number);
+                const vehicleType = String(vehicle.vehicle_type);
+
+                if (searchQuery === "" || vehicleNumber.includes(searchQuery) || vehicleType.includes(searchQuery)) {
+                    $("#vehicleTable").append(`
+                        <tr id="row-${vehicle._id}">
+                            <td>${vehicle.vehicle_number}</td>
+                            <td>${vehicle.vehicle_type}</td>
+                            <td>${formatDate(vehicle.test_date)}</td>
+                            <td>${vehicle.test_cost}</td>
+                            <td>${formatDate(vehicle.insurance_date) || ''}</td>
+                            <td>${vehicle.insurance_cost || ''}</td>
+                            <td>${formatDate(vehicle.last_service_date)}</td>
+                            <td>${vehicle.service_cost}</td>
+                            <td>${vehicle.authorized_drivers}</td>
+                            <td class="action-buttons">
+                                <button class="btn btn-warning btn-sm edit-btn action-btn" data-id="${vehicle._id}">ערוך</button>
+                                <button class="btn btn-danger btn-sm delete-btn action-btn" data-id="${vehicle._id}">מחק</button>
+                            </td>
+                        </tr>
+                    `);
+                }
+            });
 
 
+            $(".delete-btn").click(function () {
+                let vehicle_id = $(this).data("id");
+                deleteVehicle(vehicle_id);
+            });
+
+
+            $(".edit-btn").click(function () {
+                let vehicle_id = $(this).data("id");
+                editVehicle(vehicle_id);
+            });
+        });
+    }
+
+    loadVehicles();
+
+    $("#searchInput").on("input", function () {
+        let searchQuery = $(this).val().trim();
+        loadVehicles(searchQuery);
+    });
+
+    $("#addVehicleForm").submit(function (event) {
+        event.preventDefault();
+
+        const newVehicle = {
+            vehicle_number: $("#addVehicleNumber").val(),
+            vehicle_type: $("#addVehicleType").val(),
+            test_date: $("#addTestDate").val(),
+            test_cost: $("#addTestCost").val(),
+            insurance_date: $("#addInsuranceDate").val(),
+            insurance_cost: $("#addInsuranceCost").val(),
+            last_service_date: $("#addLastServiceDate").val(),
+            service_cost: $("#addServiceCost").val(),
+            authorized_drivers: $("#addAuthorizedDrivers").val()
+        };
+
+        $.ajax({
+            url: "/vehicles/add",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(newVehicle),
+            success: function () {
+                loadVehicles();
+                $("#addVehicleModal").modal("hide");
+                $("#addVehicleForm")[0].reset();
+            },
+            error: function (xhr) {
+                console.error(" Error:", xhr.responseText);
+            }
+        });
+    });
+
+    function deleteVehicle(vehicle_id) {
+        $.ajax({
+            url: `/vehicles/delete/${vehicle_id}`,
+            type: "DELETE",
+            success: function () {
+                $(`#row-${vehicle_id}`).remove();
+            }
+        });
+    }
+
+    function editVehicle(vehicle_id) {
+        $.get(`/vehicles/get`, function (data) {
+            let vehicle = data.find(v => v._id === vehicle_id);
+            if (!vehicle) return;
+
+            $("#editVehicleNumber").val(vehicle.vehicle_number).prop("readonly", true);
+            $("#editVehicleType").val(vehicle.vehicle_type);
+            $("#editTestDate").val(formatDateForInput(vehicle.test_date));
+            $("#editTestCost").val(vehicle.test_cost);
+            $("#editInsuranceDate").val(formatDateForInput(vehicle.insurance_date));
+            $("#editInsuranceCost").val(vehicle.insurance_cost);
+            $("#editLastServiceDate").val(formatDateForInput(vehicle.last_service_date));
+            $("#editServiceCost").val(vehicle.service_cost);
+            $("#editAuthorizedDrivers").val(vehicle.authorized_drivers);
+
+            $("#editVehicleModal").modal("show");
+
+            $("#editVehicleForm").off("submit").on("submit", function (event) {
+                event.preventDefault();
+                $.ajax({
+                    url: `/vehicles/update/${vehicle_id}`,
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        vehicle_type: $("#editVehicleType").val(),
+                        test_date: $("#editTestDate").val(),
+                        test_cost: $("#editTestCost").val(),
+                        insurance_date: $("#editInsuranceDate").val(),
+                        insurance_cost: $("#editInsuranceCost").val(),
+                        last_service_date: $("#editLastServiceDate").val(),
+                        service_cost: $("#editServiceCost").val(),
+                        authorized_drivers: $("#editAuthorizedDrivers").val()
+                    }),
+                    success: function () {
+                        loadVehicles();
+                        $("#editVehicleModal").modal("hide");
+                    }
+                });
+            });
+        });
+    }
+});
+
+/* recommendation irrgration*/
+document.getElementById("getIrrigationButton").addEventListener("click", async function () {
+    const modal = document.getElementById("growthForecastModal");
+    const forecastTitle = document.querySelector("#growthForecastModal .modal-title");
+    const recommendationText = document.getElementById("growthForecastText");
+
+    forecastTitle.textContent = "המלצת השקיה";
+
+    recommendationText.innerHTML = "<p> טוען המלצת השקיה...</p>";
+    modal.style.display = "flex";
+
+    const cropType = document.getElementById("crop").textContent.trim();
+
+    if (!cropType) {
+        recommendationText.innerHTML = `<p style="color: red;"> שגיאה: סוג הגידול לא נמצא.</p>`;
+        return;
+    }
+
+    try {
+        const response = await fetch("/weather/irrigation_recommendation", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                crop_type: cropType
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error("שגיאה בטעינת המלצה");
+        }
+
+        const data = await response.json();
+        recommendationText.innerHTML = `
+            <p>${data.irrigation_advice || "לא נמצאו נתוני השקיה."}</p>
+        `;
+
+    } catch (error) {
+        recommendationText.innerHTML = `<p style="color: red;"> שגיאה: ${error.message}</p>`;
+    }
+});
+
+function closeIrrigationModal() {
+    document.getElementById("irrigationRecommendationModal").style.display = "none";
+}

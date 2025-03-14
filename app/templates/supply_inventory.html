@@ -177,16 +177,18 @@
     <hr class="section-divider ">
 
     <div class="container">
-        <h1 class="title">ניהול אספקה ומלאי</h1>
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="title">ניהול אספקה ומלאי</h1>
+            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+        </div>
         <hr class="section-divider ">
-    </div>
-    <main>
         <div class="button-container" id="supp">
             <button class="btn btn-primary" onclick="navigateToPage('seeds')">זרעים וגידולים</button>
             <button class="btn btn-primary" onclick="navigateToPage('pesticides')">דברי הדברה</button>
             <button class="btn btn-primary" onclick="navigateToPage('general')">מוצרים כלליים</button>
         </div>
-    </main>
+    </div>
+
     <!-- Back to Top -->
     <a href="#" class="btn button-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
 

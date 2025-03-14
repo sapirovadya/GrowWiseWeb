@@ -35,7 +35,7 @@ class Supply:
         new_supply = Supply(
             category=data.get("category"),
             name=data.get("name"),
-            quantity=data.get("quantity"),
+            quantity=float(data.get("quantity")),
             email=data.get("email")
         )
         supply_collection.insert_one(new_supply.to_dict())

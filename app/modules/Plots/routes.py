@@ -138,11 +138,17 @@ def save_plot():
         crop_category = data.get("crop_category", "none")
         crop_name = data.get("crop", "none")
         sow_date = data.get("sow_date") if crop_category != "none" and crop_name != "none" else ""
-        quantity_planted = data.get("quantity_planted")
+        quantity_planted = float(data.get("quantity_planted"))
 
         if crop_category != "none" and crop_name != "none":
             if not sow_date:
                 return jsonify({"error": "נא למלא את תאריך הזריעה"}), 400
+
+            today = datetime.today().date()
+            sow_date_obj = datetime.strptime(sow_date, "%Y-%m-%d").date()
+            if sow_date_obj > today:
+                return jsonify({"error": "לא ניתן להזין תאריך עתידי לזריעה"}), 400
+
             if not quantity_planted or quantity_planted <= 0:
                 return jsonify({"error": "נא למלא כמות זריעה תקינה (בק״ג)."}), 400
 
@@ -158,7 +164,7 @@ def save_plot():
             quantity_planted = ""
 
         new_plot = {
-            "_id": plot_id,  # שמירה כמחרוזת
+            "_id": plot_id,  
             "plot_name": plot_name,
             "plot_type": plot_type,
             "width": width,
@@ -262,7 +268,6 @@ def plot_details():
 def update_plot(plot_id):
     try:
         data = request.get_json()
-        print(f"🔍 קיבלנו נתונים: {data}")  
 
         required_fields = ['crop', 'sow_date', 'quantity_planted']
         for field in required_fields:
@@ -277,6 +282,12 @@ def update_plot(plot_id):
         crop_name = data['crop']
         crop_category = data['crop_category']
         quantity_planted = data['quantity_planted']
+        sow_date = data['sow_date']
+
+        today = datetime.today().date()
+        sow_date_obj = datetime.strptime(sow_date, "%Y-%m-%d").date()
+        if sow_date_obj > today:
+            return jsonify({"error": "לא ניתן להזין תאריך עתידי לזריעה"}), 400
 
         crop_entry = db.supply.find_one({"email": manager_email, "name": crop_name, "category": "גידול"})
         if not crop_entry or crop_entry["quantity"] < quantity_planted:
