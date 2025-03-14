@@ -141,7 +141,7 @@
                                 </div>
                             </div>
                             {% endif %}
-                            <!-- לכל המשתמשים -->
+                            <!-- 🏠 לכל המשתמשים -->
                             <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
                             <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
                             {% if session['role'] %}
@@ -179,20 +179,166 @@
 
     <div class="container">
         <div class="d-flex align-items-center justify-content-between">
-            <h1 class="title mb-0">ליגיסטיקה וניהול</h1>
-            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+            <h1 class="title mb-0">כלי שטח</h1>
         </div>
-        <hr class="section-divider ">
+
+        <button id="openVehicleModal" class="btn button-circle">
+            <img src="/static/img/plus_icon.png">
+        </button>
+        <br>
+        <!-- שורת חיפוש -->
+        <input type="text" id="searchInput" class="form-control mb-3" placeholder="חפש לפי מספר רכב או סוג רכב">
+
+        <!-- מודאל להוספת כלי שטח -->
+        <div id="addVehicleModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">הוסף כלי שטח</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addVehicleForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="addVehicleNumber">מספר רכב</label>
+                                    <input type="text" id="addVehicleNumber" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addVehicleType">סוג הרכב</label>
+                                    <input type="text" id="addVehicleType" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addTestDate">תאריך חידוש טסט</label>
+                                    <input type="date" id="addTestDate" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addTestCost">עלות הטסט</label>
+                                    <input type="number" id="addTestCost" class="form-control" required min="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addInsuranceDate">תאריך חידוש ביטוח</label>
+                                    <input type="date" id="addInsuranceDate" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addInsuranceCost">עלות ביטוח</label>
+                                    <input type="number" id="addInsuranceCost" class="form-control" required min="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addLastServiceDate">תאריך טיפול אחרון</label>
+                                    <input type="date" id="addLastServiceDate" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addServiceCost">עלות טיפול אחרון</label>
+                                    <input type="number" id="addServiceCost" class="form-control" required min="0">
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="addAuthorizedDrivers">מי רשאי לנהוג</label>
+                                    <input type="text" id="addAuthorizedDrivers" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-end modal-footer">
+                                <button type="submit" class="btn btn-success">שמור</button>
+                                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">ביטול</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- מודאל לעריכת כלי שטח -->
+        <div id="editVehicleModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">ערוך כלי שטח</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editVehicleForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="editVehicleNumber">מספר רכב</label>
+                                    <input type="text" id="editVehicleNumber" class="form-control" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editVehicleType">סוג הרכב</label>
+                                    <input type="text" id="editVehicleType" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editTestDate">תאריך חידוש טסט</label>
+                                    <input type="date" id="editTestDate" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editTestCost">עלות הטסט</label>
+                                    <input type="number" id="editTestCost" class="form-control" required min="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editInsuranceDate">תאריך חידוש ביטוח</label>
+                                    <input type="date" id="editInsuranceDate" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editInsuranceCost">עלות ביטוח</label>
+                                    <input type="number" id="editInsuranceCost" class="form-control" required min="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editLastServiceDate">תאריך טיפול אחרון</label>
+                                    <input type="date" id="editLastServiceDate" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editServiceCost">עלות טיפול אחרון</label>
+                                    <input type="number" id="editServiceCost" class="form-control" required min="0">
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="editAuthorizedDrivers">מי רשאי לנהוג</label>
+                                    <input type="text" id="editAuthorizedDrivers" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-end modal-footer">
+                                <button type="submit" class="btn btn-success">שמור</button>
+                                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">ביטול</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <!-- טבלת כלי שטח -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>מספר רכב</th>
+                    <th>סוג רכב</th>
+                    <th>תאריך חידוש טסט</th>
+                    <th>עלות טסט אחרון</th>
+                    <th>תאריך חידוש ביטוח</th>
+                    <th>עלות ביטוח</th>
+                    <th>תאריך טיפול אחרון</th>
+                    <th>עלות טיפול אחרון</th>
+                    <th>נהגים מורשים</th>
+                    <th>ניהול</th>
+                </tr>
+            </thead>
+            <tbody id="vehicleTable"></tbody>
+        </table>
+
     </div>
-    <main>
-        <div class="button-container" id="supp">
-            <button class="btn btn-primary" onclick="navigateToPage('supply')">מחסן</button>
-            <button class="btn btn-primary" onclick="navigateToPage('vehicles')">ניהול כלי שטח</button>
-        </div>
-    </main>
+
+
+
+    <!-- Alert Box -->
+    <div id="customAlert" class="alert-box" style="display:none;">
+        <h5 class="alert-title">כותרת</h5>
+        <p class="alert-message">הודעה</p>
+        <button class="alert-close btn btn-primary" onclick="closeAlert()">סגור</button>
+    </div>
+
+
     <!-- Back to Top -->
     <a href="#" class="btn button-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
-
 
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
@@ -205,19 +351,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     <script src="/static/js/main.js"></script>
-
     <script>
+        function showAlert(title, message, isError, previousData = null) {
+            const alertBox = document.getElementById("customAlert");
+            const alertTitle = document.querySelector("#customAlert .alert-title");
+            const alertMessage = document.querySelector("#customAlert .alert-message");
 
-        function navigateToPage(page) {
-            const urls = {
-                'supply': '{{ url_for("supply_bp.supply_inventory") }}',
-                'vehicles':  '{{ url_for("vehicles_bp.vehicles_management_page") }}'
-            };
+            alertTitle.textContent = title;
+            alertMessage.textContent = message;
 
-            if (urls[page]) {
-                window.location.href = urls[page];
+            alertBox.style.display = "block";
+
+            if (isError && previousData) {
+                document.getElementById("supplyModal").style.display = "block";
+                reopenSupplyModal(previousData);
             }
         }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+        const sessionRole = "{{ session['role'] }}";
+        const sessionUserEmail = "{{ session['email'] }}";
+        const sessionManagerEmail = "{{ session.get('manager_email', '') }}";
         document.addEventListener("DOMContentLoaded", async function () {
             //מזג אוויר
             const shortWeatherDiv = document.getElementById("weather-info-short");
@@ -232,21 +388,23 @@
 
                 // עדכון התצוגה הקצרה בסרגל הכלים
                 shortWeatherDiv.innerHTML = `
-                <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
-                <strong>${data.city}</strong> ${data.temperature}°C
-            `;
+                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                    <strong>${data.city}</strong> ${data.temperature}°C
+                `;
             } catch (error) {
                 console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
                 shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
             }
         });
+
         function goBack() {
             if (document.referrer) {
                 window.history.back();
             } else {
-                window.location.href = "{{ url_for('home') }}"; // אפשר להגדיר דף ברירת מחדל במקרה שאין דף קודם
+                window.location.href = "{{ url_for('home') }}";
             }
         }
+
 
     </script>
 </body>
