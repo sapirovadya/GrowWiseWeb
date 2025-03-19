@@ -117,7 +117,9 @@ class VehicleServiceHistory:
             "vehicle_number": data.get("vehicle_number"),  # מספר רכב
             "service_date": data.get("service_date"),  # תאריך טיפול
             "service_cost": data.get("service_cost"),  # עלות טיפול
-            "service_notes": data.get("service_notes") or None
+            "service_notes": data.get("service_notes") or None,
+            "manager_email": data.get("manager_email")
+
         }
         return service_record
 
@@ -130,7 +132,8 @@ class VehicleTestHistory:
             "id": test_id,
             "vehicle_number": data.get("vehicle_number"),  # מספר רכב
             "test_date": data.get("test_date"),  # תאריך חידוש טסט
-            "test_cost": data.get("test_cost")  # עלות הטסט
+            "test_cost": data.get("test_cost"),
+            "manager_email": data.get("manager_email")
         }
         return test_record
 
@@ -143,6 +146,7 @@ class VehicleInsuranceHistory:
             "id": insurance_id,
             "vehicle_number": data.get("vehicle_number"),  # מספר רכב
             "insurance_date": data.get("insurance_date"),  # תאריך ביטוח
-            "insurance_cost": data.get("insurance_cost")  # עלות ביטוח
+            "insurance_cost": data.get("insurance_cost"),
+            "manager_email": data.get("manager_email")
         }
         return insurance_record

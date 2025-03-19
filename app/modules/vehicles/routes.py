@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, session
 import pymongo
 import os
 from dotenv import load_dotenv
@@ -39,7 +39,11 @@ def add_vehicle():
         return jsonify({"error": "רכב עם מספר זה כבר קיים"}), 400
 
     # קבלת המייל של המשתמש המחובר
-    manager_email = data.get("manager_email")
+    role = session.get("role")
+    if role == "manager":
+        manager_email = session.get("email")
+    else:
+        manager_email = session.get("manager_email")
 
     # יצירת רכב חדש
     new_vehicle = vehicles_model.new_vehicle(data)
