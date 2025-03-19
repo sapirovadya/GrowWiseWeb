@@ -2055,7 +2055,7 @@ $(document).ready(function () {
             data.forEach(vehicle => {
                 const vehicleNumber = String(vehicle.vehicle_number);
                 const vehicleType = String(vehicle.vehicle_type);
-
+    
                 if (searchQuery === "" || vehicleNumber.includes(searchQuery) || vehicleType.includes(searchQuery)) {
                     $("#vehicleTable").append(`
                         <tr id="row-${vehicle._id}">
@@ -2068,28 +2068,41 @@ $(document).ready(function () {
                             <td>${formatDate(vehicle.last_service_date)}</td>
                             <td>${vehicle.service_cost}</td>
                             <td>${vehicle.authorized_drivers}</td>
-                            <td class="action-buttons">
-                                <button class="btn btn-warning btn-sm edit-btn action-btn" data-id="${vehicle._id}">ערוך</button>
-                                <button class="btn btn-danger btn-sm delete-btn action-btn" data-id="${vehicle._id}">מחק</button>
+                                <td class="action-buttons">
+                                <button class="action-btn btn-test edit-test-btn" data-id="${vehicle._id}">ערוך טסט</button>
+                                <button class="action-btn btn-service edit-service-btn" data-id="${vehicle._id}">ערוך טיפול</button>
+                                <button class="action-btn btn-insurance edit-insurance-btn"  data-id="${vehicle._id}">ערוך ביטוח</button>
+                                <button class="action-btn btn-delete-vehicle delete-btn"  data-id="${vehicle._id}">מחק</button>
                             </td>
                         </tr>
                     `);
                 }
             });
-
-
+    
+            // מחיקת רכב
             $(".delete-btn").click(function () {
                 let vehicle_id = $(this).data("id");
                 deleteVehicle(vehicle_id);
             });
-
-
-            $(".edit-btn").click(function () {
+    
+            // פתיחת מודאלים
+            $(".edit-test-btn").click(function () {
                 let vehicle_id = $(this).data("id");
-                editVehicle(vehicle_id);
+                openEditTestModal(vehicle_id);
+            });
+    
+            $(".edit-service-btn").click(function () {
+                let vehicle_id = $(this).data("id");
+                openEditServiceModal(vehicle_id);
+            });
+    
+            $(".edit-insurance-btn").click(function () {
+                let vehicle_id = $(this).data("id");
+                openEditInsuranceModal(vehicle_id);
             });
         });
     }
+    
 
     loadVehicles();
 
@@ -2129,6 +2142,66 @@ $(document).ready(function () {
         });
     });
 
+    $("#editTestForm").submit(function (event) {
+        event.preventDefault();
+        let vehicleId = $("#editTestVehicleId").val();
+        $.ajax({
+            url: `/vehicles/update_test/${vehicleId}`,
+            type: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify({
+                test_date: $("#editTestDate").val(),
+                test_cost: $("#editTestCost").val()
+            }),
+            success: function () {
+                loadVehicles();
+                $("#editTestModal").modal("hide");
+            }
+        });
+    });
+    
+    $("#editServiceForm").submit(function (event) {
+        event.preventDefault();
+        let vehicleId = $("#editServiceVehicleId").val();
+    
+        let vehicleNumber = $("#row-" + vehicleId).find("td:first").text().trim(); 
+    
+        $.ajax({
+            url: `/vehicles/update_service/${vehicleId}`,
+            type: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify({
+                vehicle_number: vehicleNumber,
+                service_date: $("#editServiceDate").val(),
+                service_cost: $("#editServiceCost").val(),
+                service_notes: $("#editServiceNotes").val()  // ⬅️ שליחת המלל החופשי
+            }),
+            success: function () {
+                loadVehicles();
+                $("#editServiceModal").modal("hide");
+            }
+        });
+    });
+    
+    
+    $("#editInsuranceForm").submit(function (event) {
+        event.preventDefault();
+        let vehicleId = $("#editInsuranceVehicleId").val();
+        $.ajax({
+            url: `/vehicles/update_insurance/${vehicleId}`,
+            type: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify({
+                insurance_date: $("#editInsuranceDate").val(),
+                insurance_cost: $("#editInsuranceCost").val()
+            }),
+            success: function () {
+                loadVehicles();
+                $("#editInsuranceModal").modal("hide");
+            }
+        });
+    });
+    
     function deleteVehicle(vehicle_id) {
         $.ajax({
             url: `/vehicles/delete/${vehicle_id}`,
@@ -2139,47 +2212,21 @@ $(document).ready(function () {
         });
     }
 
-    function editVehicle(vehicle_id) {
-        $.get(`/vehicles/get`, function (data) {
-            let vehicle = data.find(v => v._id === vehicle_id);
-            if (!vehicle) return;
-
-            $("#editVehicleNumber").val(vehicle.vehicle_number).prop("readonly", true);
-            $("#editVehicleType").val(vehicle.vehicle_type);
-            $("#editTestDate").val(formatDateForInput(vehicle.test_date));
-            $("#editTestCost").val(vehicle.test_cost);
-            $("#editInsuranceDate").val(formatDateForInput(vehicle.insurance_date));
-            $("#editInsuranceCost").val(vehicle.insurance_cost);
-            $("#editLastServiceDate").val(formatDateForInput(vehicle.last_service_date));
-            $("#editServiceCost").val(vehicle.service_cost);
-            $("#editAuthorizedDrivers").val(vehicle.authorized_drivers);
-
-            $("#editVehicleModal").modal("show");
-
-            $("#editVehicleForm").off("submit").on("submit", function (event) {
-                event.preventDefault();
-                $.ajax({
-                    url: `/vehicles/update/${vehicle_id}`,
-                    type: "PUT",
-                    contentType: "application/json",
-                    data: JSON.stringify({
-                        vehicle_type: $("#editVehicleType").val(),
-                        test_date: $("#editTestDate").val(),
-                        test_cost: $("#editTestCost").val(),
-                        insurance_date: $("#editInsuranceDate").val(),
-                        insurance_cost: $("#editInsuranceCost").val(),
-                        last_service_date: $("#editLastServiceDate").val(),
-                        service_cost: $("#editServiceCost").val(),
-                        authorized_drivers: $("#editAuthorizedDrivers").val()
-                    }),
-                    success: function () {
-                        loadVehicles();
-                        $("#editVehicleModal").modal("hide");
-                    }
-                });
-            });
-        });
+    function openEditTestModal(vehicleId) {
+        $("#editTestVehicleId").val(vehicleId);
+        $("#editTestModal").modal("show");
     }
+    
+    function openEditServiceModal(vehicleId) {
+        $("#editServiceVehicleId").val(vehicleId);
+        $("#editServiceModal").modal("show");
+    }
+    
+    function openEditInsuranceModal(vehicleId) {
+        $("#editInsuranceVehicleId").val(vehicleId);
+        $("#editInsuranceModal").modal("show");
+    }
+    
 });
 
 /* recommendation irrgration*/

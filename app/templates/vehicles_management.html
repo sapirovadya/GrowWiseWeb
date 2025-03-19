@@ -175,137 +175,25 @@
         </div>
     </div>
     <!-- Navbar End -->
-    <hr class="section-divider ">
 
+    <hr class="section-divider ">
+    <div class="container mt-4 attendance-manager">
     <div class="container">
         <div class="d-flex align-items-center justify-content-between">
-            <h1 class="title mb-0">כלי שטח</h1>
+            <h1 class="title">כלי שטח</h1>
+            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
         </div>
-
+        <hr class="section-divider">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <button id="openVehicleModal" class="btn button-circle">
             <img src="/static/img/plus_icon.png">
         </button>
-        <br>
-        <!-- שורת חיפוש -->
-        <input type="text" id="searchInput" class="form-control mb-3" placeholder="חפש לפי מספר רכב או סוג רכב">
-
-        <!-- מודאל להוספת כלי שטח -->
-        <div id="addVehicleModal" class="modal fade" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">הוסף כלי שטח</h5>
-                        <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="addVehicleForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <label for="addVehicleNumber">מספר רכב</label>
-                                    <input type="text" id="addVehicleNumber" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="addVehicleType">סוג הרכב</label>
-                                    <input type="text" id="addVehicleType" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="addTestDate">תאריך חידוש טסט</label>
-                                    <input type="date" id="addTestDate" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="addTestCost">עלות הטסט</label>
-                                    <input type="number" id="addTestCost" class="form-control" required min="0">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="addInsuranceDate">תאריך חידוש ביטוח</label>
-                                    <input type="date" id="addInsuranceDate" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="addInsuranceCost">עלות ביטוח</label>
-                                    <input type="number" id="addInsuranceCost" class="form-control" required min="0">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="addLastServiceDate">תאריך טיפול אחרון</label>
-                                    <input type="date" id="addLastServiceDate" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="addServiceCost">עלות טיפול אחרון</label>
-                                    <input type="number" id="addServiceCost" class="form-control" required min="0">
-                                </div>
-                                <div class="col-md-12">
-                                    <label for="addAuthorizedDrivers">מי רשאי לנהוג</label>
-                                    <input type="text" id="addAuthorizedDrivers" class="form-control" required>
-                                </div>
-                            </div>
-                            <div class="mt-3 text-end modal-footer">
-                                <button type="submit" class="btn btn-success">שמור</button>
-                                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">ביטול</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+        <div class="search-container">
+            <label for="searchInput" class="me-2">חיפוש רכב:</label>
+            <input type="text" id="searchInput" class="form-control" 
+            placeholder="חפש לפי מספר רכב או סוג רכב...">
         </div>
-
-        <!-- מודאל לעריכת כלי שטח -->
-        <div id="editVehicleModal" class="modal fade" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">ערוך כלי שטח</h5>
-                        <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="editVehicleForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <label for="editVehicleNumber">מספר רכב</label>
-                                    <input type="text" id="editVehicleNumber" class="form-control" readonly>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editVehicleType">סוג הרכב</label>
-                                    <input type="text" id="editVehicleType" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editTestDate">תאריך חידוש טסט</label>
-                                    <input type="date" id="editTestDate" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editTestCost">עלות הטסט</label>
-                                    <input type="number" id="editTestCost" class="form-control" required min="0">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editInsuranceDate">תאריך חידוש ביטוח</label>
-                                    <input type="date" id="editInsuranceDate" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editInsuranceCost">עלות ביטוח</label>
-                                    <input type="number" id="editInsuranceCost" class="form-control" required min="0">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editLastServiceDate">תאריך טיפול אחרון</label>
-                                    <input type="date" id="editLastServiceDate" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editServiceCost">עלות טיפול אחרון</label>
-                                    <input type="number" id="editServiceCost" class="form-control" required min="0">
-                                </div>
-                                <div class="col-md-12">
-                                    <label for="editAuthorizedDrivers">מי רשאי לנהוג</label>
-                                    <input type="text" id="editAuthorizedDrivers" class="form-control" required>
-                                </div>
-                            </div>
-                            <div class="mt-3 text-end modal-footer">
-                                <button type="submit" class="btn btn-success">שמור</button>
-                                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">ביטול</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        
+    </div>
         <!-- טבלת כלי שטח -->
         <table class="table table-bordered">
             <thead>
@@ -324,7 +212,147 @@
             </thead>
             <tbody id="vehicleTable"></tbody>
         </table>
+    </div>
+    </div>
+    <!-- מודאל להוספת כלי שטח -->
+    <div id="addVehicleModal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">הוסף כלי שטח</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="addVehicleForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="addVehicleNumber">מספר רכב</label>
+                                <input type="text" id="addVehicleNumber" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addVehicleType">סוג הרכב</label>
+                                <input type="text" id="addVehicleType" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addTestDate">תאריך חידוש טסט</label>
+                                <input type="date" id="addTestDate" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addTestCost">עלות הטסט</label>
+                                <input type="number" id="addTestCost" class="form-control" required min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addInsuranceDate">תאריך חידוש ביטוח</label>
+                                <input type="date" id="addInsuranceDate" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addInsuranceCost">עלות ביטוח</label>
+                                <input type="number" id="addInsuranceCost" class="form-control" required min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addLastServiceDate">תאריך טיפול אחרון</label>
+                                <input type="date" id="addLastServiceDate" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addServiceCost">עלות טיפול אחרון</label>
+                                <input type="number" id="addServiceCost" class="form-control" required min="0">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="addAuthorizedDrivers">מי רשאי לנהוג</label>
+                                <input type="text" id="addAuthorizedDrivers" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-end modal-footer">
+                            <button type="submit" class="btn btn-success">שמור</button>
+                            <button type="button" class="btn btn-warning" data-bs-dismiss="modal">ביטול</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- מודאל עריכת טסט -->
+    <div id="editTestModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">עריכת טסט</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTestForm">
+                        <input type="hidden" id="editTestVehicleId">
+                        <label for="editTestDate">תאריך חידוש טסט</label>
+                        <input type="date" id="editTestDate" class="form-control" required>
+                        <label for="editTestCost">עלות הטסט</label>
+                        <input type="number" id="editTestCost" class="form-control" required min="0">
+                        <div class="mt-3 text-end modal-footer">
+                            <button type="submit" class="btn btn-success">שמור</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editServiceModal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ערוך טיפול</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="editServiceForm">
+                        <input type="hidden" id="editServiceVehicleId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="editServiceDate">תאריך טיפול אחרון</label>
+                                <input type="date" id="editServiceDate" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editServiceCost">עלות טיפול</label>
+                                <input type="number" id="editServiceCost" class="form-control" required min="0">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="editServiceNotes">הערות על הטיפול</label>
+                                <textarea id="editServiceNotes" class="form-control" rows="3" placeholder="פרטים נוספים על הטיפול..."></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-end modal-footer">
+                            <button type="submit" class="btn btn-success">שמור</button>
+                            <button type="button" class="btn btn-warning" data-bs-dismiss="modal">ביטול</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- מודאל עריכת ביטוח -->
+    <div id="editInsuranceModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">עריכת ביטוח</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="editInsuranceForm">
+                        <input type="hidden" id="editInsuranceVehicleId">
+                        <label for="editInsuranceDate">תאריך חידוש ביטוח</label>
+                        <input type="date" id="editInsuranceDate" class="form-control" required>
+                        <label for="editInsuranceCost">עלות ביטוח</label>
+                        <input type="number" id="editInsuranceCost" class="form-control" required min="0">
+                        <div class="mt-3 text-end modal-footer">
+                            <button type="submit" class="btn btn-success">שמור</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
 

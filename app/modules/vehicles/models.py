@@ -16,7 +16,8 @@ class VehicleManagement:
             "service_cost": data.get("service_cost"),  
             "insurance_date": data.get("insurance_date"),  
             "insurance_cost": data.get("insurance_cost"), 
-            "authorized_drivers": data.get("authorized_drivers")
+            "authorized_drivers": data.get("authorized_drivers"),
+            "manager_email": data.get("manager_email")
         }
         return vehicles
 

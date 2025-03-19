@@ -116,7 +116,8 @@ class VehicleServiceHistory:
             "id": service_id,
             "vehicle_number": data.get("vehicle_number"),  # מספר רכב
             "service_date": data.get("service_date"),  # תאריך טיפול
-            "service_cost": data.get("service_cost")  # עלות טיפול
+            "service_cost": data.get("service_cost"),  # עלות טיפול
+            "service_notes": data.get("service_notes") or None
         }
         return service_record
 
