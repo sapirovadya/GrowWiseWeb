@@ -33,6 +33,7 @@ def create_post():
     user_email = session["email"]
     user_name = f"{session['first_name']} {session['last_name']}"  
 
+    data["content"] = data["content"].replace("\n", "<br>")
     data["publisher_email"] = user_email
     data["publisher_name"] = user_name
 
