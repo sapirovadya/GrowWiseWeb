@@ -136,7 +136,8 @@
                                         ואספקה</a>
                                     <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
                                         הוצאות</a>
-                                    <a href="{{ url_for('vehicles_bp.vehicles_management_page') }}" class="dropdown-item">כלי שטח</a>
+                                    <a href="{{ url_for('vehicles_bp.vehicles_management_page') }}"
+                                        class="dropdown-item">כלי שטח</a>
                                     {% endif %}
                                 </div>
                             </div>
@@ -186,13 +187,13 @@
     </div>
     <main>
         <div class="button-container" id="supp">
-            <button class="btn btn-primary" onclick="navigateToPage('supply')">מחסן</button>
-            <button class="btn btn-primary" onclick="navigateToPage('vehicles')">ניהול כלי שטח</button>
+            <button class="circle-button" onclick="navigateToPage('supply')">מחסן</button>
+            <button class="circle-button" onclick="navigateToPage('vehicles')">ניהול כלי שטח</button>
         </div>
     </main>
     <!-- Back to Top -->
-    <a href="#" class="btn button-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
-
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
+            class="bi bi-arrow-up"></i></a>
 
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
@@ -211,7 +212,7 @@
         function navigateToPage(page) {
             const urls = {
                 'supply': '{{ url_for("supply_bp.supply_inventory") }}',
-                'vehicles':  '{{ url_for("vehicles_bp.vehicles_management_page") }}'
+                'vehicles': '{{ url_for("vehicles_bp.vehicles_management_page") }}'
             };
 
             if (urls[page]) {

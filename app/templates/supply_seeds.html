@@ -190,31 +190,28 @@
 
         <!-- טבלה להצגת הזרעים -->
         <div class="table-container">
-            <div class="table-responsive">
-                <table id="seedsTable" class="table table-striped text-center">
-                    <thead>
-                        <tr>
-                            <th>שם היבול</th>
-                            <th>ק"ג</th>
-                            <th>עריכה</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for supply in supplies %}
-                        <tr>
-                            <td>{{ supply.name }}</td>
-                            <td>{{ supply.quantity }}</td>
-                            <td>
-                                <button class="edit-btn"
-                                    onclick="editSupply('{{ supply.name }}', '{{ supply.quantity }}')">
-                                    <i class="fas fa-edit"></i> ערוך
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            <table id="seedsTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>שם היבול</th>
+                        <th>ק"ג</th>
+                        <th>עריכה</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for supply in supplies %}
+                    <tr>
+                        <td>{{ supply.name }}</td>
+                        <td>{{ supply.quantity }}</td>
+                        <td>
+                            <button class="edit-btn" onclick="editSupply('{{ supply.name }}', '{{ supply.quantity }}')">
+                                <i class="fas fa-edit"></i> ערוך
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -297,8 +294,8 @@
 
 
     <!-- Back to Top -->
-    <a href="#" class="btn button-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
-
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
+            class="bi bi-arrow-up"></i></a>
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
@@ -326,7 +323,6 @@
                 reopenSupplyModal(previousData);
             }
         }
-
         function closeAlert() {
             document.getElementById("customAlert").style.display = "none";
         }
@@ -355,9 +351,6 @@
                 shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
             }
         });
-        function navigateToPage(category) {
-            window.location.href = `/supply-inventory-${category}`;
-        }
         function goBack() {
             if (document.referrer) {
                 window.history.back();
@@ -365,8 +358,6 @@
                 window.location.href = "{{ url_for('home') }}";
             }
         }
-
-
     </script>
 </body>
 
