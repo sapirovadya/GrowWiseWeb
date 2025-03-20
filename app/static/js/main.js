@@ -2055,7 +2055,7 @@ $(document).ready(function () {
             data.forEach(vehicle => {
                 const vehicleNumber = String(vehicle.vehicle_number);
                 const vehicleType = String(vehicle.vehicle_type);
-    
+
                 if (searchQuery === "" || vehicleNumber.includes(searchQuery) || vehicleType.includes(searchQuery)) {
                     $("#vehicleTable").append(`
                         <tr id="row-${vehicle._id}">
@@ -2078,31 +2078,31 @@ $(document).ready(function () {
                     `);
                 }
             });
-    
+
             // מחיקת רכב
             $(".delete-btn").click(function () {
                 let vehicle_id = $(this).data("id");
                 deleteVehicle(vehicle_id);
             });
-    
+
             // פתיחת מודאלים
             $(".edit-test-btn").click(function () {
                 let vehicle_id = $(this).data("id");
                 openEditTestModal(vehicle_id);
             });
-    
+
             $(".edit-service-btn").click(function () {
                 let vehicle_id = $(this).data("id");
                 openEditServiceModal(vehicle_id);
             });
-    
+
             $(".edit-insurance-btn").click(function () {
                 let vehicle_id = $(this).data("id");
                 openEditInsuranceModal(vehicle_id);
             });
         });
     }
-    
+
 
     loadVehicles();
 
@@ -2159,13 +2159,13 @@ $(document).ready(function () {
             }
         });
     });
-    
+
     $("#editServiceForm").submit(function (event) {
         event.preventDefault();
         let vehicleId = $("#editServiceVehicleId").val();
-    
-        let vehicleNumber = $("#row-" + vehicleId).find("td:first").text().trim(); 
-    
+
+        let vehicleNumber = $("#row-" + vehicleId).find("td:first").text().trim();
+
         $.ajax({
             url: `/vehicles/update_service/${vehicleId}`,
             type: "PUT",
@@ -2182,8 +2182,8 @@ $(document).ready(function () {
             }
         });
     });
-    
-    
+
+
     $("#editInsuranceForm").submit(function (event) {
         event.preventDefault();
         let vehicleId = $("#editInsuranceVehicleId").val();
@@ -2201,7 +2201,7 @@ $(document).ready(function () {
             }
         });
     });
-    
+
     function deleteVehicle(vehicle_id) {
         $.ajax({
             url: `/vehicles/delete/${vehicle_id}`,
@@ -2216,17 +2216,17 @@ $(document).ready(function () {
         $("#editTestVehicleId").val(vehicleId);
         $("#editTestModal").modal("show");
     }
-    
+
     function openEditServiceModal(vehicleId) {
         $("#editServiceVehicleId").val(vehicleId);
         $("#editServiceModal").modal("show");
     }
-    
+
     function openEditInsuranceModal(vehicleId) {
         $("#editInsuranceVehicleId").val(vehicleId);
         $("#editInsuranceModal").modal("show");
     }
-    
+
 });
 
 /* recommendation irrgration*/
@@ -2275,3 +2275,156 @@ document.getElementById("getIrrigationButton").addEventListener("click", async f
 function closeIrrigationModal() {
     document.getElementById("irrigationRecommendationModal").style.display = "none";
 }
+
+
+/* Fuel */
+
+function openFuelTypeModal() {
+    console.log("🟢 פתיחת המודאל");
+    document.getElementById("fuelTypeModal").classList.add("show");
+}
+
+function closeFuelTypeModal() {
+    console.log("🔴 סגירת המודאל");
+    document.getElementById("fuelTypeModal").classList.remove("show");
+}
+
+
+function openRefuelModal(type) {
+    closeFuelTypeModal();
+    document.getElementById("fuelEntryForm").style.display = "flex";
+    document.getElementById("refuelType").value = type;
+
+    const dateField = document.getElementById("refuelDate");
+    const monthField = document.getElementById("month");
+
+    if (type === "דלקן") {
+        document.getElementById("monthField").style.display = "block";
+        document.getElementById("dateField").style.display = "none";
+
+        dateField.value = "";
+        dateField.removeAttribute("required");
+        monthField.setAttribute("required", "required");
+
+    } else {
+        document.getElementById("monthField").style.display = "none";
+        document.getElementById("dateField").style.display = "block";
+
+        monthField.value = "";
+        monthField.removeAttribute("required");
+        dateField.setAttribute("required", "required");
+    }
+
+    loadVehicleNumbers();
+}
+
+
+function closeRefuelModal() {
+    document.getElementById("fuelEntryForm").style.display = "none";
+}
+
+async function loadVehicleNumbers() {
+    try {
+        const response = await fetch("/expenses/get_vehicles");
+        if (!response.ok) {
+            throw new Error(`שגיאה בטעינת מספרי הרכב: ${response.status}`);
+        }
+
+        const vehicles = await response.json();
+        if (vehicles.message) {
+            showAlert("שגיאה", vehicles.message, { restoreForm: false });
+            return;
+        }
+
+        const vehicleSelect = document.getElementById("vehicleNumber");
+
+        vehicleSelect.innerHTML = '<option value="">בחר מספר רכב</option>'; // אופציה ריקה להתחלה
+        vehicles.forEach(num => {
+            const option = document.createElement("option");
+            option.value = num;
+            option.textContent = num;
+            vehicleSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Error loading vehicles:", error);
+        showAlert("שגיאה", "שגיאה בטעינת מספרי הרכבים.", {
+            restoreForm: false
+        });
+    }
+}
+
+async function saveFuelExpense() {
+    const vehicleNumber = document.getElementById("vehicleNumber").value;
+    const refuelType = document.getElementById("refuelType").value;
+
+    const refuelDateInput = document.getElementById("refuelDate");
+    const monthSelect = document.getElementById("month");
+
+    const refuelDate = refuelDateInput.style.display !== "none" ? refuelDateInput.value : null;
+    const selectedMonth = monthSelect.style.display !== "none" ? monthSelect.value : null;
+
+    // יצירת פורמט תאריך עם השנה הנוכחית
+    const currentYear = new Date().getFullYear();
+    const month = selectedMonth ? `${currentYear}-${selectedMonth}` : null;
+
+    const fuelAmount = parseFloat(document.getElementById("fuelAmount").value);
+    const cost = parseFloat(document.getElementById("cost").value);
+
+    if (!vehicleNumber || (!refuelDate && !month) || isNaN(fuelAmount) || isNaN(cost)) {
+        showAlert("שגיאה", "נא למלא את כל השדות הנדרשים.", {
+            restoreForm: true,
+            formId: "fuelForm",
+            modalId: "fuelEntryForm"
+        });
+        return;
+    }
+
+    if (fuelAmount <= 0 || cost <= 0) {
+        showAlert("שגיאה", "כמות הדלק והעלות חייבים להיות מספרים גדולים מ-0.", {
+            restoreForm: true,
+            formId: "fuelForm",
+            modalId: "fuelEntryForm"
+        });
+        return;
+    }
+
+    const data = {
+        vehicle_number: vehicleNumber,
+        refuel_type: refuelType,
+        refuel_date: refuelDate,
+        month: month, // נשלח חודש בפורמט YYYY-MM
+        fuel_amount: fuelAmount,
+        cost: cost
+    };
+
+    try {
+        const response = await fetch("/expenses/add_fuel_expense", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+            showAlert("הצלחה", "הוצאה נשמרה בהצלחה!", {
+                isSuccess: true,
+                closeModal: "fuelEntryForm",
+                refreshPage: true
+            });
+        } else {
+            showAlert("שגיאה", "שגיאה בהוספת הוצאה.", {
+                restoreForm: true,
+                formId: "fuelForm",
+                modalId: "fuelEntryForm"
+            });
+        }
+    } catch (error) {
+        console.error("Error saving fuel expense:", error);
+        showAlert("שגיאה", "שגיאה בלתי צפויה בשרת.", {
+            restoreForm: true,
+            formId: "fuelForm",
+            modalId: "fuelEntryForm"
+        });
+    }
+}
+
+

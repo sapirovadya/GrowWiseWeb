@@ -15,6 +15,7 @@ vehicles_collection = db["vehicles"]
 vehicle_service_collection = db["vehicle_service_history"]
 vehicle_test_collection = db["vehicle_test_history"]
 vehicle_insurance_collection = db["vehicle_insurance_history"]
+fuel_collection = db["fuel"]
 
 class Purchase:
     def __init__(self, email, category, name, quantity, unit_price, purchase_date=None):
@@ -150,3 +151,43 @@ class VehicleInsuranceHistory:
             "manager_email": data.get("manager_email")
         }
         return insurance_record
+
+
+class Fuel:
+    def __init__(self, email, vehicle_number, refuel_type, refuel_date, month=None, fuel_amount=None, cost=None):
+        self.id = str(uuid.uuid4()) 
+        self.email = email
+        self.vehicle_number = vehicle_number
+        self.refuel_type = refuel_type  
+        self.refuel_date = refuel_date
+        self.month = month  
+        self.fuel_amount = fuel_amount
+        self.cost = cost
+        self.created_at = datetime.utcnow()
+
+    def to_dict(self):
+        return {
+            "_id": self.id,
+            "email": self.email,
+            "vehicle_number": self.vehicle_number,
+            "refuel_type": self.refuel_type,
+            "refuel_date": self.refuel_date,
+            "month": self.month,
+            "fuel_amount": self.fuel_amount,
+            "cost": self.cost,
+            "created_at": self.created_at,
+        }
+
+    @staticmethod
+    def add_fuel_entry(data):
+        new_entry = Fuel(
+            email=data.get("email"),
+            vehicle_number=data.get("vehicle_number"),
+            refuel_type=data.get("refuel_type"),
+            refuel_date=data.get("refuel_date"),
+            month=data.get("month"),
+            fuel_amount=data.get("fuel_amount"),
+            cost=data.get("cost"),
+        )
+        fuel_collection.insert_one(new_entry.to_dict())
+        return new_entry.to_dict()

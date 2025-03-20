@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv, find_dotenv
 from modules.expenses.models import Purchase
 from modules.expenses.models import Water
+from modules.expenses.models import Fuel
 
 expenses_bp = Blueprint('expenses_bp', __name__)
 
@@ -56,3 +57,44 @@ def add_water():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": f"שגיאת שרת: {str(e)}"}), 500
+
+@expenses_bp.route('/get_vehicles', methods=['GET'])
+def get_vehicles():
+    if 'email' not in session:
+        return jsonify({"message": "Unauthorized"}), 403
+
+    role = session.get('role')
+    email = session.get('email')
+
+    if role == "manager":
+        manager_email = email
+    elif role == "co_manager":
+        manager_email = session.get("manager_email")
+    else:
+        return jsonify({"message": "Unauthorized role"}), 403
+    print(f"🔍 מחפש רכבים עבור מנהל: {manager_email}")  # Debugging
+
+    vehicles = db.vehicles.find({"manager_email": manager_email}, {"_id": 0, "vehicle_number": 1})
+    vehicle_list = [v["vehicle_number"] for v in vehicles]
+    if not vehicle_list:
+        return jsonify({"message": "No vehicles found"}), 404
+    print(f"✅ רכבים שנמצאו: {vehicle_list}")  # Debugging
+
+    return jsonify(vehicle_list)
+
+@expenses_bp.route('/add_fuel_expense', methods=['POST'])
+def add_fuel_expense():
+    if 'email' not in session:
+        return jsonify({"message": "Unauthorized"}), 403
+
+    data = request.json
+    data["email"] = session.get('email')
+
+    if not all([data.get("vehicle_number"), data.get("fuel_amount"), data.get("cost"), data.get("refuel_type")]):
+        return jsonify({"message": "Missing fields"}), 400
+
+    if data.get("refuel_type") == "דלקן" and not data.get("month"):
+        return jsonify({"message": "Missing month for דלקן"}), 400
+
+    result = Fuel.add_fuel_entry(data)
+    return jsonify(result), 201
