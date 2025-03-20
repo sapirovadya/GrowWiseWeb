@@ -6,9 +6,11 @@
     --dark: #252C30;
 }
 
+html,
 body {
     font-family: "Open Sans", sans-serif;
     background: #ffffff;
+    width: 100%;
     direction: rtl;
     display: flex;
     flex-direction: column;
@@ -17,6 +19,7 @@ body {
     text-align: right;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
 }
 
 h1,
@@ -623,8 +626,30 @@ span.me-2 {
 }
 
 .secondary-navbar {
-    margin-top: 10px;
-    z-index: 999;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 5px 40px;
+    /* מגדיל את הריווח הכללי */
+}
+
+.secondary-navbar nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.secondary-navbar #addPlotButton {
+    margin-left: 80px;
+    /* מרחיק את הכפתור "+" מהכפתור "פריסת דף" */
+}
+
+.secondary-navbar .view {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* מרווח טוב יותר בין "פריסת דף" לכפתור */
 }
 
 .list-container {
@@ -1037,7 +1062,8 @@ td:last-child {
 .delete-comment-btn:hover,
 .edit-btn:hover,
 .custom-btn.btn-primary:hover,
-.custom-btn.btn-secondary:hover {
+.custom-btn.btn-secondary:hover,
+.circle-button:hover {
     background-color: var(--secondary);
 }
 
@@ -2133,10 +2159,11 @@ button.btn-light:hover {
 
 .button-container {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 30px;
+    gap: 60px;
     margin-top: 50px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .button-container .btn {
@@ -2144,6 +2171,22 @@ button.btn-light:hover {
     font-size: 16px;
     padding: 10px 0;
     text-align: center;
+}
+
+.circle-button {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: #8fb23e;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
 #supp .btn {
@@ -2262,6 +2305,16 @@ button.btn-light:hover {
 }
 
 @media (max-width: 576px) {
+
+    html,
+    body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+    }
 
     h1,
     h2,
@@ -2400,10 +2453,38 @@ button.btn-light:hover {
         transform: translateX(30px);
     }
 
-    .btn.btn-primary {
-        width: 150px;
+    .secondary-navbar .view {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        /* ריווח קטן בין "פריסת דף" לכפתור */
+    }
+
+    .secondary-navbar .view span {
         font-size: 14px;
-        padding: 6px 6px;
+        margin-right: 2px;
+        /* ריווח קטן יותר */
+    }
+
+    .btn.btn-primary {
+        max-width: 100%;
+        font-size: 16px;
+        padding: 8px 10px;
+        text-align: center;
+        display: inline-block;
+        white-space: nowrap;
+        width: auto;
+    }
+
+    .button-container {
+        flex-direction: column;
+        gap: 50px;
+    }
+
+    .circle-button {
+        width: 120px;
+        height: 120px;
+        font-size: 16px;
     }
 
     .row {
@@ -2416,6 +2497,12 @@ button.btn-light:hover {
         height: 40px;
         right: 20px;
         bottom: 20px;
+    }
+
+    .title {
+        text-align: center;
+        font-size: 20px;
+        margin-bottom: 20px;
     }
 
     .modal-dialog {
@@ -2474,7 +2561,7 @@ button.btn-light:hover {
     }
 
     .page-header h1 {
-        font-size: 2.8rem;
+        font-size: 2.0rem;
         font-weight: bold;
     }
 
@@ -3024,6 +3111,42 @@ button.btn-light:hover {
         background-color: #818181;
         color: white;
     }
+
+    .move-buttons-lower {
+        margin-top: 20px !important;
+    }
+
+    .move-buttons-lower .container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        justify-items: center;
+        width: 100%;
+    }
+
+    .move-buttons-lower .row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .move-buttons-lower .col-3 {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+    }
+
+    .move-buttons-lower .col-3 img {
+        width: 70px;
+        height: 70px;
+    }
+
+    .move-buttons-lower .col-3 p {
+        font-size: 14px;
+    }
 }
 
 /*vehicles */
@@ -3031,34 +3154,67 @@ button.btn-light:hover {
     margin-bottom: 12px;
     padding: 8px;
 }
+
 .modal-footer .btn {
-    width: 100px; 
+    width: 100px;
     padding: 10px;
 }
+
 .modal-body .row {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    margin-bottom: 8px; 
+    margin-bottom: 8px;
 }
 
 .modal-body .col-md-6 {
-    flex: 0 0 calc(50% - 5px); 
-    max-width: calc(50% - 5px); 
+    flex: 0 0 calc(50% - 5px);
+    max-width: calc(50% - 5px);
 }
+
 .action-buttons {
     display: flex;
-    gap: 5px; 
-    justify-content: center; 
+    gap: 5px;
+    justify-content: center;
     align-items: center;
-    flex-wrap: wrap; 
+    flex-wrap: wrap;
 }
 
 .action-btn {
-    width: 80px; 
-    height: 38px; 
+    width: 100px;
+    /* קובע רוחב אחיד לכל הכפתורים */
+    height: 40px;
+    /* קובע גובה אחיד */
     text-align: center;
     font-size: 16px;
+    font-weight: bold;
+    padding: 8px 0;
+    border-radius: 5px;
+    border: none;
+}
+
+.btn-test {
+    background-color: #17a2b8;
+    /* כחול */
+    color: white;
+}
+
+.btn-service {
+    background-color: #ffc107;
+    /* צהוב */
+    color: black;
+}
+
+.btn-insurance {
+    background-color: #8bc34a;
+    /* ירוק */
+    color: white;
+}
+
+.btn-delete-vehicle {
+    background-color: #d9534f;
+    /* אדום */
+    color: white;
 }
 
 /*irrigation*/
@@ -3074,7 +3230,3 @@ button.btn-light:hover {
     align-items: center;
     z-index: 1050;
 }
-
-
-
-

@@ -178,20 +178,21 @@
 
     <div class="container">
         <div class="d-flex align-items-center justify-content-between">
-            <h1 class="title">ניהול אספקה ומלאי</h1>
+            <h1 class="title mb-0">ניהול אספקה ומלאי</h1>
             <button onclick="goBack()" class="btn btn-primary">חזרה</button>
         </div>
+
         <hr class="section-divider ">
         <div class="button-container" id="supp">
-            <button class="btn btn-primary" onclick="navigateToPage('seeds')">זרעים וגידולים</button>
-            <button class="btn btn-primary" onclick="navigateToPage('pesticides')">דברי הדברה</button>
-            <button class="btn btn-primary" onclick="navigateToPage('general')">מוצרים כלליים</button>
+            <button class="circle-button" onclick="navigateToPage('seeds')">זרעים וגידולים</button>
+            <button class="circle-button" onclick="navigateToPage('pesticides')">דברי הדברה</button>
+            <button class="circle-button" onclick="navigateToPage('general')">מוצרים כלליים</button>
         </div>
     </div>
 
     <!-- Back to Top -->
-    <a href="#" class="btn button-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
-
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
+            class="bi bi-arrow-up"></i></a>
 
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
