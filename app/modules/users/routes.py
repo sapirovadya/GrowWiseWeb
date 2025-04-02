@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify,session,current_app
 import pymongo
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime,timedelta
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from modules.users.models import User
@@ -286,6 +286,46 @@ def change_password():
     return render_template('change_password.html')
 
 
+def add_vehicle_notifications():
+    try:
+        today = datetime.today()
+
+        vehicles = db.vehicles.find()
+
+        for vehicle in vehicles:
+            email = vehicle.get("manager_email")
+            vehicle_number = vehicle.get("vehicle_number")
+            print(f"email for the notification: {email}")
+          
+            test_date_str = vehicle.get("test_date")
+            if test_date_str:
+                try:
+                    test_date = datetime.strptime(test_date_str, "%Y-%m-%d")  # המרה למבנה datetime
+                    next_test_date = test_date.replace(year=test_date.year)  # הוספת שנה
+                    alert_start_date = next_test_date - timedelta(days=30)  # חודש לפני
+                    if alert_start_date <= today < next_test_date:
+                        content = f"טסט הרכב עם מספר {vehicle_number} עומד להסתיים בתאריך {next_test_date.strftime('%d-%m-%Y')}. נא לחדש בהקדם."
+                        add_notification(email, None, content)
+                except ValueError:
+                    print(f"שגיאה בהמרת test_date עבור הרכב {vehicle_number}: {test_date_str}")
+
+            # בדיקת חידוש ביטוח
+            insurance_date_str = vehicle.get("insurance_date")
+            if insurance_date_str:
+                try:
+                    insurance_date = datetime.strptime(insurance_date_str, "%Y-%m-%d")  # המרה למבנה datetime
+                    next_insurance_date = insurance_date.replace(year=insurance_date.year)
+                    alert_start_date = next_insurance_date - timedelta(days=30)
+                    if alert_start_date <= today < next_insurance_date:
+                        content = f"ביטוח הרכב עם מספר {vehicle_number} עומד להסתיים בתאריך {next_insurance_date.strftime('%d-%m-%Y')}. נא לחדש בהקדם."
+                        add_notification(email, None, content)
+                except ValueError:
+                    print(f"שגיאה בהמרת insurance_date עבור הרכב {vehicle_number}: {insurance_date_str}")
+
+    except Exception as e:
+        print(f"Error adding vehicle notifications: {e}")
+
+
 @users_bp_main.route("/get_notifications", methods=["GET"])
 def get_notifications():
     try:
@@ -305,6 +345,8 @@ def get_notifications():
 
         elif role == "employee":
             add_employee_notifications(email)
+
+        add_vehicle_notifications()
 
         # שליפת התראות קיימות מהמנוע ומיון לפי זמן יצירתן
         db_notifications = db.notifications.find({"email": email}).sort("created_at", -1)

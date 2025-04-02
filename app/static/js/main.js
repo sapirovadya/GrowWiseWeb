@@ -11,6 +11,13 @@
     };
     spinner();
 
+    (function() {
+        const script = document.createElement("script");
+        script.src = "https://cdn.enable.co.il/licenses/enable-L407982omp8qahbj-0425-69879/init.js";
+        script.async = true;
+        document.head.appendChild(script);
+    })();
+    
 
     // Initiate the wowjs
     new WOW().init();
@@ -129,7 +136,7 @@ function toggleNotifications() {
                         .map(notification => `
                             <div class="notification-item">
                                 <p><strong>תוכן:</strong> ${notification.content}</p>
-                                <p><strong>מייל:</strong> ${notification.employee_email || "לא זמין"}</p>
+                        ${notification.employee_email ? `<p><strong>מייל:</strong> ${notification.employee_email}</p>` : ""}
                                 <hr>
                             </div>
                         `)
