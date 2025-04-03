@@ -10,7 +10,7 @@ client = pymongo.MongoClient(mongo_key)
 db = client.get_database("dataGrow")
 supply_collection = db["supply"] 
 
-supply_bp = Blueprint('supply_bp', __name__)
+supply_bp = Blueprint('supply_bp', __name__, url_prefix="/supply")
 
 @supply_bp.route('/supply-inventory')
 def supply_inventory():

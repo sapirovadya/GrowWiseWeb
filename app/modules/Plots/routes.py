@@ -137,10 +137,13 @@ def save_plot():
 
         crop_category = data.get("crop_category", "none")
         crop_name = data.get("crop", "none")
-        sow_date = data.get("sow_date") if crop_category != "none" and crop_name != "none" else ""
-        quantity_planted = float(data.get("quantity_planted"))
+        sow_date = ""
+        quantity_planted = None
 
         if crop_category != "none" and crop_name != "none":
+            sow_date = data.get("sow_date")
+            quantity_planted_raw = data.get("quantity_planted")
+
             if not sow_date:
                 return jsonify({"error": "נא למלא את תאריך הזריעה"}), 400
 
@@ -149,19 +152,22 @@ def save_plot():
             if sow_date_obj > today:
                 return jsonify({"error": "לא ניתן להזין תאריך עתידי לזריעה"}), 400
 
-            if not quantity_planted or quantity_planted <= 0:
+            if not quantity_planted_raw or quantity_planted_raw <= 0:
                 return jsonify({"error": "נא למלא כמות זריעה תקינה (בק״ג)."}), 400
+            
+            quantity_planted = float(quantity_planted_raw)
 
             crop_entry = db.supply.find_one({"email": manager_email, "name": crop_name, "category": "גידול"})
             if not crop_entry or crop_entry["quantity"] < quantity_planted:
                 return jsonify({"error": f"הזנת כמות הגדולה מהמלאי. ניתן לשתול עד {crop_entry['quantity']} ק\"ג."}), 400
+            
 
             db.supply.update_one(
                 {"email": manager_email, "name": crop_name, "category": "גידול"},
                 {"$inc": {"quantity": -quantity_planted}}
             )
         else:
-            quantity_planted = ""
+            quantity_planted = None
 
         new_plot = {
             "_id": plot_id,  

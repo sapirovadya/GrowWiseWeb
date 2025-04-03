@@ -11,13 +11,13 @@
     };
     spinner();
 
-    (function() {
+    (function () {
         const script = document.createElement("script");
         script.src = "https://cdn.enable.co.il/licenses/enable-L407982omp8qahbj-0425-69879/init.js";
         script.async = true;
         document.head.appendChild(script);
     })();
-    
+
 
     // Initiate the wowjs
     new WOW().init();
@@ -505,7 +505,7 @@ async function openPlotForm(type) {
             }
         });
 
-        cropDiv.style.display = crops.length > 1 ? "block" : "none";
+        cropDiv.style.display = crops.length >= 1 ? "block" : "none";
 
 
     } catch (error) {
