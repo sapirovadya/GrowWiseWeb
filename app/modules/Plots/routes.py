@@ -5,6 +5,7 @@ from dotenv import load_dotenv, find_dotenv
 import os
 import uuid  # מחולל ID ייחודיים
 from modules.Plots.models import Plot
+from modules.task.models import task
 import openai
 from bson import ObjectId
 from datetime import datetime
@@ -22,6 +23,7 @@ plot_bp = Blueprint('plot_bp', __name__)
 mongo_key = os.getenv("MONGO_KEY")
 client = pymongo.MongoClient(mongo_key)
 db = client.get_database("dataGrow")
+tasks_collection = db["plot_tasks"]
 
 @plot_bp.route("/growth_forecast", methods=["POST"])
 def growth_forecast():
@@ -495,4 +497,107 @@ def get_sow_dates():
         return jsonify({"dates": date_list}), 200
     except Exception as e:
         return jsonify({"error": f"שגיאה בשליפת תאריכי זריעה: {str(e)}"}), 500
+
+
+@plot_bp.route("/plot_tasks", methods=["POST"])
+def add_plot_task():
+    data = request.get_json()
+
+    required_fields = ["plot_id", "task_name", "employee_email"]
+    if not all(field in data and data[field] for field in required_fields):
+        return jsonify({"success": False, "error": "יש למלא את כל השדות החובה."}), 400
+
+    due_date = data.get("due_date")
+    if due_date:
+        try:
+            due_date = datetime.strptime(due_date, "%Y-%m-%d")
+        except ValueError:
+            return jsonify({"success": False, "error": "פורמט תאריך לא תקין."}), 400
+    else:
+        due_date = None
+
+    task_data = {
+        "plot_id": data["plot_id"],
+        "task_name": data["task_name"],
+        "task_content": data.get("task_content", ""),
+        "employee_email": data["employee_email"],
+        "giver_email": session.get("email"),
+        "due_date": due_date,
+        "status": "in_progress"
+    }
+
+    new_task_obj = task().new_task(task_data)
+    new_task_obj["plot_id"] = data["plot_id"]
+
+    inserted = tasks_collection.insert_one(new_task_obj)
+    new_task_obj["_id"] = str(inserted.inserted_id)  # ✅ המרה למחרוזת לפני ההחזרה
+
+    return jsonify({"success": True, "message": "המשימה נוספה בהצלחה", "task": new_task_obj}), 200
+
+
+
+@plot_bp.route("/plot_tasks/<plot_id>", methods=["GET"])
+def get_plot_tasks(plot_id):
+    role = session.get("role")
+    user_email = session.get("email")
+    manager_email = user_email if role == "manager" else session.get("manager_email")
+
+    is_manager = role in ["manager", "co_manager"]
+
+    query = {"plot_id": plot_id}
+    if role == "employee":
+        query["employee_email"] = user_email  # רק המשימות של העובד הזה
+
+    tasks = list(tasks_collection.find(query))
+    for t in tasks:
+        t["_id"] = str(t["_id"])
+
+    employees = []
+    if is_manager:
+        employees_cursor = db.employee.find({"manager_email": manager_email})
+        employees = [
+            {
+                "email": e["email"],
+                "name": f'{e.get("first_name", "")} {e.get("last_name", "")}'.strip()
+            }
+            for e in employees_cursor
+        ]
+
+    return jsonify({
+        "tasks": tasks,
+        "is_manager": is_manager,
+        "employees": employees
+    })
+
+
+@plot_bp.route("/update_task_employees", methods=["POST"])
+def update_task_employees():
+    try:
+        data = request.get_json()
+        updates = data.get("updates", [])
+        completed_tasks = data.get("completed_tasks", [])
+
+        # עדכון העובדים
+        for update in updates:
+            task_id = update.get("task_id")
+            employee_email = update.get("employee_email")
+            if task_id and employee_email:
+                tasks_collection.update_one(
+                    {"_id": ObjectId(task_id)},
+                    {"$set": {"employee_email": employee_email}}
+                )
+
+        # עדכון סטטוס של משימות שסומנו כ"done"
+        for task_id in completed_tasks:
+            tasks_collection.update_one(
+                {"_id": ObjectId(task_id)},
+                {"$set": {"status": "done"}}
+            )
+
+        return jsonify({"success": True, "message": "המשימות עודכנו בהצלחה"})
+
+    except Exception as e:
+        print("❌ שגיאה בעדכון עובדים/סטטוס:", e)
+        return jsonify({"success": False, "error": str(e)})
+
 

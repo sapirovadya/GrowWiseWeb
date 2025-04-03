@@ -237,7 +237,6 @@
                     {% endif %}
                 </p>
                 <button id="getIrrigationButton" class="btn btn-primary">קבל המלצת השקיה</button>
-
             </div>
             <div id="weather-info"
                 style="position: absolute; top: 10px; left: 10px; z-index: 1000; background-color: #f8f9fa; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
@@ -272,11 +271,18 @@
                             </div>
                             <p style="font-size: 17px;"><strong>עדכון השקיה</strong></p>
                         </div>
-                        <div class="col-3 text-center" id="growthForecastButton">
+                        <div class="col-3 text-center" id="growthForecastButton" style="margin-left: 50px; ">
                             <div class="service-item-icon">
                                 <img src="/static/img/grow_color.png" alt="" width="80" height="80">
                             </div>
                             <p style="font-size: 17px;"><strong>תחזית גדילה</strong></p>
+                        </div>
+                        <div class="col-3 text-center" id="plotTasksButton"
+                            onclick="openPlotTasksModal('{{ plot._id }}')">
+                            <div class="service-item-icon">
+                                <img src="/static/img/plot_task.png" alt="" width="80" height="80">
+                            </div>
+                            <p style="font-size: 17px;"><strong>משימות חלקה</strong></p>
                         </div>
                     </div>
 
@@ -400,6 +406,53 @@
             </div>
         </div>
     </div>
+
+    <!-- משימות פר חלקה -->
+    <div id="plotTasksModal" class="modal" style="display:none;">
+        <div class="modal-dialog" style="max-width: 1200px; width: 95%;">
+            <div class="modal-content" style="padding: 20px;">
+                <div class="modal-header">
+                    <h4 class="modal-title">משימות חלקה</h4>
+                    <button type="button" class="btn-close" onclick="closePlotTasksModal()"></button>
+                </div>
+                <div class="modal-body" id="plotTasksContainer" style="max-height: 500px; overflow-y: auto;">
+                    <!-- המשימות יוזנו כאן -->
+                </div>
+                <div class="modal-footer d-flex flex-column align-items-start">
+                    <div class="d-flex justify-content-between w-100">
+                        {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+                        <button class="btn btn-secondary" onclick="openNewTaskModal()">הוסף משימה</button>
+                        {%endif%}
+                        <button class="btn btn-primary" onclick="savePlotTasks()">שמירה</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--add new task -->
+    <div id="newTaskModal" class="modal" style="display:none;">
+        <div class="modal-dialog" style="max-width: 1000px; width: 90%;">
+            <div class="modal-content" style="padding: 20px;">
+                <div class="modal-header">
+                    <h5 class="modal-title">משימה חדשה</h5>
+                    <button type="button" class="btn-close" onclick="closeNewTaskModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="newTaskName" class="form-control mb-2" placeholder="כותרת המשימה">
+                    <textarea id="newTaskContentFull" class="form-control mb-2" placeholder="תוכן המשימה"></textarea>
+                    <label for="newTaskDueDate">תאריך יעד:</label>
+                    <input type="date" id="newTaskDueDate" class="form-control mb-2">
+                    <label for="newTaskEmployeeSelect">בחר עובד:</label>
+                    <select id="newTaskEmployeeSelect" class="form-select"></select>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" onclick="submitNewTask()">הוסף</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
     <div id="detailedWeatherModal" class="modal">
@@ -693,9 +746,13 @@
             alertBox.classList.remove("fade-in");
             alertBox.style.display = "none";
 
-            if (isSuccess && redirectUrl) {
-                window.location.href = redirectUrl;
-            } else if (restoreForm && formId && modalId) {
+            // 🟢 הצלחה → חזרה למודל המשימות
+            if (isSuccess && modalId === "plotTasksModal") {
+                handleSuccessAfterAlert(modalId);
+            }
+
+            // 🔁 שיחזור טופס לאחר שגיאה
+            else if (restoreForm && formId && modalId) {
                 const form = document.getElementById(formId);
                 if (form) {
                     for (const field of form.elements) {
@@ -706,7 +763,32 @@
                 }
                 document.getElementById(modalId).style.display = "flex";
             }
+
+            // ↪️ הפניה ל-URL אם יש
+            else if (isSuccess && redirectUrl) {
+                window.location.href = redirectUrl;
+            }
         }
+
+        // ✅ פונקציה חיצונית: פתיחה מחדש של plotTasksModal לאחר הצלחה
+        function handleSuccessAfterAlert(modalId) {
+            // קודם ננסה לשלוף מהמודל עצמו
+            let plotId = null;
+
+            if (modalId === "plotTasksModal") {
+                const modal = document.getElementById("plotTasksModal");
+                plotId = modal.getAttribute("data-plot-id");
+
+                if (plotId) {
+                    modal.style.display = "flex";
+                    loadPlotTasks(plotId);
+                } else {
+                    console.warn("⚠️ לא נמצא plotId בתוך plotTasksModal");
+                }
+            }
+        }
+
+
 
 
     </script>
