@@ -24,7 +24,7 @@ def test_login_manager_success(client):
     assert response.status_code == 200
     assert data["message"] == "login successfuly"
     assert data["role"] == "manager"
-    assert data["redirect_url"] == "/manager/managerpage"
+    assert data["redirect_url"] == "/users/manager/managerpage"
 
 def test_login_employee_success(client):
     # הוספת עובד מדומה לבסיס הנתונים

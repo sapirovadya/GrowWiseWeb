@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, session,render_template, session
 import pymongo
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 from dotenv import load_dotenv, find_dotenv
 from modules.expenses.models import Purchase
@@ -29,34 +29,32 @@ def add_purchase():
 
 @expenses_bp.route('/water/add', methods=['POST'])
 def add_water():
+    data = request.get_json()
+    price = data.get("price")
+    date = data.get("date")
+
+    if not price or price <= 0 or not date:
+        return jsonify({"error": "Invalid data"}), 400
+
+    user_role = session.get('role')
+    if user_role == "manager":
+        email = session.get('email')
+    else:
+        email = session.get('manager_email')
+
+    new_water = {
+        "_id": str(uuid.uuid4()),
+        "email": email,
+        "price": price,
+        "date": date
+    }
     try:
-        data = request.get_json()
-        price = data.get("price")
-        date = data.get("date")
-
-        if not price or price <= 0 or not date:
-            return jsonify({"error": "Invalid data"}), 400
-
-        user_role = session.get('role')
-        if user_role == "manager":
-            email = session.get('email')
-        else:
-            email = session.get('manager_email')
-
-        new_water = {
-            "_id": str(uuid.uuid4()),
-            "email": email,
-            "price": price,
-            "date": date
-        }
-
         db.water.insert_one(new_water)
-
-        return jsonify({"message": "הרכישה נשמרה בהצלחה!"}), 200
-
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": f"שגיאת שרת: {str(e)}"}), 500
+        return jsonify({"error": f"שגיאת שרת: {str(e)}"}), 500  # ✅ return היה חסר
+
+    return jsonify({"message": "הרכישה נשמרה בהצלחה!"}), 200
+
 
 @expenses_bp.route('/get_vehicles', methods=['GET'])
 def get_vehicles():
@@ -75,7 +73,7 @@ def get_vehicles():
     print(f"🔍 מחפש רכבים עבור מנהל: {manager_email}")  # Debugging
 
     vehicles = db.vehicles.find({"manager_email": manager_email}, {"_id": 0, "vehicle_number": 1})
-    vehicle_list = [v["vehicle_number"] for v in vehicles]
+    vehicle_list = [v.get("vehicle_number") for v in vehicles if v.get("vehicle_number")]
     if not vehicle_list:
         return jsonify({"message": "No vehicles found"}), 404
     print(f"✅ רכבים שנמצאו: {vehicle_list}")  # Debugging

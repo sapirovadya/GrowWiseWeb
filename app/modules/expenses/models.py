@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 import pymongo
 import os
 from dotenv import load_dotenv
@@ -25,7 +25,7 @@ class Purchase:
         self.name = name  
         self.quantity = quantity 
         self.unit_price = unit_price 
-        self.purchase_date = purchase_date if purchase_date else datetime.utcnow()  # תאריך הרכישה
+        self.purchase_date = purchase_date if purchase_date else datetime.now(timezone.utc)  # תאריך הרכישה
 
     def to_dict(self):
         return {
@@ -58,7 +58,7 @@ class Irrigation:
         self.name = name
         self.quantity_irrigation = quantity_irrigation
         self.sow_date = sow_date
-        self.Irrigation_date = Irrigation_date if Irrigation_date else datetime.utcnow()
+        self.Irrigation_date = Irrigation_date if Irrigation_date else datetime.now(timezone.utc)
 
     def to_dict(self):
         return {
@@ -87,7 +87,7 @@ class Water:
         self.id = str(uuid.uuid4())  # מזהה ייחודי
         self.email = email  # כתובת אימייל של המשתמש שביצע את ההכנסה
         self.price = price  # מחיר לקו״ב 
-        self.date = date if date else datetime.utcnow()  # תאריך הכנסת הנתון
+        self.date = date if date else datetime.now(timezone.utc)  # תאריך הכנסת הנתון
 
     def to_dict(self):
         return {
@@ -163,7 +163,7 @@ class Fuel:
         self.month = month  
         self.fuel_amount = fuel_amount
         self.cost = cost
-        self.created_at = datetime.utcnow()
+        self.created_at = datetime.now(timezone.utc)
 
     def to_dict(self):
         return {
