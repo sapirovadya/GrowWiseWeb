@@ -298,9 +298,7 @@ def add_vehicle_notifications():
 
         for vehicle in vehicles:
             email = vehicle.get("manager_email")
-            vehicle_number = vehicle.get("vehicle_number")
-            print(f"email for the notification: {email}")
-          
+            vehicle_number = vehicle.get("vehicle_number")          
             test_date_str = vehicle.get("test_date")
             if test_date_str:
                 try:

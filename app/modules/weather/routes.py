@@ -26,8 +26,6 @@ def get_weather():
     print(f"Using API Key: {weatherbit_api_key}")
 
     try:
-        print("Weatherbit API Key:", weatherbit_api_key)
-
         email = session.get("email")
         role = session.get("role")
 

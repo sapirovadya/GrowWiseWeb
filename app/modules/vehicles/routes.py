@@ -84,9 +84,15 @@ def add_vehicle():
 
 @vehicles_bp.route('/get', methods=['GET'])
 def get_vehicles():
-    vehicles = list(vehicles_collection.find({}))
+
+    role = session.get("role")
+    if role == "manager":
+        manager_email = session.get("email")
+    else:
+        manager_email = session.get("manager_email")
+
+    vehicles = list(vehicles_collection.find({"manager_email": manager_email}))
     
-    # המרת ObjectId למחרוזת JSON
     for vehicle in vehicles:
         vehicle["_id"] = str(vehicle["_id"])
     
