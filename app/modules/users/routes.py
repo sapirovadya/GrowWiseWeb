@@ -17,7 +17,7 @@ from modules.users.models import Notification
 load_dotenv()
 
 # הגדרת ה-Blueprint
-users_bp_main = Blueprint('users_bp_main', __name__)
+users_bp_main = Blueprint('users_bp_main', __name__,  url_prefix="/users")
 logout_bp = Blueprint('logout_bp', __name__)
 
 # התחברות ל-MongoDB
@@ -202,24 +202,28 @@ def profile_page():
     # נשלוף את נתוני המשתמש מהסשן או מבסיס הנתונים
     user_email = session.get('email')
     role = session.get('role')
+
     if role == "manager":
         user = db.manager.find_one({"email": user_email})
         if user:
             return render_template('profile.html', user=user)
         else:
-            return redirect(url_for('manager_bp.manager_home_page'))
+            return redirect(url_for('manager_bp.manager_home_page'))  # ה-Blueprint של המנהל
     elif role == "co_manager":
         user = db.co_manager.find_one({"email": user_email})  # נתוני המשתמש
         if user:
             return render_template('profile.html', user=user)
         else:
-            return redirect(url_for('co_manager_bp.co_manager_home_page'))
-    else:
+            return redirect(url_for('co_manager_bp.co_manager_home_page'))  # ה-Blueprint של השותף
+    elif role == "employee":
         user = db.employee.find_one({"email": user_email})  # נתוני המשתמש
         if user:
             return render_template('profile.html', user=user)
         else:
-            return redirect(url_for('employee_bp.employee_home_page'))
+            return redirect(url_for('employee_bp.employee_home_page'))  # ה-Blueprint של העובד
+    else:
+        return redirect(url_for('home'))  # אם התפקיד לא מתאים, נווט לדף הבית
+
 
 @users_bp_main.route('/save_profile', methods=['POST'])
 def save_profile():

@@ -75,16 +75,18 @@ def add_comment():
 def delete_post(post_id):
     if "email" not in session:
         return jsonify({"error": "משתמש לא מחובר"}), 401
+    try:
+        post = posts_collection.find_one({"id": post_id})
+        if not post:
+            return jsonify({"error": "הפוסט לא נמצא"}), 404
 
-    post = posts_collection.find_one({"id": post_id})
-    if not post:
-        return jsonify({"error": "הפוסט לא נמצא"}), 404
+        if post["publisher_email"] != session["email"]:
+            return jsonify({"error": "אין לך הרשאה למחוק פוסט זה"}), 403
 
-    if post["publisher_email"] != session["email"]:
-        return jsonify({"error": "אין לך הרשאה למחוק פוסט זה"}), 403
-
-    posts_collection.delete_one({"id": post_id})
-    return jsonify({"success": "הפוסט נמחק"}), 200
+        posts_collection.delete_one({"id": post_id})
+        return jsonify({"success": "הפוסט נמחק"}), 200
+    except Exception as e:
+        return jsonify({"error": f"שגיאה בשרת: {str(e)}"}), 500
 
 @posts_bp.route('/<post_id>/comments/<comment_id>', methods=['DELETE'])
 def delete_comment(post_id, comment_id):
@@ -96,12 +98,13 @@ def delete_comment(post_id, comment_id):
         return jsonify({"error": "הפוסט לא נמצא"}), 404
 
     comment_index = next((i for i, c in enumerate(post.get("comments", [])) if c["id"] == comment_id), None)
-    
+
     if comment_index is None:
         return jsonify({"error": "התגובה לא נמצאה"}), 404
 
     comment = post["comments"][comment_index]
 
+    # שינוי כאן, המפתח היה comסmenter_email והיה צריך להיות commenter_email
     if comment["commenter_email"] != session["email"]:
         return jsonify({"error": "אין לך הרשאה למחוק תגובה זו"}), 403
 
