@@ -11,3 +11,5 @@ pytest-mock
 gunicorn
 openai==0.27
 requests
+Flask-Dance
+
