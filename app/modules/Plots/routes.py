@@ -420,14 +420,17 @@ def archive_plot(plot_id):
         if not harvest_date or not crop_yield:
             return jsonify({"error": "Missing required fields"}), 400
 
-        try:
-            plot_oid = ObjectId(plot_id)
-        except Exception:
-            return jsonify({"error": "Invalid plot ID"}), 404
+        if not isinstance(crop_yield, (int, float)):
+            return jsonify({"error": "Crop yield must be a number"}), 400
+
+        # אין צורך ב-ObjectId
+        plot = db.plots.find_one({"_id": plot_id})
+        if not plot:
+            return jsonify({"error": "Plot not found"}), 404
 
         # עדכון החלקה בבסיס הנתונים
         db.plots.update_one(
-            {"_id": plot_oid},
+            {"_id": plot_id},
             {
                 "$set": {
                     "harvest_date": harvest_date,
@@ -436,7 +439,7 @@ def archive_plot(plot_id):
                 }
             }
         )
-        return redirect(url_for('plot_bp.track_greenhouse'))
+        return jsonify({"message": "החלקה הועברה לארכיון"}), 200
 
     except Exception as e:
         print(f"Error archiving plot: {e}")

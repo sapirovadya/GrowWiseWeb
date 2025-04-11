@@ -216,7 +216,98 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
     }
+    const yearlyCanvas = document.getElementById("yearlyIncomeExpenseChart");
+    if (yearlyCanvas) {
+        const rawData = yearlyCanvas.dataset.chart;
+        const data = JSON.parse(rawData);
 
+        const labels = data.map(item => item.month);
+        const incomeData = data.map(item => item.income);
+        const expenseData = data.map(item => item.expense);
+
+        new Chart(yearlyCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'הכנסות',
+                        data: incomeData,
+                        backgroundColor: '#4CAF50',
+                        stack: 'combined'
+                    },
+                    {
+                        label: 'הוצאות',
+                        data: expenseData,
+                        backgroundColor: '#E53935',
+                        stack: 'combined'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true, ticks: {
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    y: {
+                        stacked: true, beginAtZero: true, ticks: {
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    const pieCtx = document.getElementById('yearlyPieChart');
+    if (pieCtx) {
+        const pieData = JSON.parse(pieCtx.dataset.chart);
+        new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: pieData.labels,
+                datasets: [{
+                    data: pieData.data,
+                    backgroundColor: pieData.colors
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    }
+
+    const lineCtx = document.getElementById('cashFlowChart');
+    if (lineCtx) {
+        const trendData = JSON.parse(lineCtx.dataset.chart);
+        new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: trendData.labels,
+                datasets: [{
+                    label: 'תזרים שנתי',
+                    data: trendData.data,
+                    fill: false,
+                    borderColor: 'blue',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    }
     // בדיקה אם האלמנט badge בכלל קיים (לא בכל הדפים)
     const badge = document.getElementById("notificationBadge");
     if (badge) {
@@ -478,7 +569,10 @@ async function finalizePlot() {
         if (response.redirected) {
             window.location.href = response.url;
         } else if (response.ok) {
-            showAlert('החלקה הועברה לארכיון בהצלחה!', null, '/Plots/track_greenhouse');
+            showAlert('החלקה הועברה לארכיון בהצלחה!', '', {
+                isSuccess: true,
+                redirectUrl: '/Plots/track_greenhouse'
+            });
         } else {
             const errorData = await response.json();
             showAlert(`שגיאה: ${errorData.error}`);

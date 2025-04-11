@@ -246,6 +246,13 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-12 mt-0 d-flex justify-content-center">
+            <div style="width: 80%; max-width: 800px;">
+                <h3 class="text-center">השוואת הכנסות והוצאות לפי חודשים</h3>
+                <canvas id="yearlyIncomeExpenseChart" data-chart='{{ yearly_data_json|safe }}'
+                    style="width: 100%; height: 350px;"></canvas>
+            </div>
+        </div>
     </div>
 
     <!-- Back to Top -->
