@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>דו"ח נוכחות עובדים</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2e7d32;
+            text-align: center;
+        }
+
+        .summary {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+
+<body>
+    <img src="{{ base_url }}static/img/logo_growwise.png" alt="GrowWise Logo" style="height: 70px;">
+    <h1>נוכחות עובדים חודשית</h1>
+    <p><strong>חודש נבחר:</strong> {{ selected_month }}/{{ selected_year }}</p>
+    <p><strong>שם עובד:</strong> {{ selected_name if selected_name != 'all' else 'כולם' }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>תאריך כניסה</th>
+                <th>שם פרטי</th>
+                <th>שם משפחה</th>
+                <th>שעת כניסה</th>
+                <th>שעת יציאה</th>
+                <th>סה"כ שעות</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in records %}
+            <tr>
+                <td>{{ row.check_in_date }}</td>
+                <td>{{ row.first_name }}</td>
+                <td>{{ row.last_name }}</td>
+                <td>{{ row.check_in }}</td>
+                <td>{{ row.check_out }}</td>
+                <td>{{ row.total_hours }}</td>
+            </tr>
+            {% endfor %}
+            {% if records|length == 0 %}
+            <tr>
+                <td colspan="6">אין נתונים לתצוגה</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <p class="summary">סה"כ שעות: {{ total_hours_sum }}</p>
+</body>
+
+</html>
