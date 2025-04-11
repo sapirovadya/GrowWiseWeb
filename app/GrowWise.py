@@ -16,6 +16,8 @@ from modules.attendance.routes import attendance_bp
 from modules.supply.routes import supply_bp
 from modules.expenses.routes import expenses_bp
 from modules.vehicles.routes import vehicles_bp
+from modules.reports.routes import reports_bp
+
 
 import json
 
@@ -44,6 +46,12 @@ app.register_blueprint(attendance_bp, url_prefix='/attendance')
 app.register_blueprint(supply_bp, url_prefix='/supply')
 app.register_blueprint(expenses_bp, url_prefix='/expenses')
 app.register_blueprint(vehicles_bp, url_prefix='/vehicles')
+app.register_blueprint(reports_bp, url_prefix='/reports')
+
+HEBREW_MONTHS = [
+    "", "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
+    "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"
+]
 
 def update_crops_data():
     collection = app.db["crops_options"]
@@ -104,6 +112,14 @@ def update_israel_cities():
 
     except Exception as e:
         print(f"Error occurred while updating Israel cities: {str(e)}")
+
+@app.template_filter('hebrew_month')
+def hebrew_month_filter(month_str):
+    try:
+        year, month = map(int, month_str.split('-'))
+        return f"{HEBREW_MONTHS[month]} {year}"
+    except:
+        return month_str
 
 
 @app.route("/")

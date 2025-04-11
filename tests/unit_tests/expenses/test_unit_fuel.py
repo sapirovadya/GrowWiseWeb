@@ -13,6 +13,7 @@ def client():
     app.register_blueprint(expenses_bp)
     with app.test_client() as client:
         yield client
+    expenses_routes.db.fuel.delete_many({"email": "manager@test.com"})
 
 
 def login_as(client, role="manager", email="manager@test.com"):

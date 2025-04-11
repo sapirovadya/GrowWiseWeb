@@ -136,11 +136,13 @@
                                         ואספקה</a>
                                     <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
                                         הוצאות</a>
+                                    <a href="{{ url_for('vehicles_bp.vehicles_management_page') }}"
+                                        class="dropdown-item">כלי שטח</a>
                                     {% endif %}
                                 </div>
                             </div>
                             {% endif %}
-                            <!-- 🏠 לכל המשתמשים -->
+                            <!-- לכל המשתמשים -->
                             <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
                             <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
                             {% if session['role'] %}
@@ -175,49 +177,22 @@
     </div>
     <!-- Navbar End -->
     <hr class="section-divider ">
-    <!-- Main Content Start -->
-    <div class="container mb-2">
-        <!-- כותרת -->
-        <div class="d-flex align-items-center justify-content-between">
-            <h1 class="title">שלום, {{ first_name }}</h1>
-        </div>
-        <!-- עלים -->
-        <div class="leaf-container">
-            <div class="leaf" onclick="navigateTo('track_greenhouse')">
-                <img src="/static/img/leaf.png" alt="מעקב">
-                <span>מעקב חלקות/חממות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('archive')">
-                <img src="/static/img/leaf.png" alt="ארכיון">
-                <span>ארכיון חלקות/חממות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('optimal_management')">
-                <img src="/static/img/leaf.png" alt="ניהול">
-                <span>ניהול חלקות אופטימלי</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('reports')">
-                <img src="/static/img/leaf.png" alt="דו" חות">
-                <span>דו"חות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('team')">
-                <img src="/static/img/leaf.png" alt="צוות">
-                <span>הצוות שלי</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('calculator')">
-                <img src="/static/img/leaf.png" alt="מחשבון">
-                <span>מחשבון הוצאות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('inventory')">
-                <img src="/static/img/leaf.png" alt="מלאי">
-                <span>לוגיסטיקה וניהול</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('jobs')">
-                <img src="/static/img/leaf.png" alt="חנות">
-                <span>רשת חברתית לפרסום משרות</span>
-            </div>
-        </div>
-    </div>
 
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="title mb-0">רשימת דו״חות</h1>
+            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+        </div>
+        <hr class="section-divider ">
+    </div>
+    <br>
+    <main>
+        <ul>
+            <li><a href="{{ url_for('reports_bp.monthly_income_expense_report') }}">הוצאות והכנסות חודשיים</a></li><br>
+            <li><a href="{{ url_for('reports_bp.yearly_report') }}">הוצאות והכנסות שנתיים</a></li>
+
+        </ul>
+    </main>
     <!-- Back to Top -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
             class="bi bi-arrow-up"></i></a>
@@ -233,24 +208,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     <script src="/static/js/main.js"></script>
+
     <script>
-        function navigateTo(page) {
-            const urls = {
-                'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
-                'archive': '{{ url_for("plot_bp.archive") }}',
-                'optimal_management': '#',
-                'reports': '{{ url_for("reports_bp.reports_home") }}',
-                'team': '{{ url_for("manager_bp.get_employees_list") }}',
-                'calculator': '{{ url_for("manager_bp.expense_page") }}',
-                'inventory': '{{ url_for("manager_bp.logistic_management") }}',
-                'jobs': '{{ url_for("posts_bp.social_feed") }}'
-            };
-
-            if (urls[page]) {
-                window.location.href = urls[page];
-            }
-        }
-
         document.addEventListener("DOMContentLoaded", async function () {
             //מזג אוויר
             const shortWeatherDiv = document.getElementById("weather-info-short");
@@ -265,18 +224,23 @@
 
                 // עדכון התצוגה הקצרה בסרגל הכלים
                 shortWeatherDiv.innerHTML = `
-                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
-                    <strong>${data.city}</strong> ${data.temperature}°C
-                `;
+                <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                <strong>${data.city}</strong> ${data.temperature}°C
+            `;
             } catch (error) {
                 console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
                 shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
             }
         });
-
+        function goBack() {
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = "{{ url_for('home') }}"; // אפשר להגדיר דף ברירת מחדל במקרה שאין דף קודם
+            }
+        }
 
     </script>
-
 </body>
 
 </html>
