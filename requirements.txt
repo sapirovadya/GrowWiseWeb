@@ -12,6 +12,4 @@ gunicorn
 openai==0.27
 requests
 Flask-Dance
-requests requests-oauthlib
 pdfkit
-
