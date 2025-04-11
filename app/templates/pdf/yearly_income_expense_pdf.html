@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>דו"ח הכנסות והוצאות שנתי</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            padding: 30px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .top-bar .logo {
+            height: 70px;
+            object-fit: contain;
+        }
+
+        .report-title {
+            font-size: 30px;
+            font-weight: bold;
+            color: #2e7d32;
+            text-align: center;
+            flex-grow: 1;
+            margin-right: -100px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 22px;
+            margin: 20px 0 10px;
+            text-decoration: underline;
+        }
+
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: -120px;
+        }
+
+        .chart-box,
+        .table-box {
+            width: 48%;
+        }
+
+        .chart-box img {
+            width: 100%;
+            height: auto;
+        }
+
+        .box {
+            border: 1px solid #ccc;
+            padding: 2px;
+            border-radius: 8px;
+        }
+
+        .box ul {
+            padding: 0;
+            list-style: none;
+        }
+
+        .box li {
+            margin-bottom: 6px;
+        }
+
+        .box.expense {
+            border-color: red;
+        }
+
+        .box.income {
+            border-color: green;
+        }
+
+        .highlight {
+            font-weight: bold;
+        }
+
+        .section {
+            margin-top: 20px !important;
+        }
+
+        .centered-title {
+            text-align: center;
+            margin-top: 30px !important;
+        }
+
+        .no-page-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .prevent-page-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            page-break-before: auto;
+            page-break-after: auto;
+        }
+
+        .line-chart img {
+            max-width: 60%;
+            height: auto;
+        }
+
+        .chart-box img,
+        .line-chart img {
+            width: 100%;
+            max-height: 280px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="prevent-page-break">
+
+        <div class="top-bar">
+            <h1 class="report-title">דו"ח הכנסות והוצאות שנתי</h1>
+            <img src="{{ url_for('static', filename='img/logo_growwise.png') }}" alt="GrowWise Logo" class="logo">
+        </div>
+
+        <p><span class="highlight">שנה נבחרה:</span> {{ selected_year }}</p>
+
+        <div class="flex-container">
+            <div class="chart-box">
+                <img src="data:image/png;base64,{{ pie_chart_image }}" alt="Pie Chart">
+            </div>
+            <div class="table-box">
+                <div class="box expense">
+                    <h2 style="text-decoration: underline;">הוצאות</h2>
+                    <ul>
+                        {% for key, val in expenses_by_category.items() %}
+                        <li><strong>{{ key }}:</strong> {{ val }} ₪</li>
+                        {% endfor %}
+                        <li class="highlight"><strong>סה"כ הוצאות:</strong> {{ total_expenses }} ₪</li>
+                    </ul>
+                </div>
+                <div class="box income">
+                    <h2 style="text-decoration: underline;">הכנסות</h2>
+                    <ul>
+                        {% for key, val in income_by_category.items() %}
+                        <li><strong>{{ key }}:</strong> {{ val }} ₪</li>
+                        {% endfor %}
+                        <li class="highlight"><strong>סה"כ הכנסות:</strong> {{ total_income }} ₪</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section centered-title" style="margin-top: 10px; padding: 0;">
+            <h2 class="section-title" style="margin-bottom: 8px;">תזרים של שלוש השנים האחרונות</h2>
+            <img src="data:image/png;base64,{{ line_chart_image }}" alt="Cash Flow Line Chart">
+        </div>
+    </div>
+
+</body>
+
+</html>

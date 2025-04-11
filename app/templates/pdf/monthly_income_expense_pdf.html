@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>דוח הכנסות והוצאות</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            padding: 30px;
+        }
+
+        /* כותרת ולוגו */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .top-bar .logo {
+            height: 70px;
+            object-fit: contain;
+        }
+
+        .report-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2e7d32;
+            text-align: center;
+            flex-grow: 1;
+            margin-right: -80px;
+            /* מזיז את הטקסט לאמצע למרות הלוגו */
+        }
+
+        .section {
+            margin-top: 5px;
+        }
+
+        .section h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: -120px;
+        }
+
+        .chart,
+        .table-box {
+            width: 48%;
+        }
+
+        .chart img {
+            width: 100%;
+            height: auto;
+        }
+
+        .table-box ul {
+            padding: 0;
+            list-style: none;
+        }
+
+        .table-box li {
+            margin-bottom: 8px;
+        }
+
+        .centered-title {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .sub-section {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .sub-section h3 {
+            margin-bottom: 5px;
+            font-size: 18px;
+            text-decoration: underline;
+        }
+
+        .expenses-box {
+            border: 1.5px solid red;
+        }
+
+        .income-box {
+            border: 1.5px solid green;
+        }
+
+        .highlight {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- לוגו וכותרת -->
+    <div class="top-bar">
+        <h1 class="report-title">דוח הכנסות והוצאות חודשיים</h1>
+        <img src="{{ url_for('static', filename='img/logo_growwise.png') }}" alt="GrowWise Logo" class="logo">
+    </div>
+
+    <p><span class="highlight">חודש נבחר:</span> {{ selected_month }}</p>
+
+    <div class="flex-container">
+        <div class="chart">
+            <img src="data:image/png;base64,{{ pie_chart_image }}" alt="Pie Chart">
+        </div>
+        <div class="table-box">
+            <div class="sub-section expenses-box">
+                <h3>הוצאות</h3>
+                <ul>
+                    {% for key, val in expenses_by_category.items() %}
+                    <li><strong>{{ key }}:</strong> {{ val }} ₪</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="sub-section income-box">
+                <h3>הכנסות</h3>
+                <ul>
+                    {% for key, val in income_by_category.items() %}
+                    <li><strong>{{ key }}:</strong> {{ val }} ₪</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="section centered-title">
+        <h2 style="text-decoration: underline; font-size: 25px;">השוואת הכנסות והוצאות לפי חודשים</h2>
+        <img src="data:image/png;base64,{{ bar_chart_image }}" alt="Bar Chart" style="max-width:100%;">
+    </div>
+
+</body>
+
+</html>
