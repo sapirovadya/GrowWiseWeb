@@ -107,6 +107,8 @@
 
 function showNotificationBadge(newNotificationsCount) {
     const badge = document.getElementById("notificationBadge");
+    if (!badge) return;
+
     if (newNotificationsCount > 0) {
         badge.style.display = "flex";
         badge.textContent = newNotificationsCount;
@@ -115,28 +117,29 @@ function showNotificationBadge(newNotificationsCount) {
     }
 }
 
-
 function toggleNotifications() {
     const modal = document.getElementById("notificationModal");
     const badge = document.getElementById("notificationBadge");
+    const notificationsList = document.getElementById("notifications-list");
+
+    if (!modal || !badge || !notificationsList) return;
 
     if (modal.style.display === "none" || modal.style.display === "") {
         modal.style.display = "block";
-
         badge.style.display = "none";
+
         fetch("/users/mark_notifications_seen", { method: "POST" })
             .catch(error => console.error("Error marking notifications as seen:", error));
 
         fetch("/users/get_notifications")
             .then(response => response.json())
             .then(data => {
-                const notificationsList = document.getElementById("notifications-list");
                 if (data.notifications.length > 0) {
                     notificationsList.innerHTML = data.notifications
                         .map(notification => `
                             <div class="notification-item">
                                 <p><strong>תוכן:</strong> ${notification.content}</p>
-                        ${notification.employee_email ? `<p><strong>מייל:</strong> ${notification.employee_email}</p>` : ""}
+                                ${notification.employee_email ? `<p><strong>מייל:</strong> ${notification.employee_email}</p>` : ""}
                                 <hr>
                             </div>
                         `)
@@ -153,14 +156,16 @@ function toggleNotifications() {
 
 function closeNotifications() {
     const modal = document.getElementById("notificationModal");
-    modal.style.display = "none";
-    document.removeEventListener("click", closeOnOutsideClick);
+    if (modal) {
+        modal.style.display = "none";
+        document.removeEventListener("click", closeOnOutsideClick);
+    }
 }
 
 function closeOnOutsideClick(event) {
     const modal = document.getElementById("notificationModal");
     const notificationIcon = document.getElementById("notificationIcon");
-    if (!modal.contains(event.target) && event.target !== notificationIcon) {
+    if (modal && notificationIcon && !modal.contains(event.target) && event.target !== notificationIcon) {
         closeNotifications();
     }
 }
@@ -174,16 +179,58 @@ document.addEventListener("DOMContentLoaded", async function () {
         loadManagerAttendanceRecords();
     }
 
-    try {
-        const notificationsResponse = await fetch("/users/get_notifications");
-        const notificationsData = await notificationsResponse.json();
+    const canvas = document.getElementById('incomeExpenseChart');
+    if (canvas) {
+        const expense = parseFloat(canvas.dataset.expense);
+        const income = parseFloat(canvas.dataset.income);
+        const ctx = canvas.getContext('2d');
 
-        showNotificationBadge(notificationsData.new_notifications_count);
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['הוצאות', 'הכנסות'],
+                datasets: [{
+                    label: 'דו"ח חודשי',
+                    data: [expense, income],
+                    backgroundColor: ['#E53935', '#4CAF50']
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
 
-    } catch (error) {
-        console.error("Error fetching notifications:", error);
+        const balance = income - expense;
+        const balanceStatus = document.getElementById("balanceStatus");
+
+        if (balanceStatus) {
+            if (balance > 0) {
+                balanceStatus.classList.add("alert", "alert-success");
+                balanceStatus.textContent = `החודש הצלחת להגיע לתזרים חיובי - ${balance.toFixed(2)} ₪`;
+            } else if (balance < 0) {
+                balanceStatus.classList.add("alert", "alert-danger");
+                balanceStatus.textContent = `החודש סיימת עם תזרים שלילי - ${Math.abs(balance).toFixed(2)}- ₪, לא נורא תנסה חודש הבא להגיע לתוצאות טובות יותר`;
+            } else {
+                balanceStatus.classList.add("alert", "alert-secondary");
+                balanceStatus.textContent = "החודש הסתיים עם תזרים מאוזן.";
+            }
+        }
+    }
+
+    // בדיקה אם האלמנט badge בכלל קיים (לא בכל הדפים)
+    const badge = document.getElementById("notificationBadge");
+    if (badge) {
+        try {
+            const notificationsResponse = await fetch("/users/get_notifications");
+            const notificationsData = await notificationsResponse.json();
+
+            showNotificationBadge(notificationsData.new_notifications_count);
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+        }
     }
 });
+
 
 
 /* Logout */
@@ -2214,48 +2261,47 @@ $(document).ready(function () {
 });
 
 /* recommendation irrgration*/
-document.getElementById("getIrrigationButton").addEventListener("click", async function () {
-    const modal = document.getElementById("growthForecastModal");
-    const forecastTitle = document.querySelector("#growthForecastModal .modal-title");
-    const recommendationText = document.getElementById("growthForecastText");
+const irrigationButton = document.getElementById("getIrrigationButton");
 
-    forecastTitle.textContent = "המלצת השקיה";
+if (irrigationButton) {
+    irrigationButton.addEventListener("click", async function () {
+        const modal = document.getElementById("growthForecastModal");
+        const forecastTitle = document.querySelector("#growthForecastModal .modal-title");
+        const recommendationText = document.getElementById("growthForecastText");
 
-    recommendationText.innerHTML = "<p> טוען המלצת השקיה...</p>";
-    modal.style.display = "flex";
+        forecastTitle.textContent = "המלצת השקיה";
+        recommendationText.innerHTML = "<p> טוען המלצת השקיה...</p>";
+        modal.style.display = "flex";
 
-    const cropType = document.getElementById("crop").textContent.trim();
+        const cropType = document.getElementById("crop").textContent.trim();
 
-    if (!cropType) {
-        recommendationText.innerHTML = `<p style="color: red;"> שגיאה: סוג הגידול לא נמצא.</p>`;
-        return;
-    }
-
-    try {
-        const response = await fetch("/weather/irrigation_recommendation", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                crop_type: cropType
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error("שגיאה בטעינת המלצה");
+        if (!cropType) {
+            recommendationText.innerHTML = `<p style="color: red;"> שגיאה: סוג הגידול לא נמצא.</p>`;
+            return;
         }
 
-        const data = await response.json();
-        recommendationText.innerHTML = `
-            <p>${data.irrigation_advice || "לא נמצאו נתוני השקיה."}</p>
-        `;
+        try {
+            const response = await fetch("/weather/irrigation_recommendation", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ crop_type: cropType })
+            });
 
-    } catch (error) {
-        recommendationText.innerHTML = `<p style="color: red;"> שגיאה: ${error.message}</p>`;
-    }
-});
+            if (!response.ok) {
+                throw new Error("שגיאה בטעינת המלצה");
+            }
 
+            const data = await response.json();
+            recommendationText.innerHTML = `
+                <p>${data.irrigation_advice || "לא נמצאו נתוני השקיה."}</p>
+            `;
+        } catch (error) {
+            recommendationText.innerHTML = `<p style="color: red;"> שגיאה: ${error.message}</p>`;
+        }
+    });
+}
 
 
 /* Fuel */
@@ -2590,3 +2636,4 @@ async function savePlotTasks() {
     }
 }
 
+// דו״ח הכנסות הוצעות

@@ -2744,8 +2744,14 @@ button.btn-light:hover {
         height: auto;
         box-shadow: none !important;
         border-radius: 0;
+        z-index: 1055 !important;
         margin: 0 !important;
     }
+
+    .navbar-collapse:not(.show) {
+        display: none;
+    }
+
 
     .navbar-nav {
         padding: 0;
@@ -2768,6 +2774,8 @@ button.btn-light:hover {
         margin-bottom: 0 !important;
         padding: 0.5rem 1rem;
         height: auto;
+        z-index: 1054;
+
     }
 
     .navbar-toggler {
@@ -2775,6 +2783,8 @@ button.btn-light:hover {
         display: flex;
         align-items: center;
         transform: translateX(30px);
+        z-index: 1056;
+        /* גם הוא קדימה */
     }
 
     .secondary-navbar .view {
@@ -3541,5 +3551,52 @@ button.btn-light:hover {
     #newTaskModal .modal-footer .btn {
         width: 100% !important;
         font-size: 16px;
+    }
+
+    .row.justify-content-center {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .row.justify-content-center .col-md-6,
+    .row.justify-content-center .col-md-4 {
+        width: 95%;
+        max-width: 85%;
+        margin: 0 auto 20px;
+    }
+
+    #incomeExpenseChart {
+        max-width: 90%;
+        height: auto;
+        margin: 0 auto;
+    }
+
+    .export-pdf-btn {
+        font-size: 0.85rem !important;
+        padding: 5px 3px !important;
+    }
+
+    form.text-center.mb-4 {
+        text-align: right !important;
+        margin-right: 0 !important;
+        margin-left: auto !important;
+        display: block !important;
+    }
+
+    .filter-form-line {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        font-size: 0.85rem;
+    }
+
+    .filter-form-line label,
+    .filter-form-line select,
+    .filter-form-line button {
+        font-size: 0.85rem !important;
+    }
+
+    .filter-form-line button {
+        padding: 4px 8px !important;
     }
 }
