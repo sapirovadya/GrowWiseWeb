@@ -44,8 +44,13 @@ def report_attendance():
             "check_out": None,
             "total_hours": None
         }
-        attendance_collection.insert_one(new_attendance)
-        return jsonify({'message': 'שעת הכניסה נשמרה בהצלחה', 'check_in': check_in_time})
+        result = attendance_collection.insert_one(new_attendance)
+        return jsonify({
+            'message': 'שעת הכניסה נשמרה בהצלחה',
+            'check_in': check_in_time,
+            'inserted_id': str(result.inserted_id)
+        })
+
 
     elif action == 'check_out':
         last_record = attendance_collection.find_one({"email": employee_email, "check_out": None})
@@ -161,7 +166,6 @@ def get_employees_list():
 
 @attendance_bp.route('/manual_report', methods=['POST'])
 def manual_attendance_report():
-    """ מנהל מוסיף דיווח נוכחות ידני עבור עובד """
     if 'email' not in session or session.get('role') not in ['manager', 'co_manager']:
         return jsonify({'message': 'גישה נדחתה'}), 403
 
@@ -178,6 +182,8 @@ def manual_attendance_report():
     total_hours = (check_out_time - check_in_time).total_seconds() / 3600.0
 
     employee = db.employee.find_one({"email": employee_email}, {"_id": 0, "first_name": 1, "last_name": 1, "manager_email": 1})
+    if not employee:
+        return jsonify({'message': 'העובד לא נמצא'}), 404
 
     new_attendance = {
         "email": employee_email,
@@ -189,9 +195,10 @@ def manual_attendance_report():
         "total_hours": round(total_hours, 2)
     }
 
-    attendance_collection.insert_one(new_attendance)
+    result = attendance_collection.insert_one(new_attendance)
+    return jsonify({'message': 'הדיווח נשמר בהצלחה!', 'inserted_id': str(result.inserted_id)})
 
-    return jsonify({'message': 'הדיווח נשמר בהצלחה!'})
+
 
 
 @attendance_bp.route('/update_attendance', methods=['POST'])

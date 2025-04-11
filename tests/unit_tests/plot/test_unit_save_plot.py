@@ -8,17 +8,25 @@ from datetime import datetime
 from modules.Plots.routes import plot_bp,db
 from unittest.mock import ANY
 import re
+import uuid  # חשוב לוודא שזה קיים בראש הקובץ!
 
 @pytest.fixture
 def client():
     app = Flask(__name__)
-    app.secret_key = "test_key"
+    app.secret_key = "test"
     app.config["TESTING"] = True
     app.register_blueprint(plot_bp, url_prefix="/Plots")
-    for rule in app.url_map.iter_rules():
-        print(rule)
+
+    test_run_id = str(uuid.uuid4())  # מזהה ריצה ייחודי
+
     with app.test_client() as client:
+        client.test_run_id = test_run_id
         yield client
+
+    # מחיקת כל רשומות החלקות שנוצרו ע"י המנהל
+    db.plots.delete_many({"manager_email": "manager@test.com"})
+    db.tasks_collection.delete_many({"employee_email": "a@b.com"})  # אם יש משימות שנוצרו
+
 
 # # ---------------------- save_plot ----------------------
 ## בדיקת שמירת חלקה בהצלחה
