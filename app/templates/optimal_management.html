@@ -136,6 +136,7 @@
                                         ואספקה</a>
                                     <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
                                         הוצאות</a>
+                                    <a href="{{ url_for('vehicles_bp.vehicles_management_page') }}" class="dropdown-item">כלי שטח</a>
                                     {% endif %}
                                 </div>
                             </div>
@@ -174,53 +175,78 @@
         </div>
     </div>
     <!-- Navbar End -->
+
     <hr class="section-divider ">
-    <!-- Main Content Start -->
-    <div class="container mb-2">
-        <!-- כותרת -->
+    <div class="container">
         <div class="d-flex align-items-center justify-content-between">
-            <h1 class="title">שלום, {{ first_name }}</h1>
+            <h1 class="title">ניהול שתילה אופטימלי</h1>
+            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
         </div>
-        <!-- עלים -->
-        <div class="leaf-container">
-            <div class="leaf" onclick="navigateTo('track_greenhouse')">
-                <img src="/static/img/leaf.png" alt="מעקב">
-                <span>מעקב חלקות/חממות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('archive')">
-                <img src="/static/img/leaf.png" alt="ארכיון">
-                <span>ארכיון חלקות/חממות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('optimal_management')">
-                <img src="/static/img/leaf.png" alt="ניהול">
-                <span>ניהול חלקות אופטימלי</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('reports')">
-                <img src="/static/img/leaf.png" alt="דו" חות">
-                <span>דו"חות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('team')">
-                <img src="/static/img/leaf.png" alt="צוות">
-                <span>הצוות שלי</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('calculator')">
-                <img src="/static/img/leaf.png" alt="מחשבון">
-                <span>מחשבון הוצאות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('inventory')">
-                <img src="/static/img/leaf.png" alt="מלאי">
-                <span>לוגיסטיקה וניהול</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('jobs')">
-                <img src="/static/img/leaf.png" alt="חנות">
-                <span>רשת חברתית לפרסום משרות</span>
-            </div>
+        <hr class="section-divider">
+        <button class="btn btn-outline-success" onclick="openPlotSelection()">+ בחר חלקות</button>
+        <div id="crop-selection" class="mt-3" style="display:none;">
+            <h5>בחר אילו גידולים לכלול בתכנון:</h5>
+            <div id="crop-list" class="mb-3"></div>
+            <button class="btn btn-success" onclick="getPlan()">קבל המלצה</button>
         </div>
+        <hr>
+        <div id="plan-result"></div>
     </div>
 
+
+    <!-- מודאל לבחירת חלקות -->
+    <div id="plotModal" class="modal" style="display:none;">
+    <div class="modal-dialog">
+        <div class="modal-content p-4">
+        <h5>בחר חלקות לתכנון</h5>
+        <div id="plot-list"></div>
+        <div class="mt-3">
+            <button class="btn btn-success" onclick="confirmPlots()">המשך</button>
+            <button class="btn btn-secondary" onclick="closePlotModal()">ביטול</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Modal להצגת ההמלצה -->
+<div class="modal fade" id="recommendationModal" tabindex="-1" aria-labelledby="recommendationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content p-4">
+        <div class="modal-header">
+          <h5 class="modal-title" id="recommendationModalLabel">המלצה אופטימלית לשתילה</h5>
+          <button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="recommendationContent">
+          <p>טוען המלצה...</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+    
+
+
+
+
+    
+
+
+
+
+
+    <!-- Alert Box -->
+    <div id="customAlert" class="alert-box" style="display:none;">
+        <h5 class="alert-title">כותרת</h5>
+        <p class="alert-message">הודעה</p>
+        <button class="alert-close btn btn-primary" onclick="closeAlert()">סגור</button>
+    </div>
+
+
     <!-- Back to Top -->
-    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
-            class="bi bi-arrow-up"></i></a>
+    <a href="#" class="btn button-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
 
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
@@ -234,23 +260,153 @@
 
     <script src="/static/js/main.js"></script>
     <script>
-        function navigateTo(page) {
-            const urls = {
-                'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
-                'archive': '{{ url_for("plot_bp.archive") }}',
-                'optimal_management': '{{ url_for("optimal_bp.optimal_management_page") }}',
-                'reports': '{{ url_for("reports_bp.reports_home") }}',
-                'team': '{{ url_for("manager_bp.get_employees_list") }}',
-                'calculator': '{{ url_for("manager_bp.expense_page") }}',
-                'inventory': '{{ url_for("manager_bp.logistic_management") }}',
-                'jobs': '{{ url_for("posts_bp.social_feed") }}'
-            };
 
-            if (urls[page]) {
-                window.location.href = urls[page];
+        let selectedPlots = [];
+
+        let suggestion = data.suggestion;
+
+        // מנקה תווי קוד מיותרים
+        suggestion = suggestion.replace(/```html|```/g, "").trim();
+
+        document.getElementById("recommendationContent").innerHTML = suggestion;
+
+        // פתיחת חלון לבחירת חלקות
+        function openPlotSelection() {
+            fetch("/optimal/get_empty_plots")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        alert("אין חלקות זמינות לבחירה.");
+                        return;
+                    }
+
+                    const container = document.getElementById("plot-list");
+                    container.innerHTML = data.map(p =>
+                        `<div>
+                            <input type="checkbox" name="plots" value="${p._id}" data-type="${p.plot_type}">
+                            ${p.plot_name} (${p.plot_type}, ${p.length}x${p.width} מטר)
+                        </div>`
+                    ).join("");
+
+                    document.getElementById("plotModal").style.display = "flex";
+                });
+        }
+
+        // סגירת מודאל חלקות
+        function closePlotModal() {
+            document.getElementById("plotModal").style.display = "none";
+        }
+
+        // לאחר בחירת חלקות - שמירה והצגת גידולים
+        function confirmPlots() {
+            selectedPlots = Array.from(document.querySelectorAll("input[name='plots']:checked"))
+                .map(el => ({
+                    id: el.value,
+                    type: el.dataset.type
+                }));
+
+            if (selectedPlots.length === 0) {
+                alert("יש לבחור לפחות חלקה אחת");
+                return;
+            }
+
+            closePlotModal();
+            loadInventoryLimitedTo(selectedPlots.length);
+        }
+
+        // טעינת גידולים לבחירה בהתאם למספר החלקות
+        function loadInventoryLimitedTo(limit) {
+            fetch("/optimal/get_inventory")
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById("crop-list");
+                    const section = document.getElementById("crop-selection");
+                    section.style.display = "block";
+
+                    container.innerHTML = data.map(crop =>
+                        `<div>
+                            <input type="checkbox" name="crops" value="${crop.name}" onchange="limitSelection(this, ${limit})">
+                            ${crop.name} - ${crop.quantity} ק״ג
+                        </div>`
+                    ).join("");
+                });
+        }
+
+        // מגביל את מספר הגידולים לפי מספר חלקות
+        function limitSelection(checkbox, limit) {
+            const selected = document.querySelectorAll("input[name='crops']:checked");
+            if (selected.length > limit) {
+                checkbox.checked = false;
+                alert("ניתן לבחור עד " + limit + " גידולים בלבד (לפי מספר החלקות)");
             }
         }
 
+        // שליחת בקשה להמלצה מהצ'אט והצגת התשובה במודאל
+        async function getPlan() {
+    const selectedCrops = Array.from(document.querySelectorAll("input[name='crops']:checked")).map(cb => cb.value);
+    if (selectedCrops.length !== selectedPlots.length) {
+        alert("בחרי בדיוק " + selectedPlots.length + " גידולים");
+        return;
+    }
+
+    // פותח את המודאל מיד ומראה הודעת טעינה
+    const modal = new bootstrap.Modal(document.getElementById('recommendationModal'));
+    const modalBody = document.getElementById("recommendationContent");
+    modalBody.innerHTML = `<p>🔄 טוען המלצה... אנא המתן/י</p>`;
+    modal.show();
+
+    try {
+        const res = await fetch("/optimal/generate_plan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                selected_crops: selectedCrops,
+                selected_plots: selectedPlots
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.suggestion) {
+            // הסרת בלוקי קוד markdown כמו ```html ```
+            let cleaned = data.suggestion.replace(/```html|```/g, "").trim();
+            modalBody.innerHTML = cleaned;
+        } else {
+            modalBody.innerHTML = `<p>⚠️ שגיאה: ${data.error}</p>`;
+        }
+    } catch (error) {
+        modalBody.innerHTML = `<p>❌ שגיאת רשת: ${error}</p>`;
+    }
+}
+
+
+
+
+
+
+
+        function showAlert(title, message, isError, previousData = null) {
+            const alertBox = document.getElementById("customAlert");
+            const alertTitle = document.querySelector("#customAlert .alert-title");
+            const alertMessage = document.querySelector("#customAlert .alert-message");
+
+            alertTitle.textContent = title;
+            alertMessage.textContent = message;
+
+            alertBox.style.display = "block";
+
+            if (isError && previousData) {
+                document.getElementById("supplyModal").style.display = "block";
+                reopenSupplyModal(previousData);
+            }
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+        const sessionRole = "{{ session['role'] }}";
+        const sessionUserEmail = "{{ session['email'] }}";
+        const sessionManagerEmail = "{{ session.get('manager_email', '') }}";
         document.addEventListener("DOMContentLoaded", async function () {
             //מזג אוויר
             const shortWeatherDiv = document.getElementById("weather-info-short");
@@ -274,9 +430,16 @@
             }
         });
 
+        function goBack() {
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = "{{ url_for('home') }}";
+            }
+        }
+
 
     </script>
-
 </body>
 
 </html>
