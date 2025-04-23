@@ -445,6 +445,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 });
 
+
+
 /* Logout */
 
 function logout() {
@@ -469,7 +471,7 @@ function checkAndOpenIrrigationModal(plotId) {
         modal.setAttribute('data-plot-id', plotId);
         modal.style.display = 'flex';
         modal.classList.add('show');
-        document.body.style.overflow = 'hidden'; // מונע גלילה ברקע
+        document.body.style.overflow = 'hidden'; 
     }
 }
 
@@ -572,7 +574,7 @@ function resetCropField() {
     const cropSelect = document.getElementById('crop');
     const cropDiv = document.getElementById('cropDiv');
     cropDiv.style.display = 'none';
-    cropSelect.innerHTML = '<option value="none">ללא</option>'; // איפוס
+    cropSelect.innerHTML = '<option value="none">ללא</option>'; // reset
 }
 
 async function submitUpdate() {
@@ -722,7 +724,7 @@ async function openPlotForm(type) {
 
     selectTypeModal.style.display = 'none';
     plotFormModal.style.display = 'flex';
-    // איפוס הטופס
+    //reset
     document.getElementById('plotForm').reset();
     sowDateDiv.style.display = 'none';
     quantityPlantedDiv.style.display = 'none';
@@ -1010,9 +1012,7 @@ function openEmployeeModal(id, firstName, lastName, email, role, isApproved) {
     const emailField = document.getElementById("detail-email");
     const roleField = document.getElementById("detail-role");
     const actions = document.getElementById("modal-actions");
-    // הגדרת תרגום התפקיד
     const roleText = role === "employee" ? "עובד" : role === "co_manager" ? "שותף" : "לא ידוע";
-    // הגדרת נתונים בחלון הקופץ
     firstNameField.textContent = firstName;
     lastNameField.textContent = lastName;
     emailField.textContent = email;
@@ -1108,7 +1108,7 @@ function showCustomConfirm(message, onConfirm) {
 
     yesButton.onclick = function () {
         confirmBox.style.display = "none";
-        if (typeof onConfirm === "function") { // בדיקה שהפרמטר הוא פונקציה
+        if (typeof onConfirm === "function") {
             onConfirm();
         }
     };
@@ -1133,7 +1133,7 @@ function closeTaskModal() {
     document.removeEventListener("mousedown", closeOnOutsideClick);
 }
 
-// שמירת משימה
+// save task
 function saveTask() {
     const taskName = document.getElementById("taskName").value;
     const taskContent = document.getElementById("taskContent").value;
@@ -1387,7 +1387,7 @@ $(document).ready(function () {
     });
 
 
-    // פרסום פוסט
+    // publish post 
     $("#newPostForm").submit(function (event) {
         event.preventDefault();
         let content = $("#newPostContent").val().trim();
@@ -1411,12 +1411,12 @@ $(document).ready(function () {
         });
     });
 
-    // פתיחה וסגירה של תיבת תגובות
+    // comments - open/close
     $(document).on("click", ".toggle-comment", function () {
         $(this).siblings(".comment-box").toggle();
     });
 
-    // פרסום תגובה
+    //publish comments
     $(document).on("click", ".submit-comment", function () {
         let postElement = $(this).closest(".post-card");
         let postId = postElement.attr("data-post-id");
@@ -1510,7 +1510,7 @@ function loadAttendanceRecords() {
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById("attendanceTableBody");
-            tableBody.innerHTML = ""; // איפוס הטבלה לפני מילוי מחדש
+            tableBody.innerHTML = ""; 
 
             let hasOpenCheckIn = false;
 
@@ -1569,7 +1569,7 @@ function loadManagerAttendanceRecords() {
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById("attendanceManagerTableBody");
-            tableBody.innerHTML = ""; // איפוס הטבלה לפני מילוי מחדש
+            tableBody.innerHTML = ""; 
 
             if (data.attendance_records.length === 0) {
                 tableBody.innerHTML = "<tr><td colspan='7'>אין נתונים זמינים</td></tr>";
@@ -1604,7 +1604,7 @@ function loadManagerAttendanceRecords() {
 
 function openAttendanceModal() {
     document.getElementById("attendanceModal").style.display = "block";
-    fetchEmployeesList(); // טעינת רשימת העובדים למנהל
+    fetchEmployeesList(); 
 }
 
 function closeAttendanceModal() {
@@ -1671,10 +1671,8 @@ function submitManualAttendance() {
         });
 }
 
-//חדש
-
 function openEditModal(id) {
-    fetch(`/attendance/get_record/${id}`)  // קריאה לשרת לפי ה-ID
+    fetch(`/attendance/get_record/${id}`) 
         .then(response => response.json())
         .then(data => {
             if (data.error) {
@@ -1682,7 +1680,6 @@ function openEditModal(id) {
                 return;
             }
 
-            // הכנסת הנתונים מהשרת ישירות לחלונית
             document.getElementById('editAttendanceId').value = id;
             document.getElementById('editCheckIn').value = data.check_in.slice(0, 16);
             document.getElementById('editCheckOut').value = data.check_out.slice(0, 16);
@@ -1733,7 +1730,6 @@ function saveAttendanceChanges() {
         });
 }
 
-//חדש
 //filter Attendance employee
 function filterAttendanceRecords() {
     const input = document.getElementById("searchEmployee").value.toLowerCase();
@@ -1928,10 +1924,9 @@ async function openSupplyModal(category) {
             const response = await fetch("/static/data/crops_data.json");
             const data = await response.json();
 
-            // מעבר על כל הקטגוריות והוספתן לרשימה
             data.forEach(cat => {
                 const optgroup = document.createElement("optgroup");
-                optgroup.label = cat.category; // שם הקטגוריה (פירות, ירקות, גידולי שדה וכו')
+                optgroup.label = cat.category; 
 
                 cat.values.forEach(crop => {
                     const option = document.createElement("option");
@@ -1948,7 +1943,7 @@ async function openSupplyModal(category) {
             productNameSelect.innerHTML = '<option value="">שגיאה בטעינה</option>';
         }
     } else {
-        // אם מדובר ב"מוצר כללי" או "הדברה", נציג תיבת טקסט
+
         productNameContainer.innerHTML = `
             <label for="productNameInput">שם המוצר:</label>
             <input type="text" id="productNameInput" placeholder="הכנס שם מוצר" required>
@@ -2097,7 +2092,7 @@ function closeEditSupplyModal() {
     }
 }
 
-// הכנסת מחיר לקו״ב
+
 function openWaterPriceModal() {
     document.getElementById("waterPriceModal").style.display = "flex";
 }
@@ -2194,7 +2189,7 @@ async function fetchCropDetails() {
     }
 }
 
-// שמירת המחיר בבסיס הנתונים
+// save Yield Price
 async function saveYieldPrice() {
     const plotName = document.getElementById("plotName").value;
     const sow_date = document.getElementById("sowDate").value;
@@ -2325,13 +2320,12 @@ $(document).ready(function () {
                 }
             });
 
-            // מחיקת רכב
+            // delete vehicle
             $(".delete-btn").click(function () {
                 let vehicle_id = $(this).data("id");
                 deleteVehicle(vehicle_id);
             });
 
-            // פתיחת מודאלים
             $(".edit-test-btn").click(function () {
                 let vehicle_id = $(this).data("id");
                 openEditTestModal(vehicle_id);
@@ -2420,7 +2414,7 @@ $(document).ready(function () {
                 vehicle_number: vehicleNumber,
                 service_date: $("#editServiceDate").val(),
                 service_cost: $("#editServiceCost").val(),
-                service_notes: $("#editServiceNotes").val()  // ⬅️ שליחת המלל החופשי
+                service_notes: $("#editServiceNotes").val() 
             }),
             success: function () {
                 loadVehicles();
@@ -2578,7 +2572,7 @@ async function loadVehicleNumbers() {
 
         const vehicleSelect = document.getElementById("vehicleNumber");
 
-        vehicleSelect.innerHTML = '<option value="">בחר מספר רכב</option>'; // אופציה ריקה להתחלה
+        vehicleSelect.innerHTML = '<option value="">בחר מספר רכב</option>'; 
         vehicles.forEach(num => {
             const option = document.createElement("option");
             option.value = num;
@@ -2603,7 +2597,6 @@ async function saveFuelExpense() {
     const refuelDate = refuelDateInput.style.display !== "none" ? refuelDateInput.value : null;
     const selectedMonth = monthSelect.style.display !== "none" ? monthSelect.value : null;
 
-    // יצירת פורמט תאריך עם השנה הנוכחית
     const currentYear = new Date().getFullYear();
     const month = selectedMonth ? `${currentYear}-${selectedMonth}` : null;
 
