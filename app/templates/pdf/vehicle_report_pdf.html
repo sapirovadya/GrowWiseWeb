@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>דו"ח הוצאות לפי רכב</title>
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            direction: rtl;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2e7d32;
+            text-align: center;
+        }
+
+        .logo {
+            width: 100px;
+            display: block;
+            margin: 0 auto 20px auto;
+        }
+
+        .info-section,
+        .summary-box {
+            margin-top: 30px;
+        }
+
+        .info-section ul,
+        .summary-box ul {
+            list-style-type: none;
+            padding: 0;
+            font-size: 16px;
+        }
+
+        .summary-box {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 40px auto 0 auto;
+        }
+
+        .chart {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        img.chart-img {
+            max-width: 400px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <img src="{{ url_for('static', filename='img/logo_growwise.png') }}" class="logo" alt="לוגו">
+    <h1>דו"ח הוצאות לפי רכב</h1>
+    <p style="text-align:center;">מספר רכב: {{ vehicle_number }} | שנה: {{ selected_year }}</p>
+
+    <div class="info-section">
+        <h2>פרטי הרכב</h2>
+        <ul>
+            <li>מספר רכב: {{ vehicle_info.vehicle_number }}</li>
+            <li>סוג רכב: {{ vehicle_info.vehicle_type }}</li>
+            <li>טסט: {{ vehicle_info.test_date }}</li>
+            <li>טיפול אחרון: {{ vehicle_info.last_service_date }}</li>
+            <li>ביטוח: {{ vehicle_info.insurance_date }}</li>
+            <li>נהגים מורשים: {{ vehicle_info.authorized_drivers }}</li>
+        </ul>
+    </div>
+
+    <div class="chart">
+        <h2>התפלגות הוצאות לפי קטגוריה</h2>
+        <img src="data:image/png;base64,{{ pie_chart_image }}" class="chart-img" alt="גרף עוגה">
+    </div>
+
+    <div class="summary-box">
+        <h2>הוצאות הרכב לשנת {{ selected_year }}</h2>
+        <ul>
+            <li>סה"כ דלק: {{ expenses.fuel }} ₪</li>
+            <li>סה"כ טיפולים: {{ expenses.service }} ₪</li>
+            <li>מחיר טסט: {{ expenses.test }} ₪</li>
+            <li>מחיר ביטוח: {{ expenses.insurance }} ₪</li>
+            <li><strong>סה"כ הוצאות: {{ expenses.total }} ₪</strong></li>
+        </ul>
+    </div>
+</body>
+
+</html>

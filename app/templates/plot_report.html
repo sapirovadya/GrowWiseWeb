@@ -180,21 +180,61 @@
 
     <div class="container">
         <div class="d-flex align-items-center justify-content-between">
-            <h1 class="title mb-0">רשימת דו״חות</h1>
+            <h1 class="title mb-0">דו"ח הוצאות/הכנסות פר חלקה</h1>
             <button onclick="goBack()" class="btn btn-primary">חזרה</button>
         </div>
-        <hr class="section-divider ">
+        <hr class="section-divider">
+        <br>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <form id="plotReportForm" method="get" action="{{ url_for('reports_bp.plot_report') }}">
+                <label for="plot_name" class="me-3">בחר חלקה:</label>
+                <select id="plot_name" name="plot_name" class="me-2">
+                    <option value="">בחר חלקה...</option>
+                </select>
+
+                <label for="sow_date" style="display:none;" class="me-3">בחר תאריך זריעה:</label>
+                <select id="sow_date" name="sow_date" style="display:none;" class="me-2"></select>
+                <button type="submit" class="btn btn-primary me-3" style="padding: 5px 10px !important;">הצג
+                    דו״ח</button>
+
+            </form>
+            <!-- <a href="{{ url_for('reports_bp.export_yearly_pdf', year=selected_year) }}"
+                class="btn btn-outline-secondary export-pdf-btn" target="_blank" style="white-space: nowrap;">
+                הורד PDF
+            </a> -->
+        </div>
+        {% if irrigation_cost is defined %}
+        <div class="summary mt-2" style="font-size: 20px; color:#8fb23e; font-weight: bold;">
+            במהלך {{ days }} ימים, התזרים של החלקה הזו הוא {{ balance }} ₪
+        </div>
+        <div class="frame border-info rounded p-3 my-3 mt-4">
+            <h4>פרטי החלקה</h4>
+            <ul>
+                <li><strong>מה נשתל:</strong> {{ crop }}</li>
+                <li><strong>כמות שנזרעה:</strong> {{ quantity_planted }} ק״ג</li>
+                <li><strong>כמות שהושקה:</strong> {{ total_irrigation_amount }} קוב</li>
+                <li><strong>כמות היבול:</strong> {{ crop_yield }} ק״ג</li>
+                <li><strong>מחיר לק״ג:</strong> {{ price_yield }} ₪</li>
+            </ul>
+        </div>
+
+        <div class="frame border border-danger rounded p-2 my-3 mt-4">
+            <h3>הוצאות</h3>
+            <ul>
+                <li>השקייה: {{ irrigation_cost }} ₪</li>
+            </ul>
+        </div>
+
+        <div class="frame border border-success rounded p-3">
+            <h3>הכנסות</h3>
+            <ul>
+                <li>יבול: {{ income_yield }} ₪</li>
+            </ul>
+        </div>
+        {% endif %}
     </div>
-    <br>
-    <main>
-        <ul>
-            <li><a href="{{ url_for('reports_bp.monthly_income_expense_report') }}">הוצאות והכנסות חודשיים</a></li><br>
-            <li><a href="{{ url_for('reports_bp.yearly_report') }}">הוצאות והכנסות שנתיים</a></li><br>
-            <li><a href="{{ url_for('reports_bp.monthly_attendance_report') }}">נוכחות עובדים חודשית</a></li><br>
-            <li><a href="{{ url_for('reports_bp.plot_report') }}">הוצאות והכנסות לפי חלקה</a></li><br>
-            <li><a href="{{ url_for('reports_bp.vehicle_expenses') }}">הוצאות לפי רכב</a></li>
-        </ul>
-    </main>
+
     <!-- Back to Top -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
             class="bi bi-arrow-up"></i></a>
