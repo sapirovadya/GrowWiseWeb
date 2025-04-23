@@ -17,6 +17,8 @@ from modules.supply.routes import supply_bp
 from modules.expenses.routes import expenses_bp
 from modules.vehicles.routes import vehicles_bp
 from modules.reports.routes import reports_bp
+from modules.optimal_plots.routes import optimal_bp
+
 
 
 import json
@@ -47,11 +49,19 @@ app.register_blueprint(supply_bp, url_prefix='/supply')
 app.register_blueprint(expenses_bp, url_prefix='/expenses')
 app.register_blueprint(vehicles_bp, url_prefix='/vehicles')
 app.register_blueprint(reports_bp, url_prefix='/reports')
+app.register_blueprint(optimal_bp, url_prefix="/optimal")
+
 
 HEBREW_MONTHS = [
     "", "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
     "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"
 ]
+
+try:
+    app.db.weather_cache.create_index("city", unique=True)
+    print("Unique index on weather_cache.city created or already exists")
+except Exception as e:
+    print("Error creating index on weather_cache.city:", e)
 
 def update_crops_data():
     collection = app.db["crops_options"]
