@@ -135,9 +135,9 @@ def get_manager_attendance():
     for record in records:
         record['_id'] = str(record['_id'])
         if "check_in" in record and record["check_in"]:
-            record["check_in"] = record["check_in"].strftime("%Y-%m-%d %H:%M:%S")   
+            record["check_in"] = record["check_in"].strftime("%d/%m/%Y %H:%M")
         if "check_out" in record and record["check_out"]:
-            record["check_out"] = record["check_out"].strftime("%Y-%m-%d %H:%M:%S")
+            record["check_out"] = record["check_out"].strftime("%d/%m/%Y %H:%M")
 
 
     return jsonify({'attendance_records': records})
