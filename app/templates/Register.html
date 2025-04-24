@@ -175,7 +175,7 @@
 
     <!-- Template Javascript -->
     <script>
-        // בדיקת שם פרטי ושם משפחה (רק אותיות)
+        // Checking first name and last name (only letters)
         const validateNameInput = (input) => {
             input.addEventListener("input", (event) => {
                 const value = event.target.value;
@@ -184,7 +184,6 @@
                     event.target.value = validValue;
                 }
 
-                // בדיקה אם השדה ריק
                 if (validValue === "") {
                     input.setCustomValidity("נא הזן שם המכיל רק אותיות");
                 } else {
@@ -196,7 +195,7 @@
         validateNameInput(document.getElementById("first_name"));
         validateNameInput(document.getElementById("last_name"));
 
-        // בדיקת תבנית אימייל עם הגבלה בזמן אמת
+        // Check email template with real-time restriction       
         const validateEmailInput = (input) => {
             input.addEventListener("input", (event) => {
                 const value = event.target.value;
@@ -214,19 +213,18 @@
         validateEmailInput(document.getElementById("email"));
         validateEmailInput(document.getElementById("manager_email"));
 
-        // בדיקת סיסמה
+        // check password
         const validatePasswordInput = (input) => {
             input.addEventListener("input", (event) => {
                 const value = event.target.value;
 
-                // מניעת אותיות בעברית
-                const validValue = value.replace(/[\u0590-\u05FF]/g, ""); // הסרת אותיות בעברית
+                // Check there is no exist hebrew letters
+                const validValue = value.replace(/[\u0590-\u05FF]/g, "");
                 if (value !== validValue) {
                     event.target.value = validValue;
                 }
 
-                // דרישות סיסמה: לפחות אות אחת, מספר אחד, וסימן מיוחד, באורך 8-16 תווים
-                const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
+                // Password requirements: at least one letter, one number, and one special symbol, 8-16 characters long                const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
 
                 if (!passwordPattern.test(validValue)) {
                     input.setCustomValidity("הסיסמה חייבת לכלול בין 8-16 תווים, לפחות אות אחת גדולה באנגלית, מספר אחד וסמל מיוחד");
@@ -238,7 +236,6 @@
 
         validatePasswordInput(document.getElementById("password"));
 
-        // הצגת שדה אימייל מנהל אם התפקיד הוא עובד או מנהל שותף
         document.getElementById("role").addEventListener("change", function () {
             const role = this.value;
             const managerEmailField = document.getElementById("manager_email_field");
@@ -250,9 +247,8 @@
         });
 
         document.getElementById("registerForm").addEventListener("submit", async function (event) {
-            event.preventDefault(); // מניעת שליחת הטופס ברירת מחדל
+            event.preventDefault();
 
-            // איסוף הערכים מהשדות
             const firstName = document.getElementById("first_name").value.trim();
             const lastName = document.getElementById("last_name").value.trim();
             const email = document.getElementById("email").value.trim();
@@ -261,11 +257,9 @@
             const role = document.getElementById("role").value;
             const location = document.getElementById("location").value.trim();
 
-            // דפוסי אימות
             const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
             const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-            // בדיקות שדות
             if (!firstName || !lastName || !email || !password || !role) {
                 showAlert("שגיאה", "יש למלא את כל השדות", { restoreForm: true, formId: "registerForm" });
                 return;
@@ -281,17 +275,24 @@
                 return;
             }
 
-            if (role === "manager" && !location) {
-                showAlert("שגיאה", "יש לבחור את מיקום המשק.", { restoreForm: true, formId: "registerForm" });
-                return;
+            if (role === "manager") {
+                if (!location) {
+                    showAlert("שגיאה", "יש לבחור את מיקום המשק.", { restoreForm: true, formId: "registerForm" });
+                    return;
+                }
+
+                if (!availableCities.includes(location)) {
+                    showAlert("שגיאה", "מיקום זה לא קיים - אנא בחר מיקום מהרשימה", { restoreForm: true, formId: "registerForm" });
+                    return;
+                }
             }
+
 
             if ((role === "co_manager" || role === "employee") && !managerEmail) {
                 showAlert("שגיאה", "יש להזין את כתובת האימייל של המנהל.", { restoreForm: true, formId: "registerForm" });
                 return;
             }
 
-            // הכנת הנתונים לשליחה
             const formData = {
                 first_name: firstName,
                 last_name: lastName,
@@ -302,7 +303,6 @@
                 location: location || "",
             };
 
-            // שליחת הנתונים לשרת
             try {
                 const response = await fetch("/users/signup", {
                     method: "POST",
@@ -322,41 +322,25 @@
                 showAlert("שגיאה", "אירעה שגיאה בשרת. נסה שנית מאוחר יותר.", { restoreForm: true, formId: "registerForm" });
             }
         });
-
+        let availableCities = [];
         const loadCities = async () => {
             try {
                 const response = await fetch('/users/get_cities');
                 if (!response.ok) {
                     throw new Error(`Failed to fetch cities: ${response.status}`);
                 }
+
                 const cities = await response.json();
+                availableCities = cities;
+
                 const citiesList = document.getElementById('cities_list');
+                const locationInput = document.getElementById('location');
 
-                // ניקוי האפשרויות הקודמות
                 citiesList.innerHTML = '';
-
-                // הוספת הערים לרשימה
                 cities.forEach(city => {
                     const option = document.createElement('option');
-                    option.value = city; // כל עיר מתווספת כרשומה
+                    option.value = city;
                     citiesList.appendChild(option);
-                });
-
-                // הוספת פונקציונליות חיפוש
-                const locationInput = document.getElementById('location');
-                locationInput.addEventListener('input', function () {
-                    const searchTerm = this.value.trim().toLowerCase();
-                    const filteredCities = cities.filter(city =>
-                        city.toLowerCase().startsWith(searchTerm)
-                    );
-
-                    // עדכון הרשימה המוצגת
-                    citiesList.innerHTML = '';
-                    filteredCities.forEach(city => {
-                        const option = document.createElement('option');
-                        option.value = city;
-                        citiesList.appendChild(option);
-                    });
                 });
 
             } catch (error) {
@@ -365,21 +349,20 @@
             }
         };
 
-        // טיפול בשינוי תפקיד
+
         document.getElementById("role").addEventListener("change", function () {
             const role = this.value;
             const locationField = document.getElementById("location_field");
 
             if (role === "manager") {
                 locationField.style.display = "block";
-                loadCities(); // טעינת הערים אם התפקיד הוא מנהל
+                loadCities();
             } else {
                 locationField.style.display = "none";
-                document.getElementById('location').value = ""; // ניקוי בחירה קודמת
+                document.getElementById('location').value = "";
             }
         });
 
-        // קריאה ראשונית אם התפקיד כבר נבחר
         document.addEventListener("DOMContentLoaded", () => {
             const role = document.getElementById("role").value;
             if (role === "manager") {
@@ -396,15 +379,13 @@
             alertBox.style.display = "block";
             alertBox.classList.add("fade-in");
 
-            // שמירת המידע במידת הצורך
             if (restoreForm && formId) {
                 const form = document.getElementById(formId);
                 if (form) {
-                    window.lastFormData = new FormData(form); // שמירת נתוני הטופס
+                    window.lastFormData = new FormData(form);
                 }
             }
 
-            // טיפול בלחיצה על כפתור סגירה
             const closeButton = alertBox.querySelector(".alert-close");
             closeButton.onclick = () => closeAlert({ redirectUrl, restoreForm, formId });
         }
@@ -416,9 +397,9 @@
             alertBox.style.display = "none";
 
             if (redirectUrl) {
-                window.location.href = redirectUrl; // הפניה לדף הבית או כתובת URL אחרת
+                window.location.href = redirectUrl;
             } else if (restoreForm && formId) {
-                // שחזור נתוני הטופס
+
                 const form = document.getElementById(formId);
                 if (form && window.lastFormData) {
                     for (const [name, value] of window.lastFormData.entries()) {
