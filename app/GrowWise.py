@@ -8,7 +8,7 @@ from modules.users.manager.routes import manager_bp
 from modules.users.co_manager.routes import co_manager_bp
 from modules.users.job_seeker.routes import job_seeker_bp
 from modules.users.routes import logout_bp
-from modules.Plots.routes import plot_bp
+from modules.Plots.routes import plot_bp, format_date
 from modules.task.routes import task_bp
 from modules.weather.routes import weather_bp
 from modules.posts.routes import posts_bp
@@ -27,6 +27,7 @@ import json
 
 load_dotenv()
 app = Flask(__name__)
+app.jinja_env.filters['format_date'] = format_date
 
 mongo_key = os.getenv("MONGO_KEY")
 client = pymongo.MongoClient(mongo_key)
@@ -142,3 +143,4 @@ if __name__ == "__main__":
     # update_crops_data()
     # update_israel_cities()
     app.run(debug=True)
+    

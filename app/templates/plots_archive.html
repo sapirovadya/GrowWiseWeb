@@ -139,6 +139,8 @@
                     <th>כמות השקייה (קו״ב)</th>
                     <th>תאריך קצירה</th>
                     <th>תפוקת יבול (ק״ג)</th>
+                    <th>דרוש אישור כשרות?</th>
+                    <th>אישור כשרות</th>
                 </tr>
             </thead>
             <tbody>
@@ -146,11 +148,22 @@
                 <tr>
                     <td>{{ plot.plot_name }}</td>
                     <td>{{ plot.crop or "לא זמין" }}</td>
-                    <td>{{ plot.sow_date or "לא זמין" }}</td>
+                    <td>{{ plot.sow_date | format_date }}</td>
                     <td>{{ plot.quantity_planted or "לא זמין" }}</td>
                     <td>{{ plot.total_irrigation_amount or "0" }}</td>
-                    <td>{{ plot.harvest_date or "לא זמין" }}</td>
+                    <td>{{ plot.harvest_date | format_date }}</td>
                     <td>{{ plot.crop_yield or "0" }}</td>
+                    <td>{{ "כן" if plot.kosher_required else "לא" }}</td>
+                    <td>
+                        {% if plot.kosher_required and plot.kosher_certificate %}
+                        <a href="{{ url_for('static', filename=plot.kosher_certificate.replace('static/', '')) }}"
+                            target="_blank">
+                            {{ plot.kosher_certificate.split('/')[-1] }}
+                        </a>
+                        {% else %}
+                        אין
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

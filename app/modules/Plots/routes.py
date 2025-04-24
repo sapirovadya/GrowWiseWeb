@@ -3,12 +3,12 @@ import pymongo
 from datetime import datetime
 from dotenv import load_dotenv, find_dotenv
 import os
-import uuid  # מחולל ID ייחודיים
+import uuid 
 from modules.Plots.models import Plot
 from modules.task.models import task
 import openai
 from bson import ObjectId
-from datetime import datetime
+from werkzeug.utils import secure_filename
 
 load_dotenv(find_dotenv())
 
@@ -18,12 +18,26 @@ MODEL = "gpt-4o"
 TEMPERATURE = 1
 MAX_TOKENS = 350
 
+UPLOAD_FOLDER = "static/uploads/kosher"
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+
 plot_bp = Blueprint('plot_bp', __name__)
 
 mongo_key = os.getenv("MONGO_KEY")
 client = pymongo.MongoClient(mongo_key)
 db = client.get_database("dataGrow")
 tasks_collection = db["plot_tasks"]
+
+def format_date(value):
+    if isinstance(value, str):
+        try:
+            value = datetime.strptime(value, "%Y-%m-%d")
+        except:
+            return value
+    return value.strftime("%-d-%-m-%Y")
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @plot_bp.route("/growth_forecast", methods=["POST"])
 def growth_forecast():
@@ -107,8 +121,10 @@ def track_greenhouse():
 @plot_bp.route("/save_plot", methods=["POST"])
 def save_plot():
     try:
-        plot_id =str(uuid.uuid4())
-        data = request.json
+        import os
+        plot_id = str(uuid.uuid4())
+
+        # שליפת פרטי משתמש מה־session
         role = session.get("role")
         email = session.get("email")
 
@@ -122,27 +138,36 @@ def save_plot():
         if not manager_email:
             return jsonify({"error": "שגיאה בזיהוי מנהל המשק."}), 400
 
-        plot_name = data.get("plot_name")
-        plot_type = data.get("plot_type")
-        width = data.get("width")
-        length = data.get("length")
+        # נתונים מהטופס
+        plot_name = request.form.get("plot_name")
+        plot_type = request.form.get("plot_type")
+        square_meters = float(request.form.get("square_meters", 0))
 
         if not plot_name or not plot_type:
             return jsonify({"error": "שם החלקה וסוג החלקה הם שדות חובה."}), 400
-        if width is None or width <= 0:
-            return jsonify({"error": "רוחב חייב להיות מספר חיובי."}), 400
-        if length is None or length <= 0:
-            return jsonify({"error": "אורך חייב להיות מספר חיובי."}), 400
+        if square_meters <= 0:
+            return jsonify({"error": "גודל חלקה חייב להיות מספר חיובי."}), 400
 
-        crop_category = data.get("crop_category", "none")
-        crop_name = data.get("crop", "none")
-        sow_date = ""
+        crop_category = request.form.get("crop_category", "none")
+        crop_name = request.form.get("crop", "none")
+        sow_date = request.form.get("sow_date", "")
+        quantity_planted_raw = request.form.get("quantity_planted")
+        kosher_required = request.form.get("kosher_required") == "on"
+
+        # שמירת הקובץ אם קיים
+        kosher_certificate_path = None
+        if kosher_required and 'kosher_certificate' in request.files:
+            file = request.files['kosher_certificate']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(f"{plot_id}_{file.filename}")
+                save_path = os.path.join(UPLOAD_FOLDER, filename)
+                os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # לוודא שהתיקייה קיימת
+                file.save(save_path)
+                kosher_certificate_path = save_path
+
         quantity_planted = None
 
         if crop_category != "none" and crop_name != "none":
-            sow_date = data.get("sow_date")
-            quantity_planted_raw = data.get("quantity_planted")
-
             if not sow_date:
                 return jsonify({"error": "נא למלא את תאריך הזריעה"}), 400
 
@@ -151,29 +176,30 @@ def save_plot():
             if sow_date_obj > today:
                 return jsonify({"error": "לא ניתן להזין תאריך עתידי לזריעה"}), 400
 
-            if not quantity_planted_raw or quantity_planted_raw <= 0:
+            if not quantity_planted_raw or float(quantity_planted_raw) <= 0:
                 return jsonify({"error": "נא למלא כמות זריעה תקינה (בק״ג)."}), 400
-            
+
             quantity_planted = float(quantity_planted_raw)
 
-            crop_entry = db.supply.find_one({"email": manager_email, "name": crop_name, "category": "גידול"})
+            crop_entry = db.supply.find_one({
+                "email": manager_email,
+                "name": crop_name,
+                "category": "גידול"
+            })
             if not crop_entry or crop_entry["quantity"] < quantity_planted:
                 return jsonify({"error": f"הזנת כמות הגדולה מהמלאי. ניתן לשתול עד {crop_entry['quantity']} ק\"ג."}), 400
-            
 
             db.supply.update_one(
                 {"email": manager_email, "name": crop_name, "category": "גידול"},
                 {"$inc": {"quantity": -quantity_planted}}
             )
-        else:
-            quantity_planted = None
 
+        # יצירת רשומת חלקה
         new_plot = {
-            "_id": plot_id,  
+            "_id": plot_id,
             "plot_name": plot_name,
             "plot_type": plot_type,
-            "width": width,
-            "length": length,
+            "square_meters": square_meters,
             "manager_email": manager_email,
             "crop_category": crop_category,
             "crop": crop_name,
@@ -183,7 +209,9 @@ def save_plot():
             "total_irrigation_amount": None,
             "harvest_date": None,
             "crop_yield": None,
-            "price_yield": None
+            "price_yield": None,
+            "kosher_required": kosher_required,
+            "kosher_certificate": kosher_certificate_path
         }
 
         db.plots.insert_one(new_plot)
@@ -191,6 +219,7 @@ def save_plot():
 
     except Exception as e:
         return jsonify({"error": f"שגיאה ביצירת חלקה: {str(e)}"}), 500
+
 
 @plot_bp.route("/get_crop_categories", methods=['GET'])
 def get_crop_categories():
@@ -208,7 +237,6 @@ def get_crops():
         return jsonify({"error": "Category is missing"}), 400
 
     try:
-        # חיפוש עם אי־תלות באותיות
         category_data = db.crops_options.find_one({"category": {"$regex": f"^{category}$", "$options": "i"}})
         
         if not category_data:
@@ -252,8 +280,6 @@ def get_plots():
     return jsonify({"plots": plots}), 200
 
 
-from bson import ObjectId
-
 @plot_bp.route('/get_plot/<plot_id>', methods=['GET'])
 def get_plot(plot_id):
     try:
@@ -291,10 +317,11 @@ def plot_details():
 def update_plot(plot_id):
     try:
         try:
-            plot_oid = plot_id  # מזהה כ־string רגיל
+            plot_oid = plot_id
         except Exception:
             return jsonify({"error": "Invalid plot ID"}), 404
-        data = request.get_json()
+        data = request.form
+        file = request.files.get("kosher_certificate")
 
         required_fields = ['crop', 'sow_date', 'quantity_planted']
         for field in required_fields:
@@ -311,7 +338,7 @@ def update_plot(plot_id):
         manager_email = plot.get("manager_email")
         crop_name = data['crop']
         crop_category = data['crop_category']
-        quantity_planted = data['quantity_planted']
+        quantity_planted = float(data['quantity_planted'])
         sow_date = data['sow_date']
 
         today = datetime.today().date()
@@ -328,14 +355,27 @@ def update_plot(plot_id):
             {"$inc": {"quantity": -quantity_planted}}
         )
 
+        # הכנה לעדכון במסד הנתונים
+        update_fields = {
+            "crop_category": crop_category,
+            "crop": crop_name,
+            "sow_date": sow_date,
+            "quantity_planted": quantity_planted,
+            "kosher_required": 'kosher_required' in data
+        }
+
+        # אם קובץ צורף - שמור אותו
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            full_path = os.path.join(UPLOAD_FOLDER, filename)
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)  # מוודא שהתיקייה קיימת
+            file.save(full_path)
+            update_fields["kosher_certificate"] = full_path
+
+        # ביצוע העדכון
         update_result = db.plots.update_one(
-            {"_id": plot_oid},  # 🟢 כך צריך להיות
-            {"$set": {
-                "crop_category": str(data["crop_category"]), 
-                "crop": data['crop'],
-                "sow_date": data['sow_date'],
-                "quantity_planted": quantity_planted
-            }}
+            {"_id": plot_oid},
+            {"$set": update_fields}
         )
 
         if update_result.modified_count == 0:
@@ -345,6 +385,20 @@ def update_plot(plot_id):
 
     except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+@plot_bp.route('/upload_kosher/<plot_id>', methods=['POST'])
+def upload_kosher_file(plot_id):
+    file = request.files.get('kosher_certificate')
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(save_path)
+        db.plots.update_one({"_id": plot_id}, {
+            "$set": {"kosher_certificate": f"{UPLOAD_FOLDER}/{filename}"}
+        })
+        return redirect(url_for('plot_bp.plot_details', id=plot_id))
+    return "העלאה נכשלה", 400
+
 
 @plot_bp.route('/update_irrigation/<plot_id>', methods=['POST'])
 def update_irrigation(plot_id):
@@ -654,5 +708,3 @@ def update_task_employees():
     except Exception as e:
         print("❌ שגיאה בעדכון עובדים/סטטוס:", e)
         return jsonify({"success": False, "error": str(e)})
-
-

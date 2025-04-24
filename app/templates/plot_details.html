@@ -190,10 +190,9 @@
                 <br>
                 <p style="font-size: 17px;"><strong style="font-size: 19px;">צורת גידול: </strong> {{ plot.plot_type or
                     "לא זמין" }}</p>
-                <p style="font-size: 17px;"><strong style="font-size: 19px;">אורך:</strong> {{ plot.length or "לא זמין"
-                    }} מטר</p>
-                <p style="font-size: 17px;"><strong style="font-size: 19px;">רוחב:</strong> {{ plot.width or "לא זמין"
-                    }} מטר</p>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">גודל:</strong> {{ plot.square_meters or "לא
+                    זמין"
+                    }} דונם</p>
                 <p style="font-size: 17px;"><strong style="font-size: 19px;">סוג גידול:</strong>
                     {% if plot.crop_category == "none" %}
                     טרם נבחר סוג הגידול
@@ -212,7 +211,7 @@
                     {% if plot.sow_date == "" %}
                     טרם בוצעה זריעה
                     {% else %}
-                    {{ plot.sow_date }}
+                    {{ plot.sow_date | format_date }}
                     {% endif %}
                 </p>
                 <p style="font-size: 17px;"><strong style="font-size: 19px;">כמות הזריעה(בק״ג):</strong>
@@ -226,7 +225,7 @@
                     {% if plot.last_irrigation_date == None %}
                     טרם בוצעה השקייה
                     {% else %}
-                    {{ plot.last_irrigation_date }}
+                    {{ plot.last_irrigation_date | format_date }}
                     {% endif %}
                 </p>
                 <p style="font-size: 17px;"><strong style="font-size: 19px;">כמות השקיה כוללת:</strong>
@@ -235,6 +234,28 @@
                     {% else %}
                     {{ plot.total_irrigation_amount }} קוב
                     {% endif %}
+                </p>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">דרוש כשרות? </strong>
+                    {{ "כן" if plot.kosher_required else "לא" }}
+                </p>
+
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">אישור כשרות: </strong>
+                    {% if plot.kosher_required and not plot.kosher_certificate and plot._id %}
+                    טרם צורף אישור כשרות.
+                    <a href="#" onclick="document.getElementById('kosherUploadField').click(); return false;">לחץ כאן
+                        להעלאת קובץ</a>
+                <form id="kosherUploadForm" action="{{ url_for('plot_bp.upload_kosher_file', plot_id=plot._id) }}"
+                    method="POST" enctype="multipart/form-data" style="display:none;">
+                    <input type="file" id="kosherUploadField" name="kosher_certificate" accept=".pdf,.doc,.docx"
+                        onchange="document.getElementById('kosherUploadForm').submit();">
+                </form>
+                {% elif plot.kosher_required and plot.kosher_certificate %}
+                <a href="{{ url_for('static', filename=plot.kosher_certificate.replace('static/', '')) }}"
+                    target="_blank">{{ plot.kosher_certificate.split('/')[-1] }}</a>
+                {% else %}
+                אין צורך באישור כשרות.
+                {% endif %}
+
                 </p>
                 <button id="getIrrigationButton" class="btn btn-primary">קבל המלצת השקיה</button>
             </div>
@@ -342,6 +363,19 @@
                             <input type="number" id="quantityPlanted" name="quantity_planted" class="form-control"
                                 min="0" step="0.01">
                         </div>
+
+                        <div class="mb-3" id="kosherDiv">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="kosherRequiredUpdate"
+                                    name="kosher_required">
+                                <label class="form-check-label" for="kosherRequiredUpdate">דרוש אישור כשרות?</label>
+                            </div>
+                            <div id="kosherFileDivUpdate" style="display:none;" class="mt-2">
+                                <label for="kosherCertificateUpdate">צרף קובץ אישור (PDF/DOC)</label>
+                                <input type="file" id="kosherCertificateUpdate" name="kosher_certificate"
+                                    accept=".pdf,.doc,.docx" class="form-control">
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -351,7 +385,6 @@
             </div>
         </div>
     </div>
-
 
     <!-- irrigation window-->
     <div id="irrigationModal" class="modal irrigationModal">
