@@ -2562,6 +2562,7 @@ button.btn-light:hover {
     display: flex;
     align-items: center;
     gap: 10px;
+    padding: 10px;
 }
 
 .task-name {
@@ -2572,6 +2573,14 @@ button.btn-light:hover {
 .task-description {
     margin-right: 25px;
     color: #555;
+}
+
+.task-title-group {
+    max-width: 70%;
+}
+
+.task-employee {
+    min-width: 130px;
 }
 
 #plotTasksModal {
@@ -2619,6 +2628,26 @@ button.btn-light:hover {
     padding: 10px;
 }
 
+.task-hint {
+    font-style: italic;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+datalist {
+    direction: ltr;
+    text-align: left;
+}
+
+input[list]::-webkit-calendar-picker-indicator {
+    direction: ltr;
+    display: none !important;
+}
+
+input[list] {
+    position: relative;
+    z-index: 10;
+}
 
 @media (min-width: 577px) {
 

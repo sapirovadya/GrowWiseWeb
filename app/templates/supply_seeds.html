@@ -226,9 +226,12 @@
                 <div class="form-group">
                     <div id="productNameContainer">
                         <label for="productName">שם המוצר:</label>
-                        <select id="productName" required>
-                            <option value="">בחר גידול</option>
-                        </select>
+                        <input list="cropList" id="productName" name="productName" class="form-control" required
+                            placeholder="הכנס שם גידול">
+                        <datalist id="cropList"></datalist>
+                        <div id="productNameError" class="text-danger mt-1" style="display:none;">מוצר זה לא קיים - אנא
+                            בחר מוצר מהרשימה</div>
+
                     </div>
                 </div>
 
