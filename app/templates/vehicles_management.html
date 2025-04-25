@@ -33,188 +33,50 @@
 
 <body>
     <!-- Navbar Start -->
-    <div class="container-fluid bg-white sticky-top">
-        <div class="container">
-            <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
-                <div class="d-flex justify-content-between align-items-center w-100">
-
-                    <!-- כפתור תפריט למובייל -->
-                    <button type="button" class="navbar-toggler ms-auto me-0" data-bs-toggle="collapse"
-                        data-bs-target="#navbarCollapse">
-                        <span class="navbar-toggler-icon"></span>
-                        <span class="menu-text ms-2">תפריט</span>
-                    </button>
-
-                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
-                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                    </a>
-                    {% elif session['role'] == "employee" %}
-                    <a href="{{ url_for('employee_bp.employee_home_page') }}" class="navbar-brand">
-                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                    </a>
-                    {% elif session['role'] == "job_seeker" %}
-                    <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}" class="navbar-brand">
-                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                    </a>
-                    {% else %}
-                    <a href="{{ url_for('home') }}" class="navbar-brand">
-                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                    </a>
-                    {% endif %}
-                    <!-- תפריט ניווט (דסקטופ ומובייל) -->
-                    <div class="collapse navbar-collapse" id="navbarCollapse">
-                        <div class="navbar-nav ms-auto">
-                            {% if session['role'] %}
-                            <!-- אם המשתמש מחובר -->
-                            <div class="d-none d-lg-flex align-items-center">
-                                <div class="logout-icon me-3">
-                                    <a href="#" onclick="logout(); return false;">
-                                        <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
-                                    </a>
-                                </div>
-                                <div class="notification-icon me-3">
-                                    <img id="notificationIcon" src="/static/img/Notifications.png"
-                                        alt="Notification Icon" height="30" width="30" onclick="toggleNotifications()"
-                                        style="cursor: pointer;">
-                                    <div class="notification-badge" id="notificationBadge" style="display: none;">!
-                                    </div>
-                                    <div id="notificationModal" class="notification-modal"
-                                        style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
-                                        <div style="padding: 15px;">
-                                            <h5 style="margin-bottom: 10px;">התראות</h5>
-                                            <hr class="section-divider">
-                                            <div id="notifications-list">
-                                                <p>טוען התראות...</p>
-                                            </div>
-                                            <hr class="section-divider">
-                                            <button type="button" class="btn btn-sm btn-danger"
-                                                style="margin-top: 10px;" onclick="closeNotifications()">סגור</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="user me-3">
-                                    <a href="{{ url_for('users_bp_main.profile_page') }}">
-                                        <img id="userIcon" src="/static/img/user.png" alt="User" height="30" width="30">
-                                    </a>
-                                </div>
-                            </div>
-                            {% endif %}
-                            <!--כפתור ״בית״-->
-                            {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                            <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
-                            {% elif session['role'] == "employee" %}
-                            <a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
-                            {% elif session['role'] == "job_seeker" %}
-                            <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}"
-                                class="nav-item nav-link">בית</a>
-                            {% else %}
-                            <a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
-                            {% endif %}
-                            <!--כפתור ״דפים״-->
-                            {% if session['role'] == "manager" or session['role'] == "co_manager" or
-                            session['role'] == "employee"%} <div class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
-                                <div class="dropdown-menu bg-light rounded-0 m-0">
-                                    <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
-                                        חלקות</a>
-
-                                    {% if session['role'] == "employee" %}
-                                    <a href="{{ url_for('attendance_bp.report_attendance_page') }}"
-                                        class="dropdown-item">דיווח נוכחות</a>
-                                    <a href="{{ url_for('manager_bp.get_employees_list') }}"
-                                        class="dropdown-item">המשימות שלי</a>
-
-                                    {% elif session['role'] == "manager" or session['role'] == "co_manager" %}
-                                    <a href="{{ url_for('plot_bp.archive') }}" class="dropdown-item">ארכיון</a>
-                                    <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
-                                        שלי</a>
-                                    <a href='/task/alltasks.html' class="dropdown-item">כל המשימות</a>
-                                    <a href="{{url_for('attendance_bp.attendance_manager_page')}}"
-                                        class="dropdown-item">נוכחות עובדים</a>
-                                    <a href="{{ url_for('supply_bp.supply_inventory') }}" class="dropdown-item">מלאי
-                                        ואספקה</a>
-                                    <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
-                                        הוצאות</a>
-                                    <a href="{{ url_for('vehicles_bp.vehicles_management_page') }}" class="dropdown-item">כלי שטח</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-                            <!-- 🏠 לכל המשתמשים -->
-                            <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
-                            <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
-                            {% if session['role'] %}
-                            <div class="d-lg-none mt-3">
-                                <div class="nav-item">
-                                    <a href="#" onclick="toggleNotifications()" class="nav-link">התראות</a>
-                                </div>
-                                <div class="nav-item">
-                                    <a href="{{ url_for('users_bp_main.profile_page') }}" class="nav-link">הפרופיל
-                                        שלי</a>
-                                </div>
-
-                                <div class="nav-item">
-                                    <a href="#" onclick="logout(); return false;" class="nav-link">התנתק</a>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% if session['role'] %}
-                    <div id="weather-info-short" class="d-flex align-items-center">
-                        <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
-                            style="width: 24px; height: 24px; margin-right: 8px;">
-                        <span>
-                            <strong>{{ city }}</strong> - {{ temperature }}°C
-                        </span>
-                    </div>
-                    {% endif %}
-                </div>
-            </nav>
-        </div>
-    </div>
+    {% include 'components/navbar.html' %}
     <!-- Navbar End -->
 
-    <hr class="section-divider ">
-    <div class="container mt-4 attendance-manager">
-    <div class="container">
-        <div class="d-flex align-items-center justify-content-between">
-            <h1 class="title">כלי שטח</h1>
-            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+    <div class="container attendance-manager">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between">
+                <h1 class="title mb-0">כלי שטח</h1>
+                <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+            </div>
+            <hr class="section-divider">
+            <br>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <button id="openVehicleModal" class="btn button-circle">
+                    <img src="/static/img/plus_icon.png">
+                </button>
+                <div class="search-container">
+                    <label for="searchInput" class="me-2">חיפוש רכב:</label>
+                    <input type="text" id="searchInput" class="form-control"
+                        placeholder="חפש לפי מספר רכב או סוג רכב...">
+                </div>
+            </div>
+            <br>
+            <!-- Vehicels table-->
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>מספר רכב</th>
+                        <th>סוג רכב</th>
+                        <th>תאריך חידוש טסט</th>
+                        <th>עלות טסט אחרון</th>
+                        <th>תאריך חידוש ביטוח</th>
+                        <th>עלות ביטוח</th>
+                        <th>תאריך טיפול אחרון</th>
+                        <th>עלות טיפול אחרון</th>
+                        <th>נהגים מורשים</th>
+                        <th>ניהול</th>
+                    </tr>
+                </thead>
+                <tbody id="vehicleTable"></tbody>
+            </table>
         </div>
-        <hr class="section-divider">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <button id="openVehicleModal" class="btn button-circle">
-            <img src="/static/img/plus_icon.png">
-        </button>
-        <div class="search-container">
-            <label for="searchInput" class="me-2">חיפוש רכב:</label>
-            <input type="text" id="searchInput" class="form-control" 
-            placeholder="חפש לפי מספר רכב או סוג רכב...">
-        </div>
     </div>
-        <!-- טבלת כלי שטח -->
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>מספר רכב</th>
-                    <th>סוג רכב</th>
-                    <th>תאריך חידוש טסט</th>
-                    <th>עלות טסט אחרון</th>
-                    <th>תאריך חידוש ביטוח</th>
-                    <th>עלות ביטוח</th>
-                    <th>תאריך טיפול אחרון</th>
-                    <th>עלות טיפול אחרון</th>
-                    <th>נהגים מורשים</th>
-                    <th>ניהול</th>
-                </tr>
-            </thead>
-            <tbody id="vehicleTable"></tbody>
-        </table>
-    </div>
-    </div>
-    <!-- מודאל להוספת כלי שטח -->
+
+    <!-- Adding vehicles modal-->
     <div id="addVehicleModal" class="modal fade" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -272,7 +134,7 @@
         </div>
     </div>
 
-    <!-- מודאל עריכת טסט -->
+    <!-- Edit test modal -->
     <div id="editTestModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -296,6 +158,7 @@
         </div>
     </div>
 
+    <!-- Edit service modal -->
     <div id="editServiceModal" class="modal fade" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -317,7 +180,8 @@
                             </div>
                             <div class="col-md-12">
                                 <label for="editServiceNotes">הערות על הטיפול</label>
-                                <textarea id="editServiceNotes" class="form-control" rows="3" placeholder="פרטים נוספים על הטיפול..."></textarea>
+                                <textarea id="editServiceNotes" class="form-control" rows="3"
+                                    placeholder="פרטים נוספים על הטיפול..."></textarea>
                             </div>
                         </div>
                         <div class="mt-3 text-end modal-footer">
@@ -329,9 +193,9 @@
             </div>
         </div>
     </div>
-    
 
-    <!-- מודאל עריכת ביטוח -->
+
+    <!-- Edit insurance modal -->
     <div id="editInsuranceModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">

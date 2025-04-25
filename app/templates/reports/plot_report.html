@@ -36,45 +36,61 @@
     {% include 'components/navbar.html' %}
     <!-- Navbar End -->
 
-    <!-- Main Content Start -->
-    <div class="container mb-2">
+    <div class="container">
         <div class="d-flex align-items-center justify-content-between">
-            <h1 class="title">שלום, {{ first_name }}</h1>
+            <h1 class="title mb-0">דו"ח הוצאות/הכנסות פר חלקה</h1>
+            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
         </div>
-        <div class="leaf-container">
-            <div class="leaf" onclick="navigateTo('track_greenhouse')">
-                <img src="/static/img/leaf.png" alt="מעקב">
-                <span>מעקב חלקות/חממות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('archive')">
-                <img src="/static/img/leaf.png" alt="ארכיון">
-                <span>ארכיון חלקות/חממות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('optimal_management')">
-                <img src="/static/img/leaf.png" alt="ניהול">
-                <span>ניהול חלקות אופטימלי</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('reports')">
-                <img src="/static/img/leaf.png" alt="דו" חות">
-                <span>דו"חות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('team')">
-                <img src="/static/img/leaf.png" alt="צוות">
-                <span>הצוות שלי</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('calculator')">
-                <img src="/static/img/leaf.png" alt="מחשבון">
-                <span>מחשבון הוצאות</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('inventory')">
-                <img src="/static/img/leaf.png" alt="מלאי">
-                <span>לוגיסטיקה וניהול</span>
-            </div>
-            <div class="leaf" onclick="navigateTo('jobs')">
-                <img src="/static/img/leaf.png" alt="חנות">
-                <span>רשת חברתית לפרסום משרות</span>
-            </div>
+        <hr class="section-divider">
+        <br>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <form id="plotReportForm" method="get" action="{{ url_for('reports_bp.plot_report') }}">
+                <label for="plot_name" class="me-3">בחר חלקה:</label>
+                <select id="plot_name" name="plot_name" class="me-2">
+                    <option value="">בחר חלקה...</option>
+                </select>
+
+                <label for="sow_date" style="display:none;" class="me-3">בחר תאריך זריעה:</label>
+                <select id="sow_date" name="sow_date" style="display:none;" class="me-2"></select>
+                <button type="submit" class="btn btn-primary me-3" style="padding: 5px 10px !important;">הצג
+                    דו״ח</button>
+
+            </form>
+            <!-- <a href="{{ url_for('reports_bp.export_yearly_pdf', year=selected_year) }}"
+                class="btn btn-outline-secondary export-pdf-btn" target="_blank" style="white-space: nowrap;">
+                הורד PDF
+            </a> -->
         </div>
+        {% if irrigation_cost is defined %}
+        <div class="summary mt-2" style="font-size: 20px; color:#8fb23e; font-weight: bold;">
+            במהלך {{ days }} ימים, התזרים של החלקה הזו הוא {{ balance }} ₪
+        </div>
+        <div class="frame border-info rounded p-3 my-3 mt-4">
+            <h4>פרטי החלקה</h4>
+            <ul>
+                <li><strong>מה נשתל:</strong> {{ crop }}</li>
+                <li><strong>כמות שנזרעה:</strong> {{ quantity_planted }} ק״ג</li>
+                <li><strong>כמות שהושקה:</strong> {{ total_irrigation_amount }} קוב</li>
+                <li><strong>כמות היבול:</strong> {{ crop_yield }} ק״ג</li>
+                <li><strong>מחיר לק״ג:</strong> {{ price_yield }} ₪</li>
+            </ul>
+        </div>
+
+        <div class="frame border border-danger rounded p-2 my-3 mt-4">
+            <h3>הוצאות</h3>
+            <ul>
+                <li>השקייה: {{ irrigation_cost }} ₪</li>
+            </ul>
+        </div>
+
+        <div class="frame border border-success rounded p-3">
+            <h3>הכנסות</h3>
+            <ul>
+                <li>יבול: {{ income_yield }} ₪</li>
+            </ul>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Back to Top -->
@@ -92,26 +108,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     <script src="/static/js/main.js"></script>
+
     <script>
-        function navigateTo(page) {
-            const urls = {
-                'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
-                'archive': '{{ url_for("plot_bp.archive") }}',
-                'optimal_management': '{{ url_for("optimal_bp.optimal_management_page") }}',
-                'reports': '{{ url_for("reports_bp.reports_home") }}',
-                'team': '{{ url_for("manager_bp.get_employees_list") }}',
-                'calculator': '{{ url_for("manager_bp.expense_page") }}',
-                'inventory': '{{ url_for("manager_bp.logistic_management") }}',
-                'jobs': '{{ url_for("posts_bp.social_feed") }}'
-            };
-
-            if (urls[page]) {
-                window.location.href = urls[page];
-            }
-        }
-
         document.addEventListener("DOMContentLoaded", async function () {
-            //מזג אוויר
             const shortWeatherDiv = document.getElementById("weather-info-short");
 
             try {
@@ -122,20 +121,24 @@
 
                 const data = await response.json();
 
-                // עדכון התצוגה הקצרה בסרגל הכלים
                 shortWeatherDiv.innerHTML = `
-                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
-                    <strong>${data.city}</strong> ${data.temperature}°C
-                `;
+                <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                <strong>${data.city}</strong> ${data.temperature}°C
+            `;
             } catch (error) {
                 console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
                 shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
             }
         });
-
+        function goBack() {
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = "{{ url_for('home') }}";
+            }
+        }
 
     </script>
-
 </body>
 
 </html>

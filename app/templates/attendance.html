@@ -32,155 +32,38 @@
 </head>
 
 <body>
-<!-- Navbar Start -->
-<div class="container-fluid bg-white sticky-top">
-    <div class="container">
-        <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
-            <div class="d-flex justify-content-between align-items-center w-100">
-
-                <!-- כפתור תפריט למובייל -->
-                <button type="button" class="navbar-toggler ms-auto me-0" data-bs-toggle="collapse"
-                    data-bs-target="#navbarCollapse">
-                    <span class="navbar-toggler-icon"></span>
-                    <span class="menu-text ms-2">תפריט</span>
-                </button>
-
-                {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
-                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                </a>
-                {% elif session['role'] == "employee" %}
-                <a href="{{ url_for('employee_bp.employee_home_page') }}" class="navbar-brand">
-                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                </a>
-                {% elif session['role'] == "job_seeker" %}
-                <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}" class="navbar-brand">
-                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                </a>
-                {% else %}
-                <a href="{{ url_for('home') }}" class="navbar-brand">
-                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                </a>
-                {% endif %}
-                <!-- תפריט ניווט (דסקטופ ומובייל) -->
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <div class="navbar-nav ms-auto">
-                        {% if session['role'] %}
-                        <!-- אם המשתמש מחובר -->
-                        <div class="d-none d-lg-flex align-items-center">
-                            <div class="logout-icon me-3">
-                                <a href="#" onclick="logout(); return false;">
-                                    <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
-                                </a>
-                            </div>
-                            <div class="notification-icon me-3">
-                                <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notifications"
-                                    height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
-                                <div class="notification-badge" id="notificationBadge" style="display: none;">!
-                                </div>
-                            </div>
-                            <div class="user me-3">
-                                <a href="{{ url_for('users_bp_main.profile_page') }}">
-                                    <img id="userIcon" src="/static/img/user.png" alt="User" height="30" width="30">
-                                </a>
-                            </div>
-                            <!-- מזג האוויר -->
-                        </div>
-                        {% endif %}
-                        {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                        <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
-                        {% elif session['role'] == "employee" %}
-                        <a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
-                        {% elif session['role'] == "job_seeker" %}
-                        <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}"
-                            class="nav-item nav-link">בית</a>
-                        {% else %}
-                        <a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
-                        {% endif %}
-                        {% if session['role'] == "manager" or session['role'] == "co_manager" or
-                        session['role'] == "employee"%} <div class="nav-item dropdown">
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
-                            <div class="dropdown-menu bg-light rounded-0 m-0">
-                                <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
-                                    חלקות</a>
-                                {% if session['role'] == "employee" %}
-                                <a href="{{ url_for('attendance_bp.report_attendance_page') }}"
-                                    class="dropdown-item">דיווח נוכחות</a>
-                                {% endif %}
-                                {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                                <a href="{{ url_for('plot_bp.archive') }}" class="dropdown-item">ארכיון</a>
-                                <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
-                                    שלי</a>
-                                <a href='/task/alltasks.html' class="dropdown-item">כל המשימות</a>
-                                <a href="{{url_for('attendance_bp.attendance_manager_page')}}"
-                                    class="dropdown-item">נוכחות עובדים</a>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        <!-- 🏠 לכל המשתמשים -->
-                        <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
-                        <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
-                        {% if session['role'] %}
-                        <div class="d-lg-none mt-3">
-                            <div class="nav-item">
-                                <a href="#" onclick="toggleNotifications()" class="nav-link">התראות</a>
-                            </div>
-                            <div class="nav-item">
-                                <a href="{{ url_for('users_bp_main.profile_page') }}" class="nav-link">הפרופיל
-                                    שלי</a>
-                            </div>
-
-                            <div class="nav-item">
-                                <a href="#" onclick="logout(); return false;" class="nav-link">התנתק</a>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% if session['role'] %}
-
-                <div id="weather-info-short" class="d-flex align-items-center">
-                    <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
-                        style="width: 24px; height: 24px; margin-right: 8px;">
-                    <span>
-                        <strong>{{ city }}</strong> - {{ temperature }}°C
-                    </span>
-                </div>
-                {% endif %}
-            </div>
-        </nav>
-    </div>
-</div>
-<!-- Navbar End -->
-
-    <!-- פס חוצץ -->
-    <hr class="section-divider">
+    <!-- Navbar Start -->
+    {% include 'components/navbar.html' %}
+    <!-- Navbar End -->
 
     <div class="container">
-        <h1>דיווח נוכחות</h1>
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="title mb-0">דיווח נוכחות</h1>
+            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+        </div>
         <hr class="section-divider">
         <button class="btn-check-in w-50" onclick="reportAttendance('check_in')">כניסה</button>
         <button class="btn-check-out w-50" onclick="reportAttendance('check_out')" style="display: none;">יציאה</button>
         <p id="message"></p>
     </div>
-    <div class="container mt-4">
-        <h2>היסטוריית נוכחות</h2>
+    <div class="container mt-0">
+        <h2 class="title mb-3">היסטוריית נוכחות</h2>
+        <hr class="section-divider">
         <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>שם פרטי</th>
-                    <th>שם משפחה</th>
-                    <th>תאריך כניסה</th>
-                    <th>תאריך יציאה</th>
-                    <th>זמן עבודה בפועל (שעות)</th>
-                </tr>
-            </thead>
-            <tbody id="attendanceTableBody">
-            </tbody>
-        </table>
-     </div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>שם פרטי</th>
+                        <th>שם משפחה</th>
+                        <th>תאריך כניסה</th>
+                        <th>תאריך יציאה</th>
+                        <th>זמן עבודה בפועל (שעות)</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                </tbody>
+            </table>
+        </div>
     </div>
     <!-- Alert Box -->
     <div id="customAlert" class="alert-box" style="display:none;">
@@ -310,16 +193,22 @@
                 },
                 body: JSON.stringify({ action })
             })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("message").textContent = data.message;
-                loadAttendanceRecords();
-            })
-            .catch(error => {
-                console.error("Error:", error);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("message").textContent = data.message;
+                    loadAttendanceRecords();
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
         }
-
+        function goBack() {
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = "{{ url_for('home') }}";
+            }
+        }
     </script>
 
 </body>

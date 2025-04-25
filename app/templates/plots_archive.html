@@ -32,102 +32,16 @@
 
 <body>
     <!-- Navbar Start -->
-    <div class="container-fluid bg-white sticky-top">
-        <div class="container">
-            <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
-                <div class="d-flex justify-content-between align-items-center w-100">
-                    <div class="logout-icon" style="display: inline-block;">
-                        <a href="#" onclick="logout(); return false;">
-                            <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
-                        </a>
-                    </div>
-                    <div class="notification-icon" style="position: relative; display: inline-block;">
-                        <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon"
-                            height="30" width="30" onclick="toggleNotifications()" style="cursor: pointer;">
-                        <div class="notification-badge" id="notificationBadge" style="display: none;">!</div>
-                        <div id="notificationModal" class="notification-modal"
-                            style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
-                            <div style="padding: 15px;">
-                                <h5 style="margin-bottom: 10px;">התראות</h5>
-                                <hr class="section-divider">
-                                <div id="notifications-list">
-                                    <p>טוען התראות...</p>
-                                </div>
-                                <hr class="section-divider">
-                                <button type="button" class="btn btn-sm btn-danger" style="margin-top: 10px;"
-                                    onclick="closeNotifications()">סגור</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="user" style="position: relative; display: inline-block;">
-                        <a href="{{ url_for('users_bp_main.profile_page') }}">
-                            <img id="userIcon" src="/static/img/user.png" alt="User Icon" height="30" width="30"
-                                style="cursor: pointer;">
-                        </a>
-                    </div>
-
-
-                    <div class="collapse navbar-collapse" id="navbarCollapse">
-                        <div class="navbar-nav ms-auto">
-                            <!-- כפתור "בית" מותאם לפי role -->
-                            {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                            <a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
-                            {% elif session['role'] == "employee" %}
-                            <a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
-                            {% elif session['role'] == "job_seeker" %}
-                            <a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}"
-                                class="nav-item nav-link">בית</a>
-                            {% endif %}
-                            <!-- Dropdown של דפים -->
-                            <div class="nav-item dropdown position-relative">
-                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
-                                <div class="dropdown-menu bg-light rounded-0 m-0">
-                                    <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
-                                        חלקות/חממות</a>
-                                    <a href='{{ url_for("plot_bp.archive") }}' class="dropdown-item">ארכיון
-                                        חלקות/חממות</a>
-                                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                                    <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
-                                        שלי</a>
-                                    {% endif %}
-                                    {% if session['role'] == "employee" %}
-                                    <a href='/task/alltasks.html' class="dropdown-item">המשימות
-                                        שלי</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
-                            <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
-                        </div>
-                    </div>
-                    {% if session['role'] == "manager" or session['role'] == "co_manager" %}
-                    <a href="{{ url_for('manager_bp.manager_home_page') }}" class="navbar-brand">
-                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                    </a>
-                    {% elif session['role'] == "employee" %}
-                    <a href="{{ url_for('employee_bp.employee_home_page') }}" class="navbar-brand">
-                        <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
-                    </a>
-                    {% endif %}
-                    <div id="weather-info-short" class="d-flex align-items-center">
-                        <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
-                            style="width: 24px; height: 24px; margin-right: 8px;">
-                        <span>
-                            <strong>{{ city }}</strong> - {{ temperature }}°C
-                        </span>
-                    </div>
-                </div>
-            </nav>
-        </div>
-    </div>
+    {% include 'components/navbar.html' %}
     <!-- Navbar End -->
-    <hr class="section-divider">
 
     <div class="container">
-        <h1 class="title">ארכיון חלקות</h1>
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="title mb-0">ארכיון חלקות וחממות</h1>
+            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+        </div>
         <hr class="section-divider">
-
+        <br>
         {% if plots and plots|length > 0 %}
         <table class="table table-bordered">
             <thead>
@@ -190,7 +104,6 @@
 
                 const data = await response.json();
 
-                // עדכון התצוגה הקצרה בסרגל הכלים
                 shortWeatherDiv.innerHTML = `
                     <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
                     <strong>${data.city}</strong> ${data.temperature}°C
@@ -200,6 +113,13 @@
                 shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
             }
         });
+        function goBack() {
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = "{{ url_for('home') }}";
+            }
+        }
     </script>
 </body>
 

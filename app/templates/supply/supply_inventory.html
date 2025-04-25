@@ -36,16 +36,17 @@
     {% include 'components/navbar.html' %}
     <!-- Navbar End -->
 
-    <div class="main-content">
-        <!-- כותרת -->
-        <h1>שלום, {{ first_name }}</h1>
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="title mb-0">ניהול אספקה ומלאי</h1>
+            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+        </div>
 
-        <!-- עלים -->
-        <div class="leaf-container">
-            <div class="leaf" onclick="navigateTo('jobs')">
-                <img src="/static/img/leaf.png" alt="חנות">
-                <span>רשת חברתית לפרסום משרות</span>
-            </div>
+        <hr class="section-divider ">
+        <div class="button-container" id="supp">
+            <button class="circle-button" onclick="navigateToPage('seeds')">זרעים וגידולים</button>
+            <button class="circle-button" onclick="navigateToPage('pesticides')">חומרי הדברה</button>
+            <button class="circle-button" onclick="navigateToPage('general')">מוצרים כלליים</button>
         </div>
     </div>
 
@@ -64,28 +65,46 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     <script src="/static/js/main.js"></script>
-    <script>
-        function navigateTo(page) {
+    <script> document.addEventListener("DOMContentLoaded", async function () {
+            //מזג אוויר
+            const shortWeatherDiv = document.getElementById("weather-info-short");
+
+            try {
+                const response = await fetch("/weather");
+                if (!response.ok) {
+                    throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
+                }
+
+                const data = await response.json();
+                shortWeatherDiv.innerHTML = `
+                <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                <strong>${data.city}</strong> ${data.temperature}°C
+            `;
+            } catch (error) {
+                console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
+                shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+            }
+        });
+
+        function navigateToPage(page) {
             const urls = {
-                'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
-                'archive': '#',
-                'optimal_management': '#',
-                'reports': '#',
-                'team': '{{ url_for("manager_bp.get_employees_list") }}',
-                'calculator': '#',
-                'inventory': '#',
-                'jobs': '{{ url_for("posts_bp.social_feed") }}' // הוספת הנתיב לדף רשת חברתית
+                'seeds': '{{ url_for("supply_bp.supply_inventory_seeds") }}',
+                'pesticides': '{{ url_for("supply_bp.supply_inventory_pesticides") }}',
+                'general': '{{ url_for("supply_bp.supply_inventory_general") }}'
             };
 
             if (urls[page]) {
                 window.location.href = urls[page];
             }
         }
-
-
+        function goBack() {
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = "{{ url_for('home') }}";
+            }
+        }
     </script>
-
-
 </body>
 
 </html>

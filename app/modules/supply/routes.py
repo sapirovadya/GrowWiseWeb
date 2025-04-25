@@ -14,7 +14,7 @@ supply_bp = Blueprint('supply_bp', __name__, url_prefix="/supply")
 
 @supply_bp.route('/supply-inventory')
 def supply_inventory():
-    return render_template('supply_inventory.html')
+    return render_template('/supply/supply_inventory.html')
 
 @supply_bp.route('/supply-inventory-seeds')
 def supply_inventory_seeds():
@@ -31,7 +31,7 @@ def supply_inventory_seeds():
         {"_id": 0, "name": 1, "quantity": 1}
     ))
 
-    return render_template('supply_seeds.html', supplies=supply_items)
+    return render_template('/supply/supply_seeds.html', supplies=supply_items)
 
 @supply_bp.route('/supply-inventory-pesticides')
 def supply_inventory_pesticides():
@@ -47,7 +47,7 @@ def supply_inventory_pesticides():
         {"email": query_email, "category": "הדברה"}, 
         {"_id": 0, "name": 1, "quantity": 1}
     ))
-    return render_template('supply_pesticides.html', supplies=supply_items)
+    return render_template('/supply/supply_pesticides.html', supplies=supply_items)
 
 @supply_bp.route('/supply-inventory-general')
 def supply_inventory_general():
@@ -65,7 +65,7 @@ def supply_inventory_general():
         {"email": query_email, "category": "מוצר כללי"}, 
         {"_id": 0, "name": 1, "quantity": 1}
     ))
-    return render_template('supply_general.html', supplies=supply_items)
+    return render_template('/supply/supply_general.html', supplies=supply_items)
 
 @supply_bp.route('/add', methods=['POST'])
 def add_supply():

@@ -36,19 +36,23 @@
     {% include 'components/navbar.html' %}
     <!-- Navbar End -->
 
-    <div class="main-content">
-        <!-- כותרת -->
-        <h1>שלום, {{ first_name }}</h1>
-
-        <!-- עלים -->
-        <div class="leaf-container">
-            <div class="leaf" onclick="navigateTo('jobs')">
-                <img src="/static/img/leaf.png" alt="חנות">
-                <span>רשת חברתית לפרסום משרות</span>
-            </div>
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="title mb-0">רשימת דו״חות</h1>
+            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
         </div>
+        <hr class="section-divider ">
     </div>
-
+    <br>
+    <main>
+        <ul style="margin-right: 40px; font-size: 19px; ">
+            <li><a href="{{ url_for('reports_bp.monthly_income_expense_report') }}">הוצאות והכנסות חודשיים</a></li><br>
+            <li><a href="{{ url_for('reports_bp.yearly_report') }}">הוצאות והכנסות שנתיים</a></li><br>
+            <li><a href="{{ url_for('reports_bp.monthly_attendance_report') }}">נוכחות עובדים חודשית</a></li><br>
+            <li><a href="{{ url_for('reports_bp.plot_report') }}">הוצאות והכנסות לפי חלקה</a></li><br>
+            <li><a href="{{ url_for('reports_bp.vehicle_expenses') }}">הוצאות לפי רכב</a></li>
+        </ul>
+    </main>
     <!-- Back to Top -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
             class="bi bi-arrow-up"></i></a>
@@ -64,28 +68,37 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     <script src="/static/js/main.js"></script>
-    <script>
-        function navigateTo(page) {
-            const urls = {
-                'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
-                'archive': '#',
-                'optimal_management': '#',
-                'reports': '#',
-                'team': '{{ url_for("manager_bp.get_employees_list") }}',
-                'calculator': '#',
-                'inventory': '#',
-                'jobs': '{{ url_for("posts_bp.social_feed") }}' // הוספת הנתיב לדף רשת חברתית
-            };
 
-            if (urls[page]) {
-                window.location.href = urls[page];
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            const shortWeatherDiv = document.getElementById("weather-info-short");
+
+            try {
+                const response = await fetch("/weather");
+                if (!response.ok) {
+                    throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                shortWeatherDiv.innerHTML = `
+                <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                <strong>${data.city}</strong> ${data.temperature}°C
+            `;
+            } catch (error) {
+                console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
+                shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+            }
+        });
+        function goBack() {
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = "{{ url_for('home') }}";
             }
         }
 
-
     </script>
-
-
 </body>
 
 </html>

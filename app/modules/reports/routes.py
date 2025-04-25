@@ -37,7 +37,7 @@ def match_month(date_obj, selected_month):
 
 @reports_bp.route("/")
 def reports_home():
-    return render_template("reports.html")
+    return render_template("/reports/reports.html")
 
 ## דו״ח הוצאות הכנסות חודשי
 @reports_bp.route("/monthly")
@@ -58,7 +58,7 @@ def monthly_income_expense_report():
 
     report_data = generate_monthly_report_data(selected_month, filter_email)
 
-    return render_template("monthly_income_expense.html",
+    return render_template("/reports/monthly_income_expense.html",
                            selected_month=selected_month,
                            selected_year=year,
                            selected_month_num=month,
@@ -552,7 +552,7 @@ def yearly_report():
         "data": [item["balance"] for item in balance_data]
     }, ensure_ascii=False)
 
-    return render_template("yearly_income_expense.html",
+    return render_template("/reports/yearly_income_expense.html",
                         datetime=datetime,
                         selected_year=selected_year,
                         pie_income=pie_income,
@@ -886,7 +886,7 @@ def monthly_attendance_report():
             print("Error parsing record:", e)
     results.sort(key=lambda x: x["check_in_date"])
 
-    return render_template("attendance_report.html",
+    return render_template("/reports/attendance_report.html",
         selected_month=selected_month,
         selected_year=selected_year,
         selected_name=selected_name,
@@ -981,7 +981,7 @@ def plot_report():
             sow_date_formatted = datetime.strptime(sow_date_str, "%d-%m-%Y").strftime("%Y-%m-%d")
         except ValueError:
             flash("פורמט תאריך שגוי", "danger")
-            return render_template("plot_report.html", plot_name=plot_name, sow_date=sow_date_str)
+            return render_template("/reports/plot_report.html", plot_name=plot_name, sow_date=sow_date_str)
 
         # חיפוש חלקה
         plot = db.plots.find_one({
@@ -995,7 +995,7 @@ def plot_report():
         else:
             flash("החלקה לא נמצאה", "danger")
 
-    return render_template("plot_report.html", plot_name=plot_name, sow_date=sow_date_str, **report_data)
+    return render_template("/reports/plot_report.html", plot_name=plot_name, sow_date=sow_date_str, **report_data)
 
 def calculate_plot_report(plot, email):
     sow_date = datetime.strptime(plot["sow_date"], "%Y-%m-%d")
@@ -1163,7 +1163,7 @@ def vehicle_expenses():
             ]       
         }
 
-    return render_template("vehicle_expenses_report.html",
+    return render_template("/reports/vehicle_expenses_report.html",
                         vehicles=vehicles,
                         years=years,
                         selected_vehicle=vehicle_number,

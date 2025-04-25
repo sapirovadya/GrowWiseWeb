@@ -1,0 +1,88 @@
+{% if session['role'] %}
+<!-- אם המשתמש מחובר -->
+<div class="d-none d-lg-flex align-items-center">
+    <div class="logout-icon me-3">
+        <a href="#" onclick="logout(); return false;">
+            <img src="/static/img/logodoor.png" alt="Logout" height="30" width="30">
+        </a>
+    </div>
+    <div class="notification-icon me-3">
+        <img id="notificationIcon" src="/static/img/Notifications.png" alt="Notification Icon" height="30" width="30"
+            onclick="toggleNotifications()" style="cursor: pointer;">
+        <div class="notification-badge" id="notificationBadge" style="display: none;">!
+        </div>
+        <div id="notificationModal" class="notification-modal"
+            style="display: none; position: absolute; top: 40px; left: -240px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; width: 400px;">
+            <div style="padding: 15px;">
+                <h5 style="margin-bottom: 10px;">התראות</h5>
+                <hr class="section-divider">
+                <div id="notifications-list">
+                    <p>טוען התראות...</p>
+                </div>
+                <hr class="section-divider">
+                <button type="button" class="btn btn-sm btn-danger" style="margin-top: 10px;"
+                    onclick="closeNotifications()">סגור</button>
+            </div>
+        </div>
+    </div>
+    <div class="user me-3">
+        <a href="{{ url_for('users_bp_main.profile_page') }}">
+            <img id="userIcon" src="/static/img/user.png" alt="User" height="30" width="30">
+        </a>
+    </div>
+</div>
+{% endif %}
+<!--כפתור ״בית״-->
+{% if session['role'] == "manager" or session['role'] == "co_manager" %}
+<a href="{{ url_for('manager_bp.manager_home_page') }}" class="nav-item nav-link">בית</a>
+{% elif session['role'] == "employee" %}
+<a href="{{ url_for('employee_bp.employee_home_page') }}" class="nav-item nav-link">בית</a>
+{% elif session['role'] == "job_seeker" %}
+<a href="{{ url_for('job_seeker_bp.job_seeker_home_page') }}" class="nav-item nav-link">בית</a>
+{% else %}
+<a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
+{% endif %}
+<!--כפתור ״דפים״-->
+{% if session['role'] == "manager" or session['role'] == "co_manager" or
+session['role'] == "employee"%} <div class="nav-item dropdown">
+    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">דפים</a>
+    <div class="dropdown-menu bg-light rounded-0 m-0">
+        <a href="{{ url_for('plot_bp.track_greenhouse') }}" class="dropdown-item">מעקב
+            חלקות</a>
+
+        {% if session['role'] == "employee" %}
+        <a href="{{ url_for('attendance_bp.report_attendance_page') }}" class="dropdown-item">דיווח נוכחות</a>
+        <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">המשימות שלי</a>
+
+        {% elif session['role'] == "manager" or session['role'] == "co_manager" %}
+        <a href="{{ url_for('plot_bp.archive') }}" class="dropdown-item">ארכיון</a>
+        <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
+            שלי</a>
+        <a href='/task/alltasks.html' class="dropdown-item">כל המשימות</a>
+        <a href="{{url_for('attendance_bp.attendance_manager_page')}}" class="dropdown-item">נוכחות עובדים</a>
+        <a href="{{ url_for('supply_bp.supply_inventory') }}" class="dropdown-item">מלאי
+            ואספקה</a>
+        <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
+            הוצאות</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+<!-- 🏠 לכל המשתמשים -->
+<a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
+<a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
+{% if session['role'] %}
+<div class="d-lg-none mt-3">
+    <div class="nav-item">
+        <a href="#" onclick="toggleNotifications()" class="nav-link">התראות</a>
+    </div>
+    <div class="nav-item">
+        <a href="{{ url_for('users_bp_main.profile_page') }}" class="nav-link">הפרופיל
+            שלי</a>
+    </div>
+
+    <div class="nav-item">
+        <a href="#" onclick="logout(); return false;" class="nav-link">התנתק</a>
+    </div>
+</div>
+{% endif %}
