@@ -48,6 +48,28 @@
         <button class="circle-button" onclick="openWaterPriceModal()">הכנסת תעריף לק״וב</button>
         <button class="circle-button" onclick="openFuelTypeModal()">הוצאות תדלוק</button>
     </div>
+
+    <!-- מודל לבחירת סוג מים -->
+    <div id="chooseWaterTypeForWaterModal" class="modal custom-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">בחר סוג מים</h5>
+                    <button type="button" class="btn-close" onclick="closeChooseWaterTypeModal()"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <button class="btn btn-primary m-2" style="width: 200px; font-size: 20px;"
+                        onclick="selectWaterTypeForWater('מים שפירים')">מים
+                        שפירים</button>
+                    <button class="btn btn-success m-2" style="width: 200px; font-size: 20px;"
+                        onclick="selectWaterTypeForWater('מים מושבים')">מים
+                        מושבים</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- מודל להזנת מחיר לקו״ב -->
     <div id="waterPriceModal" class="modal custom-modal">
         <div class="modal-dialog">

@@ -22,6 +22,8 @@ class Plot:
         self.price_yield = price_yield
         self.kosher_required = kosher_required
         self.kosher_certificate = kosher_certificate
+        self.irrigation_water_type = irrigation_water_type 
+
 
 
     def to_dict(self):
@@ -35,6 +37,7 @@ class Plot:
             "crop": self.crop,
             "sow_date": self.sow_date,
             "quantity_planted": self.quantity_planted,
+            "irrigation_water_type": self.irrigation_water_type,
             "total_irrigation_amount": self.total_irrigation_amount,
             "last_irrigation_date": self.last_irrigation_date,
             "harvest_date": self.harvest_date,

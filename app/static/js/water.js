@@ -1,5 +1,18 @@
-function openWaterPriceModal() {
+let selectedWaterTypeForWaterPrice = null;
+
+function selectWaterTypeForWater(type) {
+    selectedWaterTypeForWaterPrice = type;
+    closeChooseWaterTypeModal();
+
+    // אחרי בחירת סוג מים, פותחים את מודל מחיר לקוב
     document.getElementById("waterPriceModal").style.display = "flex";
+}
+function closeChooseWaterTypeModal() {
+    document.getElementById("chooseWaterTypeForWaterModal").style.display = "none";
+}
+
+function openWaterPriceModal() {
+    document.getElementById("chooseWaterTypeForWaterModal").style.display = "flex";
 }
 
 function closeWaterPriceModal() {
@@ -20,6 +33,10 @@ async function saveWaterPrice() {
         showAlert("שגיאה", "נא מלא מחיר חיובי גדול מ-0", false);
         return;
     }
+    if (!selectedWaterTypeForWaterPrice) {
+        showAlert("שגיאה", "נא לבחור סוג מים", false);
+        return;
+    }
 
     try {
         const response = await fetch("/expenses/water/add", {
@@ -30,12 +47,13 @@ async function saveWaterPrice() {
             body: JSON.stringify({
                 price: parseFloat(waterPrice),
                 date: waterDate,
+                water_type: selectedWaterTypeForWaterPrice
             }),
         });
 
         const result = await response.json();
         if (response.ok) {
-            showAlert("הצלחה", " התעריף נשמר בהצלחה!", false);
+            showAlert("הצלחה", "התעריף נשמר בהצלחה!", false);
             closeWaterPriceModal();
         } else {
             showAlert("שגיאה", result.error, false);

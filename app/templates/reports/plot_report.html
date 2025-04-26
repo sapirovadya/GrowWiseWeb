@@ -62,10 +62,11 @@
                 הורד PDF
             </a> -->
         </div>
-        {% if irrigation_cost is defined %}
+        {% if irrigation_cost_total is defined %}
         <div class="summary mt-2" style="font-size: 20px; color:#8fb23e; font-weight: bold;">
             במהלך {{ days }} ימים, התזרים של החלקה הזו הוא {{ balance }} ₪
         </div>
+
         <div class="frame border-info rounded p-3 my-3 mt-4">
             <h4>פרטי החלקה</h4>
             <ul>
@@ -77,10 +78,12 @@
             </ul>
         </div>
 
-        <div class="frame border border-danger rounded p-2 my-3 mt-4">
+        <div class="frame border border-danger rounded p-3 my-3 mt-4">
             <h3>הוצאות</h3>
             <ul>
-                <li>השקייה: {{ irrigation_cost }} ₪</li>
+                <li>השקיית מים שפירים: {{ irrigation_cost_shafirim }} ₪</li>
+                <li>השקיית מים מושבים: {{ irrigation_cost_mushavim }} ₪</li>
+                <li><strong>סה"כ הוצאות השקיה:</strong> {{ irrigation_cost_total }} ₪</li>
             </ul>
         </div>
 
@@ -91,6 +94,7 @@
             </ul>
         </div>
         {% endif %}
+
     </div>
 
     <!-- Back to Top -->

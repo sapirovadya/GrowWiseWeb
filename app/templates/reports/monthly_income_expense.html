@@ -84,7 +84,7 @@
             </div>
 
             <div class="col-md-4 mt-2 mb-4">
-                <div class="alert alert-danger p-3">
+                <div class="alert alert-danger p-3" style="width: 450px;">
                     סה"כ הוצאות: {{ total_expenses }} ₪
                     <ul class="text-end" dir="rtl" style="margin-top:10px;">
                         {% for category, amount in expenses_by_category.items() %}
@@ -93,7 +93,7 @@
                     </ul>
                 </div>
 
-                <div class="alert alert-success p-3 mt-3">
+                <div class="alert alert-success p-3 mt-3" style="width: 450px;">
                     סה"כ הכנסות: {{ total_income }} ₪
                     <ul class="text-end" dir="rtl" style="margin-top:10px;">
                         {% for category, amount in income_by_category.items() %}

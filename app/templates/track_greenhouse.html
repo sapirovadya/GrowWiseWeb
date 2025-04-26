@@ -118,6 +118,15 @@
                             <input type="number" id="quantityPlanted" name="quantity_planted" class="form-control"
                                 min="0" step="0.01">
                         </div>
+                        <div class="mb-3" id="irrigationWaterTypeDiv" style="display: none;">
+                            <label for="irrigationWaterType" class="form-label">סוג מי השקייה</label>
+                            <select id="irrigationWaterType" name="irrigation_water_type" class="form-select">
+                                <option value="none">בחר סוג מים</option>
+                                <option value="מים שפירים">מים שפירים</option>
+                                <option value="מים מושבים">מים מושבים</option>
+                                <option value="משולב">משולב</option>
+                            </select>
+                        </div>
                         <div class="mb-3" id="kosherDiv" style="display:none;">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="kosherRequired"

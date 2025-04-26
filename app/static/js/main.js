@@ -212,15 +212,53 @@ function logout() {
 }
 
 //update irrigation
-function checkAndOpenIrrigationModal(plotId) {
-    const modal = document.getElementById('irrigationModal');
-    if (modal) {
-        modal.setAttribute('data-plot-id', plotId);
-        modal.style.display = 'flex';
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
+let selectedWaterTypeForIrrigation = null;
+
+async function checkAndOpenIrrigationModal(plotId) {
+    try {
+        const response = await fetch(`/Plots/get_plot_info/${plotId}`);
+        if (!response.ok) {
+            throw new Error('שגיאה בשליפת פרטי חלקה.');
+        }
+        const data = await response.json();
+        const irrigationType = data.irrigation_water_type || "none";
+
+        if (irrigationType === "משולב") {
+            const modal = document.getElementById('chooseWaterTypeModal');
+            modal.setAttribute('data-plot-id', plotId);
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        } else {
+            selectedWaterTypeForIrrigation = irrigationType;
+            const modal = document.getElementById('irrigationModal');
+            modal.setAttribute('data-plot-id', plotId);
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    } catch (error) {
+        console.error('שגיאה בשליפת מידע:', error);
     }
 }
+
+function closeChooseWaterTypeModal() {
+    const modal = document.getElementById('chooseWaterTypeModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function selectWaterType(type) {
+    selectedWaterTypeForIrrigation = type;
+    closeChooseWaterTypeModal();
+
+    const plotId = document.getElementById('chooseWaterTypeModal').getAttribute('data-plot-id');
+    const modal = document.getElementById('irrigationModal');
+    modal.setAttribute('data-plot-id', plotId);
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
 
 function closeIrrigationModal() {
     const modal = document.getElementById('irrigationModal');
@@ -252,7 +290,10 @@ async function updateIrrigation() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ irrigation_amount: parseFloat(irrigationAmount) })
+            body: JSON.stringify({
+                irrigation_amount: parseFloat(irrigationAmount),
+                irrigation_water_type: selectedWaterTypeForIrrigation || "none"
+            })
         });
 
         if (response.ok) {
@@ -339,6 +380,7 @@ async function submitUpdate() {
         cropCategory = cropCategoryElement.getAttribute("data-category") || "none";
     }
     const cropField = document.getElementById("crop");
+    const irrigationWaterTypeField = document.getElementById("irrigationWaterTypeUpdate");
     const sowDateField = document.getElementById("sowDate");
     const quantityPlantedField = document.getElementById("quantityPlanted");
     const kosherCheckbox = document.getElementById("kosherRequiredUpdate");
@@ -371,6 +413,7 @@ async function submitUpdate() {
     formData.append("crop", crop);
     formData.append("sow_date", sowDate);
     formData.append("quantity_planted", quantityPlanted);
+    formData.append("irrigation_water_type", irrigationWaterTypeField.value || "none");
 
     if (kosherCheckbox.checked) {
         formData.append("kosher_required", "on");
@@ -517,14 +560,19 @@ async function openPlotForm(type) {
         const sowDateDiv = document.getElementById('sowDateDiv');
         const quantityPlantedDiv = document.getElementById('quantityPlantedDiv');
         const cropCategoryField = document.getElementById('cropCategory');
+        const irrigationWaterTypeDiv = document.getElementById('irrigationWaterTypeDiv'); // חדש
 
         if (selectedCrop === "none") {
             sowDateDiv.style.display = 'none';
             quantityPlantedDiv.style.display = 'none';
             cropCategoryField.value = "none";
+            irrigationWaterTypeDiv.style.display = 'none';
+
         } else {
             sowDateDiv.style.display = 'block';
             quantityPlantedDiv.style.display = 'block';
+            irrigationWaterTypeDiv.style.display = 'block';
+
         }
 
     });
@@ -551,12 +599,11 @@ async function savePlot() {
     const cropCategoryField = document.getElementById("cropCategory");
     const sowDateField = document.getElementById("sowDate");
     const quantityPlantedField = document.getElementById("quantityPlanted");
+    const irrigationWaterTypeField = document.getElementById("irrigationWaterType");
 
-    // שדות כשרות
     const kosherCheckbox = document.getElementById("kosherRequired");
     const kosherFileInput = document.getElementById("kosherCertificate");
 
-    // בדיקות תקינות
     if (!plotTypeInput.value.trim()) {
         showAlert("שגיאה", "סוג החלקה הוא שדה חובה.");
         return;
@@ -592,6 +639,7 @@ async function savePlot() {
     formData.append("crop", crop);
     formData.append("sow_date", sowDate);
     formData.append("quantity_planted", quantityPlanted);
+    formData.append("irrigation_water_type", irrigationWaterTypeField.value || "none");
 
     if (kosherCheckbox.checked) {
         formData.append("kosher_required", "on");

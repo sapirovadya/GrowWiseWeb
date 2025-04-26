@@ -151,6 +151,7 @@ def save_plot():
         crop_category = request.form.get("crop_category", "none")
         crop_name = request.form.get("crop", "none")
         sow_date = request.form.get("sow_date", "")
+        irrigation_water_type = request.form.get("irrigation_water_type", "none")
         quantity_planted_raw = request.form.get("quantity_planted")
         kosher_required = request.form.get("kosher_required") == "on"
 
@@ -210,6 +211,7 @@ def save_plot():
             "harvest_date": None,
             "crop_yield": None,
             "price_yield": None,
+            "irrigation_water_type": irrigation_water_type,
             "kosher_required": kosher_required,
             "kosher_certificate": kosher_certificate_path
         }
@@ -361,7 +363,8 @@ def update_plot(plot_id):
             "crop": crop_name,
             "sow_date": sow_date,
             "quantity_planted": quantity_planted,
-            "kosher_required": 'kosher_required' in data
+            "kosher_required": 'kosher_required' in data,
+            "irrigation_water_type": data.get('irrigation_water_type', 'none')
         }
 
         # אם קובץ צורף - שמור אותו
@@ -405,6 +408,7 @@ def update_irrigation(plot_id):
     try:
         data = request.get_json()
         irrigation_amount = data.get('irrigation_amount')
+        irrigation_water_type = data.get('irrigation_water_type', 'none')
 
         if not irrigation_amount or not isinstance(irrigation_amount, (int, float)) or irrigation_amount <= 0:
             return jsonify({"error": "Invalid irrigation amount"}), 400
@@ -452,6 +456,7 @@ def update_irrigation(plot_id):
             "name": plot_name,
             "sow_date": sow_date,
             "quantity_irrigation": irrigation_amount,
+            "irrigation_water_type": irrigation_water_type,
             "Irrigation_date": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         }
         db.irrigation.insert_one(new_irrigation)
@@ -460,6 +465,19 @@ def update_irrigation(plot_id):
 
     except Exception as e:
         print(f"Error: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+@plot_bp.route('/get_plot_info/<plot_id>', methods=['GET'])
+def get_plot_info(plot_id):
+    try:
+        plot = db.plots.find_one({"_id": plot_id})
+        if not plot:
+            return jsonify({"error": "Plot not found"}), 404
+
+        irrigation_water_type = plot.get("irrigation_water_type", "none")
+        return jsonify({"irrigation_water_type": irrigation_water_type}), 200
+
+    except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
@@ -616,6 +634,14 @@ def add_plot_task():
     if not all(field in data and data[field] for field in required_fields):
         return jsonify({"success": False, "error": "יש למלא את כל השדות החובה."}), 400
 
+    employee = db.employee.find_one({
+        "email": data["employee_email"],
+        "is_approved": 1
+    })
+
+    if not employee:
+        return jsonify({"success": False, "error": "לא ניתן לשייך משימה לעובד שלא אושר."}), 400
+
     due_date = data.get("due_date")
     if due_date:
         try:
@@ -639,8 +665,7 @@ def add_plot_task():
     new_task_obj["plot_id"] = data["plot_id"]
 
     inserted = tasks_collection.insert_one(new_task_obj)
-    new_task_obj["_id"] = str(inserted.inserted_id)  # ✅ המרה למחרוזת לפני ההחזרה
-
+    new_task_obj["_id"] = str(inserted.inserted_id)  
     return jsonify({"success": True, "message": "המשימה נוספה בהצלחה", "task": new_task_obj}), 200
 
 
@@ -655,29 +680,37 @@ def get_plot_tasks(plot_id):
 
     query = {"plot_id": plot_id}
     if role == "employee":
-        query["employee_email"] = user_email  # רק המשימות של העובד הזה
+        query["employee_email"] = user_email  # עובד רגיל → רואה רק את עצמו
 
+    # שליפת כל המשימות לחלקה
     tasks = list(tasks_collection.find(query))
     for t in tasks:
         t["_id"] = str(t["_id"])
 
-    employees = []
-    if is_manager:
-        employees_cursor = db.employee.find({"manager_email": manager_email})
-        employees = [
-            {
-                "email": e["email"],
-                "name": f'{e.get("first_name", "")} {e.get("last_name", "")}'.strip()
-            }
-            for e in employees_cursor
-        ]
+    # שליפת העובדים הקיימים
+    existing_employees_cursor = db.employee.find({
+        "manager_email": manager_email,
+        "is_approved": 1  # 🔥 מוסיפים רק עובדים מאושרים
+    })
+    existing_employees = {
+        e["email"]: f'{e.get("first_name", "")} {e.get("last_name", "")}'.strip()
+        for e in existing_employees_cursor
+    }
+
+    # סינון המשימות — מציג רק אם העובד קיים
+    filtered_tasks = []
+    for t in tasks:
+        if t["employee_email"] in existing_employees:
+            filtered_tasks.append(t)
+
+    # החזרת העובדים לשיבוץ
+    employees_list = [{"email": email, "name": name} for email, name in existing_employees.items()]
 
     return jsonify({
-        "tasks": tasks,
+        "tasks": filtered_tasks,
         "is_manager": is_manager,
-        "employees": employees
+        "employees": employees_list
     })
-
 
 @plot_bp.route("/update_task_employees", methods=["POST"])
 def update_task_employees():

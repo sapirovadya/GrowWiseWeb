@@ -78,6 +78,13 @@
                     {{ plot.quantity_planted }}
                     {% endif %}
                 </p>
+                <p style="font-size: 17px;"><strong style="font-size: 19px;">סוג מי ההשקיה:</strong>
+                    {% if plot.irrigation_water_type in [None, "", "none"] %}
+                    טרם נבחר סוג מים
+                    {% else %}
+                    {{ plot.irrigation_water_type }}
+                    {% endif %}
+                </p>
                 <p style="font-size: 17px;"><strong style="font-size: 19px;">תאריך השקיה אחרון:</strong>
                     {% if plot.last_irrigation_date == None %}
                     טרם בוצעה השקייה
@@ -216,6 +223,15 @@
                                 <option value="none">ללא</option>
                             </select>
                         </div>
+                        <div class="mb-3" id="irrigationWaterTypeDivUpdate">
+                            <label for="irrigationWaterTypeUpdate" class="form-label">סוג מי ההשקיה</label>
+                            <select id="irrigationWaterTypeUpdate" name="irrigation_water_type" class="form-select">
+                                <option value="none">בחר סוג מים</option>
+                                <option value="מים שפירים">מים שפירים</option>
+                                <option value="מים מושבים">מים מושבים</option>
+                                <option value="משולב">משולב</option>
+                            </select>
+                        </div>
                         <div class="mb-3">
                             <label for="sowDate" class="form-label">תאריך זריעה</label>
                             <input type="date" id="sowDate" name="sow_date" class="form-control">
@@ -243,6 +259,23 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" onclick="submitUpdate()">עדכון</button>
                     <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">סגור</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Choose kind of water modal-->
+    <div id="chooseWaterTypeModal" class="modal irrigationModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">בחר סוג מים להשקיה זו</h5>
+                    <button type="button" class="btn-close" onclick="closeChooseWaterTypeModal()"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <button class="btn btn-primary m-2" style="width: 200px; font-size: 20px;"
+                        onclick="selectWaterType('מים שפירים')">מים שפירים</button>
+                    <button class="btn btn-success m-2" style="width: 200px; font-size: 20px;"
+                        onclick="selectWaterType('מים מושבים')">מים מושבים</button>
                 </div>
             </div>
         </div>

@@ -32,6 +32,7 @@ def add_water():
     data = request.get_json()
     price = data.get("price")
     date = data.get("date")
+    water_type = data.get("water_type", "none")
 
     if not price or price <= 0 or not date:
         return jsonify({"error": "Invalid data"}), 400
@@ -46,7 +47,8 @@ def add_water():
         "_id": str(uuid.uuid4()),
         "email": email,
         "price": price,
-        "date": date
+        "date": date,
+        "water_type": water_type
     }
     try:
         db.water.insert_one(new_water)

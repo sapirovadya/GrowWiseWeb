@@ -145,23 +145,32 @@ def export_pdf():
     return response
 
 
+def get_latest_water_rate(water_prices, selected_date, water_type):
+    for p in reversed(water_prices):
+        try:
+            water_date = datetime.strptime(p["date"], "%Y-%m-%d")
+            if water_date <= selected_date and p.get("water_type") == water_type:
+                return float(p.get("price", 0))
+        except:
+            continue
+    return 0
 
 
 def generate_monthly_report_data(month, filter_email):
-    from calendar import monthrange
-
     total_expenses = total_income = 0
-    total_fuel = total_insurance = total_irrigation = 0
-    total_purchases = total_services = total_tests = 0
+    total_fuel = total_insurance = total_purchases = total_services = total_tests = 0
+    total_irrigation_shafirim = total_irrigation_mushavim = 0
     total_crop_income = 0
-    default_price_for_month = 0
-    price_used_in_irrigation = None
+
+    default_price_shafirim = 0
+    default_price_mushavim = 0
 
     year, month_num = int(month[:4]), int(month[5:])
     last_day = monthrange(year, month_num)[1]
     month_start_date = datetime.strptime(f"{month}-01", "%Y-%m-%d")
     month_end_date = datetime.strptime(f"{month}-{last_day}", "%Y-%m-%d")
 
+    # --- מחירי מים ---
     water_prices = sorted(
         db.water.find({"email": filter_email}),
         key=lambda x: datetime.strptime(x.get("date", ""), "%Y-%m-%d")
@@ -170,25 +179,33 @@ def generate_monthly_report_data(month, filter_email):
         try:
             water_date = datetime.strptime(p["date"], "%Y-%m-%d")
             if water_date <= month_end_date:
-                default_price_for_month = float(p.get("price", 0))
-                break
+                if p.get("water_type") == "מים שפירים" and default_price_shafirim == 0:
+                    default_price_shafirim = float(p.get("price", 0))
+                if p.get("water_type") == "מים מושבים" and default_price_mushavim == 0:
+                    default_price_mushavim = float(p.get("price", 0))
+                if default_price_shafirim and default_price_mushavim:
+                    break
         except:
             continue
 
-    # דוח חודשי
+    # --- הוצאות דלק ---
     for item in db.fuel.find({"email": filter_email}):
-        refuel_type = item.get("refuel_type")
-        cost = float(item.get("cost", 0))
-        amount = float(item.get("fuel_amount", 0))
-        if refuel_type == "דלקן" and item.get("month", "").startswith(month):
-            total_fuel += cost * amount
-        elif refuel_type == "ידני" and match_month(item.get("refuel_date"), month):
-            total_fuel += cost * amount
+        try:
+            refuel_type = item.get("refuel_type")
+            cost = float(item.get("cost", 0))
+            amount = float(item.get("fuel_amount", 0))
+            month_str = item.get("month", "") if refuel_type == "דלקן" else item.get("refuel_date", "")[:7]
+            if month_str.startswith(month):
+                total_fuel += cost * amount
+        except:
+            continue
 
+    # --- הוצאות ביטוח ---
     for item in db.insurance_history.find({"manager_email": filter_email}):
         if match_month(item.get("insurance_date"), month):
             total_insurance += float(item.get("insurance_cost", 0))
 
+    # --- הוצאות השקייה ---
     for item in db.irrigation.find({"email": filter_email}):
         irrigation_date = item.get("Irrigation_date")
         if not irrigation_date:
@@ -196,68 +213,65 @@ def generate_monthly_report_data(month, filter_email):
         try:
             if isinstance(irrigation_date, str):
                 irrigation_date = datetime.strptime(irrigation_date, "%Y-%m-%d %H:%M:%S")
+            if match_month(irrigation_date, month):
+                quantity = float(item.get("quantity_irrigation", 0))
+                water_type = item.get("irrigation_water_type", "none")
+                if water_type == "מים שפירים":
+                    total_irrigation_shafirim += quantity * default_price_shafirim
+                elif water_type == "מים מושבים":
+                    total_irrigation_mushavim += quantity * default_price_mushavim
         except:
             continue
-        if match_month(irrigation_date, month):
-            quantity = float(item.get("quantity_irrigation", 0))
-            irrigation_price = 0
-            for p in reversed(water_prices):
-                try:
-                    water_date = datetime.strptime(p["date"], "%Y-%m-%d")
-                    if water_date <= irrigation_date:
-                        irrigation_price = float(p.get("price", 0))
-                        break
-                except:
-                    continue
-            total_irrigation += quantity * irrigation_price
-            price_used_in_irrigation = irrigation_price
 
+    # --- הוצאות רכישות ---
     for item in db.purchases.find({"email": filter_email}):
         if match_month(item.get("purchase_date"), month):
             try:
-                q = float(item.get("quantity", 0))
-                up = float(item.get("unit_price", 0))
-                total_purchases += q * up
+                total_purchases += float(item.get("quantity", 0)) * float(item.get("unit_price", 0))
             except:
-                pass
+                continue
 
+    # --- הוצאות טיפולים ---
     for item in db.service_history.find({"manager_email": filter_email}):
         if match_month(item.get("service_date"), month):
             total_services += float(item.get("service_cost", 0))
 
+    # --- הוצאות טסטים ---
     for item in db.test_history.find({"manager_email": filter_email}):
         if match_month(item.get("test_date"), month):
             total_tests += float(item.get("test_cost", 0))
 
+    # --- הכנסות מיבולים ---
     for plot in db.plots.find({"manager_email": filter_email}):
         if match_month(plot.get("harvest_date"), month):
             try:
-                yield_amount = float(plot.get("crop_yield", 0))
-                yield_price = float(plot.get("price_yield", 0))
-                total_crop_income += yield_amount * yield_price
+                total_crop_income += float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
             except:
                 continue
 
+    # --- סיכום כולל ---
     total_expenses = sum([
-        total_fuel, total_insurance, total_irrigation,
-        total_purchases, total_services, total_tests
+        total_fuel, total_insurance, total_irrigation_shafirim,
+        total_irrigation_mushavim, total_purchases, total_services, total_tests
     ])
     total_income = total_crop_income
-    final_water_price_display = price_used_in_irrigation if price_used_in_irrigation is not None else default_price_for_month
 
+    # --- סיווג לפי קטגוריות ---
     expenses_by_category = {
-        'דלק': round(total_fuel, 2),
-        'ביטוחים': round(total_insurance, 2),
-        f'השקייה (תעריף {round(final_water_price_display, 2)}₪)': round(total_irrigation, 2),
-        'רכישות': round(total_purchases, 2),
-        'טיפולים רכבים': round(total_services, 2),
-        'טסטים': round(total_tests, 2),
-    }
-    income_by_category = {
-        'יבול': round(total_crop_income, 2)
+        "דלק": round(total_fuel, 2),
+        "ביטוחים": round(total_insurance, 2),
+        f"השקיית מים שפירים (תעריף {round(default_price_shafirim, 2)}₪)": round(total_irrigation_shafirim, 2),
+        f"השקיית מים מושבים (תעריף {round(default_price_mushavim, 2)}₪)": round(total_irrigation_mushavim, 2),
+        "רכישות": round(total_purchases, 2),
+        "טיפולים רכבים": round(total_services, 2),
+        "טסטים": round(total_tests, 2),
     }
 
-    # דוח שנתי לגרף
+    income_by_category = {
+        "יבול": round(total_crop_income, 2)
+    }
+
+    # --- גרף שנתי (yearly_data_json) ---
     today = datetime.today().replace(day=1)
     months_list = [(today - timedelta(days=30 * i)).strftime("%Y-%m") for i in reversed(range(12))]
     yearly_data = {m: {"income": 0, "expense": 0} for m in months_list}
@@ -270,9 +284,7 @@ def generate_monthly_report_data(month, filter_email):
                     harvest_date = datetime.strptime(harvest_date, "%Y-%m-%d")
                 key = harvest_date.strftime("%Y-%m")
                 if key in yearly_data:
-                    yield_amount = float(plot.get("crop_yield", 0))
-                    yield_price = float(plot.get("price_yield", 0))
-                    yearly_data[key]["income"] += yield_amount * yield_price
+                    yearly_data[key]["income"] += float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
         except:
             continue
 
@@ -296,33 +308,12 @@ def generate_monthly_report_data(month, filter_email):
         except:
             continue
 
-    for item in db.irrigation.find({"email": filter_email}):
-        try:
-            irrigation_date = datetime.strptime(item.get("Irrigation_date", ""), "%Y-%m-%d %H:%M:%S")
-            key = irrigation_date.strftime("%Y-%m")
-            if key in yearly_data:
-                quantity = float(item.get("quantity_irrigation", 0))
-                irrigation_price = 0
-                for p in reversed(water_prices):
-                    try:
-                        water_date = datetime.strptime(p["date"], "%Y-%m-%d")
-                        if water_date <= irrigation_date:
-                            irrigation_price = float(p.get("price", 0))
-                            break
-                    except:
-                        continue
-                yearly_data[key]["expense"] += quantity * irrigation_price
-        except:
-            continue
-
     for item in db.purchases.find({"email": filter_email}):
         try:
             d = datetime.strptime(item.get("purchase_date", ""), "%Y-%m-%d")
             key = d.strftime("%Y-%m")
             if key in yearly_data:
-                q = float(item.get("quantity", 0))
-                up = float(item.get("unit_price", 0))
-                yearly_data[key]["expense"] += q * up
+                yearly_data[key]["expense"] += float(item.get("quantity", 0)) * float(item.get("unit_price", 0))
         except:
             continue
 
@@ -351,29 +342,14 @@ def generate_monthly_report_data(month, filter_email):
             "expense": round(yearly_data[m]["expense"], 2)
         }
         for m in months_list
-    ])
-    # גרף עוגה משולב להכנסות והוצאות, ממוין
-    combined_pie_data = [
-        {"category": k, "amount": v, "type": "income"} for k, v in income_by_category.items()
-    ] + [
-        {"category": k, "amount": v, "type": "expense"} for k, v in expenses_by_category.items()
-    ]
-
-    combined_pie_data_sorted = sorted(combined_pie_data, key=lambda x: x["amount"], reverse=True)
-
-    monthly_pie_data = json.dumps({
-        "labels": [item["category"] for item in combined_pie_data_sorted],
-        "data": [item["amount"] for item in combined_pie_data_sorted],
-        "colors": ['#4CAF50' if item["type"] == "income" else '#E53935' for item in combined_pie_data_sorted]
-    }, ensure_ascii=False)
+    ], ensure_ascii=False)
 
     return {
         "total_expenses": round(total_expenses, 2),
         "total_income": round(total_income, 2),
         "expenses_by_category": expenses_by_category,
         "income_by_category": income_by_category,
-        "yearly_data_json": yearly_data_json,
-        "monthly_pie_data": monthly_pie_data  
+        "yearly_data_json": yearly_data_json
     }
 
 ## דו״ח הוצאות הכנסות שנתי
@@ -428,7 +404,9 @@ def yearly_report():
             continue
 
     # השקיה לפי תעריף מים
-    expense_by_category["השקיה"] += calculate_yearly_irrigation_cost(filter_email, start_date, end_date)
+    shafirim_total, mushavim_total = calculate_yearly_irrigation_cost_split(filter_email, start_date, end_date)
+    expense_by_category[f"השקיית מים שפירים"] += shafirim_total
+    expense_by_category[f"השקיית מים מושבים"] += mushavim_total
 
     # רכישות
     for item in db.purchases.find({"email": filter_email}):
@@ -535,10 +513,9 @@ def yearly_report():
             except:
                 continue
 
-        # הוצאות - השקיה
-        expense += calculate_yearly_irrigation_cost(filter_email, sy, ey)
+        shafirim_y, mushavim_y = calculate_yearly_irrigation_cost_split(filter_email, sy, ey)
+        expense += shafirim_y + mushavim_y
 
-        # תזרים: הכנסות פחות הוצאות
         balance_data.append({"year": str(y), "balance": round(income - expense, 2)})
 
     yearly_pie_data = json.dumps({
@@ -567,10 +544,10 @@ def yearly_report():
 
 
 
+def calculate_yearly_irrigation_cost_split(email, start_date, end_date):
+    irrigation_shafirim = 0.0
+    irrigation_mushavim = 0.0
 
-
-def calculate_yearly_irrigation_cost(email, start_date, end_date):
-    irrigation_total = 0.0
     irrigations = db.irrigation.find({
         "email": email,
         "Irrigation_date": {"$gte": start_date.strftime("%Y-%m-%d"), "$lte": end_date.strftime("%Y-%m-%d")}
@@ -583,6 +560,7 @@ def calculate_yearly_irrigation_cost(email, start_date, end_date):
 
     for item in irrigations:
         irrigation_date_str = item.get("Irrigation_date")
+        water_type = item.get("irrigation_water_type", "none")
         quantity = float(item.get("quantity_irrigation", 0))
 
         if not irrigation_date_str:
@@ -600,15 +578,19 @@ def calculate_yearly_irrigation_cost(email, start_date, end_date):
         for p in reversed(water_prices):
             try:
                 water_date = datetime.strptime(p["date"], "%Y-%m-%d")
-                if water_date <= irrigation_date:
+                if water_date <= irrigation_date and p.get("water_type") == water_type:
                     applicable_price = float(p.get("price", 0))
                     break
             except:
                 continue
 
-        irrigation_total += quantity * applicable_price
+        if water_type == "מים שפירים":
+            irrigation_shafirim += quantity * applicable_price
+        elif water_type == "מים מושבים":
+            irrigation_mushavim += quantity * applicable_price
 
-    return round(irrigation_total, 2)
+    return round(irrigation_shafirim, 2), round(irrigation_mushavim, 2)
+
 
 def generate_yearly_report_data(selected_year, filter_email):
     selected_year = int(selected_year) 
@@ -651,7 +633,10 @@ def generate_yearly_report_data(selected_year, filter_email):
         except:
             continue
 
-    expense_by_category["השקיה"] += calculate_yearly_irrigation_cost(filter_email, start_date, end_date)
+    shafirim_total, mushavim_total = calculate_yearly_irrigation_cost_split(filter_email, start_date, end_date)
+
+    expense_by_category[f"השקיית מים שפירים"] += shafirim_total
+    expense_by_category[f"השקיית מים מושבים"] += mushavim_total
 
     for item in db.purchases.find({"email": filter_email}):
         try:
@@ -747,7 +732,8 @@ def generate_yearly_report_data(selected_year, filter_email):
             except:
                 continue
 
-        expense += calculate_yearly_irrigation_cost(filter_email, sy, ey)
+        shafirim_y, mushavim_y = calculate_yearly_irrigation_cost_split(filter_email, sy, ey)
+        expense += shafirim_y + mushavim_y
 
         balance_data.append({"year": str(y), "balance": round(income - expense, 2)})
 
@@ -822,10 +808,8 @@ def export_yearly_pdf():
     response.headers["Content-Disposition"] = f"attachment; filename=yearly_report_{year}.pdf"
     return response
 
-## דו״ח נוכחות עובדים חודשי
 @reports_bp.route("/attendance_report")
 def monthly_attendance_report():
-    # קביעת חודש ושנה נוכחיים כברירת מחדל
     now = datetime.now()
     default_month = now.month
     default_year = now.year
@@ -905,18 +889,15 @@ def export_attendance_pdf():
     selected_year = year
     selected_name = name
 
-    # חישוב טווח זמן
     start_date = datetime(year, month, 1)
     last_day = monthrange(year, month)[1]
     end_date = datetime(year, month, last_day, 23, 59, 59)
 
-    # סינון
     query = { "check_in": {"$gte": start_date, "$lte": end_date} }
     if name != "all":
         first, last = name.split(" ", 1)
         query.update({"first_name": first, "last_name": last})
 
-    # שליפת נתונים
     results = []
     total_hours_sum = 0
     for doc in db.attendance.find(query):
@@ -940,7 +921,6 @@ def export_attendance_pdf():
         except Exception as e:
             print("שגיאה בפרסוס רשומה:", e)
 
-    # יצירת PDF
     html = render_template(
         "/pdf/monthly_attendance_pdf.html",
         selected_month=selected_month,
@@ -963,7 +943,6 @@ def export_attendance_pdf():
     return response
 
 
-## דו״ח הוצאות הכנסות פר חלקה
 @reports_bp.route("/plot_report")
 def plot_report():
     plot_name = request.args.get("plot_name")
@@ -1008,17 +987,31 @@ def calculate_plot_report(plot, email):
         key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d")
     )
 
-    total_irrigation_cost = 0
+    irrigation_shafirim = 0
+    irrigation_mushavim = 0
+    irrigation_shafirim_amount = 0
+    irrigation_mushavim_amount = 0
+
     for irrigation in irrigations:
         irrigation_date = datetime.strptime(irrigation["Irrigation_date"], "%Y-%m-%d %H:%M:%S")
         quantity = float(irrigation.get("quantity_irrigation", 0))
+        water_type = irrigation.get("irrigation_water_type", "none")
         price = 0
         for wp in reversed(water_prices):
             wp_date = datetime.strptime(wp["date"], "%Y-%m-%d")
-            if wp_date <= irrigation_date:
+            if wp_date <= irrigation_date and wp.get("water_type") == water_type:
                 price = float(wp.get("price", 0))
                 break
-        total_irrigation_cost += quantity * price
+
+        if water_type == "מים שפירים":
+            irrigation_shafirim += quantity * price
+            irrigation_shafirim_amount += quantity
+        elif water_type == "מים מושבים":
+            irrigation_mushavim += quantity * price
+            irrigation_mushavim_amount += quantity
+
+    total_irrigation_cost = irrigation_shafirim + irrigation_mushavim
+    total_irrigation_amount = irrigation_shafirim_amount + irrigation_mushavim_amount
 
     yield_amount = float(plot.get("crop_yield", 0))
     price_yield = float(plot.get("price_yield", 0))
@@ -1032,8 +1025,10 @@ def calculate_plot_report(plot, email):
         "quantity_planted": plot.get("quantity_planted"),
         "crop_yield": plot.get("crop_yield"),
         "price_yield": plot.get("price_yield"),
-        "total_irrigation_amount": sum(float(i.get("quantity_irrigation", 0)) for i in irrigations),
-        "irrigation_cost": round(total_irrigation_cost, 2),
+        "total_irrigation_amount": round(total_irrigation_amount, 2), 
+        "irrigation_cost_shafirim": round(irrigation_shafirim, 2),
+        "irrigation_cost_mushavim": round(irrigation_mushavim, 2),
+        "irrigation_cost_total": round(total_irrigation_cost, 2),
         "income_yield": round(total_income, 2),
         "balance": round(balance, 2),
         "days": days_diff
