@@ -84,6 +84,8 @@
                     {% else %}
                     {{ plot.last_irrigation_date | format_date }}
                     {% endif %}
+                    <button id="getIrrigationButton" class="btn btn-primary">קבל המלצת השקיה</button>
+
                 </p>
                 <p style="font-size: 17px;"><strong style="font-size: 19px;">כמות השקיה כוללת:</strong>
                     {% if plot.total_irrigation_amount == None %}
@@ -114,7 +116,10 @@
                 {% endif %}
 
                 </p>
-                <button id="getIrrigationButton" class="btn btn-primary">קבל המלצת השקיה</button>
+                <!-- <button id="getIrrigationButton" class="btn btn-primary">קבל המלצת השקיה</button> -->
+                <br>
+                <br>
+
             </div>
             <div id="weather-info"
                 style="position: absolute; top: 10px; left: 10px; z-index: 1000; background-color: #f8f9fa; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
@@ -409,21 +414,6 @@
         <p class="alert-message">הודעה</p>
         <button class="alert-close btn btn-primary" onclick="closeAlert()">סגור</button>
     </div>
-    <!-- Footer Start -->
-    <div class="container-fluid bg-dark footer mt-3 py-3 wow fadeIn" data-wow-delay="0.1s">
-        <div class="container py-4">
-            <div class="row g-5">
-                <div class="col-lg-3 col-md-6">
-                    <br>
-                    <h4 class="text-primary mb-4">המשרד שלנו</h4>
-                    <p class="mb-2"><i class="fa fa-map-marker-alt text-primary me-3"></i> באר שבע, ישראל</p>
-                    <p class="mb-2"><i class="fa fa-phone-alt text-primary me-3"></i> 52-8744379 972+ </p>
-                    <p class="mb-2"><i class="fa fa-envelope text-primary me-3"></i>GrowWiseWeb@gmail.com</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Footer End -->
 
     <!-- Back to Top -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
@@ -436,6 +426,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
 
     <script src="/static/js/main.js"></script>
+    <script src="/static/js/supply.js"></script>
+    <script src="/static/js/plot_task.js"></script>
+    <script src="/static/js/yield_price.js"></script>
+    <script src="/static/js/recommendation_irrgration.js"></script>
+
     <script>
         //Update the crops
         async function loadCrops(cropCategory) {
