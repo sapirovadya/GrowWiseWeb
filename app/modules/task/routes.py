@@ -63,68 +63,44 @@ def save_task():
 
 @task_bp.route('/alltasks', methods=['GET'])
 def get_tasks():
-  
     if 'email' not in session:
         return jsonify({"error": "משתמש לא מחובר"}), 401
 
-    # קבלת המייל של המשתמש המחובר
     user_email = session['email']
     role = session['role']
-    if role == "manager":
-        # שליפת משימות שהוענקו על ידי המשתמש המחובר
-        tasks = list(db["task"].find({"giver_email": user_email}))
-        
-        # יצירת מילון של שמות העובדים לפי מייל
-        employees = {
-            emp["email"]: f"{emp['first_name']} {emp['last_name']}"
-            for emp in db["employee"].find({})
-        }
 
-        # הכנת תוצאות לפלט
-        result = []
-        for task in tasks:
-            result.append({
-                "employee_name": employees.get(task["employee_email"], "לא נמצא"),
-                "task_name": task["task_name"],
-                "task_content": task["task_content"],
-                "due_date": task["due_date"],
-                "status": task["status"]
-            })
+    if role in ["manager", "co_manager"]:
+        # אם מנהל — משתמש ב-manger_email של עצמו
+        manager_email = user_email if role == "manager" else session.get("manager_email")
 
-        # החזרת הנתונים בפורמט JSON
-        return jsonify(result)
-    if role == "co_manager":
-        manager_email = session.get("manager_email")
         tasks = list(db["task"].find({"giver_email": manager_email}))
-        
-        # יצירת מילון של שמות העובדים לפי מייל
-        employees = {
-            emp["email"]: f"{emp['first_name']} {emp['last_name']}"
-            for emp in db["employee"].find({})
-        }
 
-        # הכנת תוצאות לפלט
+        # שליפת עובדים קיימים בלבד
+        existing_employees_cursor = db["employee"].find({})
+        existing_emails = {emp["email"]: f"{emp['first_name']} {emp['last_name']}" for emp in existing_employees_cursor}
+
         result = []
         for task in tasks:
-            result.append({
-                "employee_name": employees.get(task["employee_email"], "לא נמצא"),
-                "task_name": task["task_name"],
-                "task_content": task["task_content"],
-                "due_date": task["due_date"],
-                "status": task["status"]
-            })
+            employee_email = task.get("employee_email")
+            # מציגים רק אם העובד עדיין קיים
+            if employee_email in existing_emails:
+                result.append({
+                    "employee_name": existing_emails[employee_email],
+                    "task_name": task["task_name"],
+                    "task_content": task["task_content"],
+                    "due_date": task["due_date"],
+                    "status": task["status"]
+                })
 
-        # החזרת הנתונים בפורמט JSON
         return jsonify(result)
+
     elif role == "employee":
-        # שליפת משימות שמיועדות למשתמש המחובר בלבד
         tasks = list(db["task"].find({"employee_email": user_email}))
 
-        # עיבוד תוצאות לפלט
         result = []
         for task in tasks:
             result.append({
-                "employee_name": "אתה",  # כיוון שהמשימות שייכות למשתמש הנוכחי
+                "employee_name": "אתה",
                 "task_name": task["task_name"],
                 "task_content": task["task_content"],
                 "due_date": task["due_date"],
@@ -132,6 +108,7 @@ def get_tasks():
             })
 
         return jsonify(result)
+
 
 @task_bp.route('/alltasks.html', methods=['GET'])
 def render_all_tasks():

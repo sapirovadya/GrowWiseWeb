@@ -153,15 +153,21 @@ def attendance_manager_page():
 
 @attendance_bp.route('/employees_list', methods=['GET'])
 def get_employees_list():
-    """ מחזיר למנהל רשימת עובדים לבחירה בדיווח ידני """
     if 'email' not in session or session.get('role') not in ['manager', 'co_manager']:
         return jsonify({'message': 'גישה נדחתה'}), 403
 
     manager_email = session['email'] if session['role'] == 'manager' else session.get('manager_email')
 
-    employees = list(db.employee.find({"manager_email": manager_email}, {"_id": 0, "email": 1, "first_name": 1, "last_name": 1}))
+    employees = list(db.employee.find(
+        {
+            "manager_email": manager_email,
+            "is_approved": 1
+        },
+        {"_id": 0, "email": 1, "first_name": 1, "last_name": 1}
+    ))
 
     return jsonify({'employees': employees})
+
 
 
 @attendance_bp.route('/manual_report', methods=['POST'])

@@ -139,28 +139,51 @@ def approve_user(user_id):
         return jsonify({'message': 'שגיאה בשרת', 'error': str(e)}), 500
 
 # פונקציה למחיקת משתמש
+# פונקציה למחיקת משתמש כולל מחיקת כל הנתונים שלו
 @manager_bp.route('/reject_user/<user_id>', methods=['DELETE'])
 def reject_user(user_id):
     try:
-        # בדיקת תקינות ה-ID
         if not ObjectId.is_valid(user_id):
             return jsonify({'message': 'שגיאה: ID לא תקין'}), 400
 
-        # ניסיון למחוק מה-collection "employee"
-        result_employee = db.employee.delete_one({'_id': ObjectId(user_id)})
-        if result_employee.deleted_count > 0:
-            return jsonify({'message': 'המשתמש הוסר בהצלחה'}), 200
+        # חיפוש מייל של המשתמש
+        user = db.employee.find_one({'_id': ObjectId(user_id)}) or db.co_manager.find_one({'_id': ObjectId(user_id)})
+        if not user:
+            return jsonify({'message': 'שגיאה: משתמש לא נמצא'}), 404
 
-        # ניסיון למחוק מה-collection "co_manager"
-        result_co_manager = db.co_manager.delete_one({'_id': ObjectId(user_id)})
-        if result_co_manager.deleted_count > 0:
-            return jsonify({'message': 'המשתמש הוסר בהצלחה '}), 200
+        user_email = user.get('email')
+        if not user_email:
+            return jsonify({'message': 'שגיאה: לא נמצא מייל למשתמש'}), 400
 
-        # אם המשתמש לא נמצא בשום collection
-        return jsonify({'message': 'שגיאה: משתמש לא נמצא בשום טבלה'}), 404
+        # מחיקה מהטבלאות הראשיות
+        db.employee.delete_one({'_id': ObjectId(user_id)})
+        db.co_manager.delete_one({'_id': ObjectId(user_id)})
+
+        # רשימת טבלאות למחיקה לפי מייל
+        collections_to_clean = [
+            ("tasks", "employee_email"),
+            ("plot_tasks", "employee_email"),
+            ("attendance", "email"),
+            ("plots", "manager_email"),
+            ("fuel", "email"),
+            ("insurance_history", "manager_email"),
+            ("irrigation", "email"),
+            ("purchases", "email"),
+            ("service_history", "manager_email"),
+            ("test_history", "manager_email"),
+            ("vehicles", "manager_email"),
+            ("water", "email"),
+            # תוסיף כאן עוד טבלאות אם יש
+        ]
+
+        for collection_name, field_name in collections_to_clean:
+            db[collection_name].delete_many({field_name: user_email})
+
+        return jsonify({'message': 'המשתמש וכל הנתונים הקשורים אליו נמחקו בהצלחה.'}), 200
 
     except Exception as e:
         return jsonify({'message': 'שגיאה בשרת', 'error': str(e)}), 500
+
 
 @manager_bp.route('/deleteuser/<string:user_id>', methods=['DELETE'])
 def delete_user(user_id):
