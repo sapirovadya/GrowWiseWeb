@@ -327,6 +327,22 @@ def add_vehicle_notifications():
     except Exception as e:
         print(f"Error adding vehicle notifications: {e}")
 
+def add_month_end_notification(email):
+    try:
+        # today = datetime.today()
+        today = datetime(2025, 3, 31)
+        tomorrow = today + timedelta(days=1)
+        if tomorrow.month != today.month:
+            existing = db.notifications.find_one({
+                "email": email,
+                "content": "יש לעבור על דיווח נוכחות עובדים",
+                "created_at": {"$gte": today.replace(hour=0, minute=0, second=0), "$lt": today.replace(hour=23, minute=59, second=59)}
+            })
+            if not existing:
+                add_notification(email, None, "לתשומת ליבך – סוף החודש הגיע. נא לבדוק ולעדכן את דיווחי הנוכחות של העובדים במערכת")
+    except Exception as e:
+        print(f"שגיאה ביצירת התראת סוף חודש: {e}")
+
 
 @users_bp_main.route("/get_notifications", methods=["GET"])
 def get_notifications():
@@ -349,6 +365,7 @@ def get_notifications():
             add_employee_notifications(email)
 
         add_vehicle_notifications()
+        add_month_end_notification(email)
 
         # שליפת התראות קיימות מהמנוע ומיון לפי זמן יצירתן
         db_notifications = db.notifications.find({"email": email}).sort("created_at", -1)
