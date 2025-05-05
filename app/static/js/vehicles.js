@@ -41,12 +41,17 @@ $(document).ready(function () {
                             <td>${formatDate(vehicle.last_service_date)}</td>
                             <td>${vehicle.service_cost}</td>
                             <td>${vehicle.authorized_drivers}</td>
-                                <td class="action-buttons">
-                                <button class="action-btn btn-test edit-test-btn" data-id="${vehicle._id}">ערוך טסט</button>
-                                <button class="action-btn btn-service edit-service-btn" data-id="${vehicle._id}">ערוך טיפול</button>
-                                <button class="action-btn btn-insurance edit-insurance-btn"  data-id="${vehicle._id}">ערוך ביטוח</button>
-                                <button class="action-btn btn-delete-vehicle delete-btn"  data-id="${vehicle._id}">מחק</button>
+                            <td>
+                            ${vehicle.Km_WorkHours ? `${vehicle.Km_WorkHours} (עודכן ב־${vehicle.Km_WorkHours_update_date || ''})` : ''}
                             </td>
+                            <td class="action-buttons">
+                            <button class="action-btn btn-test edit-test-btn" data-id="${vehicle._id}">ערוך טסט</button>
+                            <button class="action-btn btn-service edit-service-btn" data-id="${vehicle._id}">ערוך טיפול</button>
+                            <button class="action-btn btn-insurance edit-insurance-btn"  data-id="${vehicle._id}">ערוך ביטוח</button>
+                            <button class="action-btn btn-km edit-km-btn" data-id="${vehicle._id}">ק"מ/שעות</button>
+                            </td>
+                            <td><button class="action-btn btn-delete-vehicle delete-btn"  data-id="${vehicle._id}">הסר</button></td>
+
                         </tr>
                     `);
                 }
@@ -72,6 +77,12 @@ $(document).ready(function () {
                 let vehicle_id = $(this).data("id");
                 openEditInsuranceModal(vehicle_id);
             });
+
+            $(".edit-km-btn").click(function () {
+                let vehicle_id = $(this).data("id");
+                openEditKmModal(vehicle_id);
+            });
+            
         });
     }
 
@@ -95,6 +106,7 @@ $(document).ready(function () {
             insurance_cost: $("#addInsuranceCost").val(),
             last_service_date: $("#addLastServiceDate").val(),
             service_cost: $("#addServiceCost").val(),
+            Km_WorkHours: $("#addKmWorkHours").val() || "0",
             authorized_drivers: $("#addAuthorizedDrivers").val()
         };
 
@@ -174,6 +186,24 @@ $(document).ready(function () {
         });
     });
 
+    $("#editKmForm").submit(function (event) {
+        event.preventDefault();
+        let vehicleId = $("#editKmVehicleId").val();
+        let newKmWorkHours = $("#editKmWorkHours").val();
+        $.ajax({
+            url: `/vehicles/update_km/${vehicleId}`,
+            type: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify({
+                Km_WorkHours: newKmWorkHours
+            }),
+            success: function () {
+                loadVehicles();
+                $("#editKmModal").modal("hide");
+            }
+        });
+    });
+
     function deleteVehicle(vehicle_id) {
         $.ajax({
             url: `/vehicles/delete/${vehicle_id}`,
@@ -199,4 +229,14 @@ $(document).ready(function () {
         $("#editInsuranceModal").modal("show");
     }
 
+    function openEditKmModal(vehicleId) {
+        $("#editKmVehicleId").val(vehicleId);
+        $("#editKmModal").modal("show");
+    }
+    
 });
+
+    function clearKmField() {
+        $("#editKmWorkHours").val('');
+        $("#editKmForm").submit();
+    }

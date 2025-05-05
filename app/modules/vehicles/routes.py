@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, session
 import pymongo
+from datetime import datetime
 import os
 from dotenv import load_dotenv
 from bson import ObjectId  # תמיכה ב-ObjectId של MongoDB
@@ -235,3 +236,49 @@ def update_insurance(vehicle_id):
 
     return jsonify({"message": "פרטי הביטוח עודכנו בהצלחה!"})
 
+@vehicles_bp.route('/update_km/<vehicle_id>', methods=['PUT'])
+def update_km_workhours(vehicle_id):
+    try:
+        object_id = ObjectId(vehicle_id)
+    except:
+        return jsonify({"error": "מזהה לא תקין"}), 400
+
+    data = request.json
+    if data is None:
+        return jsonify({"error": "לא התקבלו נתונים"}), 400
+
+    # שליפת הרכב הקיים
+    vehicle = vehicles_collection.find_one({"_id": object_id})
+    if not vehicle:
+        return jsonify({"error": "הרכב לא נמצא"}), 404
+
+    current_km = vehicle.get("Km_WorkHours") or 0
+
+    if not data.get("Km_WorkHours"):
+        # אם המשתמש רצה לאפס את השדה
+        update_data = {
+            "Km_WorkHours": None,
+            "Km_WorkHours_update_date": None
+        }
+    else:
+        try:
+            added_km = float(data["Km_WorkHours"])
+        except ValueError:
+            return jsonify({"error": "קלט לא תקין"}), 400
+
+        new_km = float(current_km) + added_km
+
+        update_data = {
+            "Km_WorkHours": new_km,
+            "Km_WorkHours_update_date": datetime.now().strftime("%d/%m/%Y")
+        }
+
+    result = vehicles_collection.update_one(
+        {"_id": object_id},
+        {"$set": update_data}
+    )
+
+    if result.modified_count == 0:
+        return jsonify({"message": "לא בוצע עדכון"}), 404
+
+    return jsonify({"message": "ק\"מ/שעות עבודה עודכנו בהצלחה!"})

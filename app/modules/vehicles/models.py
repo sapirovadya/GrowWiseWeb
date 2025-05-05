@@ -17,6 +17,7 @@ class VehicleManagement:
             "insurance_date": data.get("insurance_date"),  
             "insurance_cost": data.get("insurance_cost"), 
             "authorized_drivers": data.get("authorized_drivers"),
+            "Km_WorkHours": data.get("Km_WorkHours"), 
             "manager_email": data.get("manager_email")
         }
         return vehicles
