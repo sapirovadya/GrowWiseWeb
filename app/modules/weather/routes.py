@@ -19,7 +19,7 @@ weather_bp = Blueprint('weather_bp', __name__)
 
 MODEL = "gpt-4o"
 TEMPERATURE = 1
-MAX_TOKENS = 200
+MAX_TOKENS = 400
 
 @weather_bp.route("/", methods=["GET"])
 def get_weather():
@@ -130,6 +130,7 @@ def irrigation_recommendation():
             return jsonify({"error": "Location not found for the manager."}), 400
 
         crop_type = request.json.get("crop_type")
+
         if not crop_type:
             return jsonify({"error": "Missing required fields in the request."}), 400
 
@@ -174,7 +175,6 @@ def irrigation_recommendation():
                 for day in forecast_data
             ]
 
-            # שמירת קאש חדש
             db.weather_cache.update_one(
                 {"city": city},
                 {"$set": {
@@ -200,7 +200,6 @@ def irrigation_recommendation():
                 upsert=True
             )
 
-        # בניית פרומפט ל־GPT
         prompt = (
             f"בהתבסס על הנתונים הבאים, תן המלצת השקיה לגידול {crop_type} בעיר {city}: \n"
             f"- טמפרטורה נוכחית: {temperature}°C\n"
@@ -213,6 +212,7 @@ def irrigation_recommendation():
             f"\n\n"
             f"תן המלצה מפורטת לכמות מים מומלצת להשקיה להיום,ציין את סוג הגידול ורק את מה שרלוונטי להשקיה (אין צורך לפרט על כל פרמטר אם לא נדרש) (בליטרים לכל מ\"ר) תוך התחשבות בגשם הצפוי בעתיד."
             f"אין להשתמש במילות סלנג. הכל בשפה מקצועית. "
+            f"יש לנסח תשובה עד 300 תווים (tokens)   .   . "
             f"give me the output with <p> tags for the sentences "
         )
 
