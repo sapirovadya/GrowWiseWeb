@@ -28,13 +28,27 @@ client = pymongo.MongoClient(mongo_key)
 db = client.get_database("dataGrow")
 tasks_collection = db["plot_tasks"]
 
+# def format_date(value):
+#     if isinstance(value, str):
+#         try:
+#             value = datetime.strptime(value, "%Y-%m-%d")
+#         except:
+#             return value
+#     return value.strftime("%-d-%-m-%Y")
+
 def format_date(value):
     if isinstance(value, str):
         try:
             value = datetime.strptime(value, "%Y-%m-%d")
         except:
             return value
-    return value.strftime("%-d-%-m-%Y")
+    try:
+        return value.strftime("%d-%m-%Y").lstrip("0").replace("-0", "-")
+    except:
+        return str(value)
+
+plot_bp.add_app_template_filter(format_date, name='format_date')
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
