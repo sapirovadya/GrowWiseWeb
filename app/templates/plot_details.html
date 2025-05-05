@@ -91,7 +91,10 @@
                     {% else %}
                     {{ plot.last_irrigation_date | format_date }}
                     {% endif %}
-                    <button id="getIrrigationButton" class="btn btn-primary">קבל המלצת השקיה</button>
+                    <button id="getIrrigationButton" class="btn btn-primary"
+                    data-crop="{{ plot.crop if plot.crop not in ['none', '', None] else '' }}">קבל המלצת השקיה</button>
+            
+                    
 
                 </p>
                 <p style="font-size: 17px;"><strong style="font-size: 19px;">כמות השקיה כוללת:</strong>
@@ -127,10 +130,6 @@
                 <br>
                 <br>
 
-            </div>
-            <div id="weather-info"
-                style="position: absolute; top: 10px; left: 10px; z-index: 1000; background-color: #f8f9fa; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                <p>טוען מזג אוויר...</p>
             </div>
 
             {% if plot.crop_category == "none" %}
