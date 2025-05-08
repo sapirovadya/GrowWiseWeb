@@ -17,7 +17,7 @@ attendance_model = attendance()
 
 @attendance_bp.route('/report_page', methods=['GET'])
 def report_attendance_page():
-    return render_template('attendance.html')
+    return render_template('/attendance/attendance.html')
 
 
 @attendance_bp.route('/report', methods=['POST'])
@@ -148,7 +148,7 @@ def attendance_manager_page():
     if 'email' not in session or session.get('role') not in ['manager', 'co_manager']:
         return redirect(url_for('users_bp_main.login'))
     
-    return render_template('attendance_manager.html')
+    return render_template('/attendance/attendance_manager.html')
 
 
 @attendance_bp.route('/employees_list', methods=['GET'])

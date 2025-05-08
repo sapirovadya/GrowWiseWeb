@@ -18,18 +18,13 @@ mongo_key = os.getenv("MONGO_KEY")
 client = pymongo.MongoClient(mongo_key)
 db = client.get_database("dataGrow")
 
-
-# @manager_bp.route("/managerpage", methods=['GET'])
-# def manager_home_page():
-#     return render_template("manager_home_page.html")
-
 @manager_bp.route("/managerpage", methods=['GET'])
 def manager_home_page():
     if 'email' not in session:  # בדיקה אם המשתמש מחובר
         return redirect(url_for('users_bp_main.login'))  # אם לא, החזר לדף ההתחברות
     
     first_name = session.get('first_name')  # קבלת שם המנהל מה-session
-    return render_template("manager_home_page.html", first_name=first_name)
+    return render_template("/home_page/manager_home_page.html", first_name=first_name)
 
 @manager_bp.route("/myteam", methods=['GET'])
 def get_employees_list():

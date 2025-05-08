@@ -21,5 +21,5 @@ def co_manager_home_page():
         return redirect(url_for('users_bp_main.login'))  
     
     first_name = session.get('first_name')
-    return render_template("co_manager_home_page.html", first_name=first_name)
+    return render_template("/home_page/co_manager_home_page.html", first_name=first_name)
 

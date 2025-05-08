@@ -21,4 +21,4 @@ def job_seeker_home_page():
         return redirect(url_for('users_bp_main.login'))  # אם לא, החזר לדף ההתחברות
     
     first_name = session.get('first_name') 
-    return render_template("job_seeker_home_page.html", first_name=first_name)
+    return render_template("/home_page/job_seeker_home_page.html", first_name=first_name)
