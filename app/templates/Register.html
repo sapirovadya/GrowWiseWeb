@@ -99,9 +99,24 @@
                         <div class="form-floating mb-3">
                             <input type="password" class="form-control" id="password" name="password"
                                 placeholder="סיסמא" required
-                                pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$"
+                                pattern="^(?=.[A-Za-z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%*?&]{8,16}$"
                                 title="על הסיסמה להכיל 8-16 תווים, לפחות אות אחת באנגלית, מספר אחד, וסימן מיוחד.">
                             <label for="password">סיסמא</label>
+                            <button type="button"
+                                class="btn btn-outline-secondary btn-sm position-absolute top-50 start-0 translate-middle-y ms-2"
+                                onclick="togglePasswordVisibility('password')">
+                                👁
+                            </button>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                                placeholder="אישור סיסמא" required>
+                            <label for="confirm_password">אישור סיסמא</label>
+                            <button type="button"
+                                class="btn btn-outline-secondary btn-sm position-absolute top-50 start-0 translate-middle-y ms-2"
+                                onclick="togglePasswordVisibility('confirm_password')">
+                                👁
+                            </button>
                         </div>
                         <div class="form-floating mb-3">
                             <select class="form-control" id="role" name="role" required>
@@ -119,13 +134,12 @@
                                 title="יש להזין מייל חוקי, לדוגמה: name@example.com">
                             <label for="manager_email">אי-מייל המנהל</label>
                         </div>
-                        <div class="form-floating mb-3" id="location_field" style="display: none;">
+                        <div class="mb-3" id="location_field" style="display: none;">
+                            <label for="location" class="form-label">מיקום המשק</label>
                             <input list="cities_list" class="form-control" id="location" name="location"
                                 placeholder="בחר עיר" required>
                             <datalist id="cities_list"></datalist>
-                            <label for="location">מיקום המשק</label>
                         </div>
-
                         <button class="btn btn-primary w-100 py-3" type="submit">הרשמה</button>
                     </form>
                 </div>
@@ -224,7 +238,7 @@
                     event.target.value = validValue;
                 }
 
-                // Password requirements: at least one letter, one number, and one special symbol, 8-16 characters long                const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
+                // Password requirements: at least one letter, one number, and one special symbol, 8-16 characters long                const passwordPattern = /^(?=.[a-zA-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%*?&]{8,16}$/;
 
                 if (!passwordPattern.test(validValue)) {
                     input.setCustomValidity("הסיסמה חייבת לכלול בין 8-16 תווים, לפחות אות אחת גדולה באנגלית, מספר אחד וסמל מיוחד");
@@ -253,11 +267,12 @@
             const lastName = document.getElementById("last_name").value.trim();
             const email = document.getElementById("email").value.trim();
             const password = document.getElementById("password").value.trim();
+            const confirmPassword = document.getElementById("confirm_password").value.trim();
             const managerEmail = document.getElementById("manager_email").value.trim();
             const role = document.getElementById("role").value;
             const location = document.getElementById("location").value.trim();
 
-            const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
+            const passwordPattern = /^(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%*?&]{8,16}$/;
             const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
             if (!firstName || !lastName || !email || !password || !role) {
@@ -271,7 +286,12 @@
             }
 
             if (!passwordPattern.test(password)) {
-                showAlert("שגיאה", "הסיסמה אינה עומדת בדרישות. יש להזין סיסמה באורך 8-16 תווים, עם אות גדולה באנגלית, מספר וסימן מיוחד.", { restoreForm: true, formId: "registerForm" });
+                showAlert("שגיאה", "הסיסמה אינה עומדת בדרישות. יש להזין סיסמה באורך 8-16 תווים, עם לפחות אות אחת גדולה באנגלית, מספרים וסימן מיוחד (!,@,#,$,%,&).", { restoreForm: true, formId: "registerForm" });
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showAlert("שגיאה", "הסיסמאות אינן תואמות.", { restoreForm: true, formId: "registerForm" });
                 return;
             }
 
@@ -286,8 +306,6 @@
                     return;
                 }
             }
-
-
             if ((role === "co_manager" || role === "employee") && !managerEmail) {
                 showAlert("שגיאה", "יש להזין את כתובת האימייל של המנהל.", { restoreForm: true, formId: "registerForm" });
                 return;
@@ -356,6 +374,9 @@
 
             if (role === "manager") {
                 locationField.style.display = "block";
+                setTimeout(() => {
+                    document.getElementById("location").dispatchEvent(new Event("focus"));
+                }, 100);
                 loadCities();
             } else {
                 locationField.style.display = "none";
@@ -411,6 +432,31 @@
                 }
             }
         }
+        // כפתור צפייה בסיסמה
+        function togglePasswordVisibility(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.type = field.type === "password" ? "text" : "password";
+        }
+
+        // בדיקת סיסמה ואישור סיסמה בזמן אמת
+        document.getElementById("confirm_password").addEventListener("input", function () {
+            const password = document.getElementById("password").value;
+            const confirm = this.value;
+
+            if (password !== confirm) {
+                this.classList.add("is-invalid");
+            } else {
+                this.classList.remove("is-invalid");
+                this.classList.add("is-valid");
+            }
+        });
+
+        document.getElementById("password").addEventListener("input", function () {
+            const confirm = document.getElementById("confirm_password");
+            if (confirm.value.length > 0) {
+                confirm.dispatchEvent(new Event("input")); // מרענן את בדיקת ההתאמה
+            }
+        });
 
 
     </script>
