@@ -16,6 +16,7 @@ vehicle_service_collection = db["vehicle_service_history"]
 vehicle_test_collection = db["vehicle_test_history"]
 vehicle_insurance_collection = db["vehicle_insurance_history"]
 fuel_collection = db["fuel"]
+equipment_sales_collection = db["equipment_sales"]
 
 class Purchase:
     def __init__(self, email, category, name, quantity, unit_price, purchase_date=None):
@@ -191,3 +192,34 @@ class Fuel:
         )
         fuel_collection.insert_one(new_entry.to_dict())
         return new_entry.to_dict()
+
+class Sale:
+    def __init__(self, email, name, quantity, unit_price, sale_date=None):
+        self.id = str(uuid.uuid4())
+        self.email = email
+        self.name = name
+        self.quantity = quantity
+        self.unit_price = unit_price
+        self.sale_date = sale_date if sale_date else datetime.now(timezone.utc)
+
+    def to_dict(self):
+        return {
+            "_id": self.id,
+            "email": self.email,
+            "name": self.name,
+            "quantity": self.quantity,
+            "unit_price": self.unit_price,
+            "sale_date": self.sale_date
+        }
+
+    @staticmethod
+    def add_sale(data):
+        new_sale = Sale(
+            email=data.get("email"),
+            name=data.get("name"),
+            quantity=data.get("quantity"),
+            unit_price=data.get("unit_price"),
+            sale_date=data.get("sale_date")
+        )
+        equipment_sales_collection.insert_one(new_sale.to_dict())
+        return new_sale.to_dict()

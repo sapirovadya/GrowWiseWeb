@@ -3,6 +3,8 @@ from modules.supply.models import Supply
 import pymongo
 import os
 from dotenv import load_dotenv
+from datetime import datetime, timezone
+from modules.expenses.models import Sale
 
 load_dotenv()
 mongo_key = os.getenv("MONGO_KEY")
@@ -90,14 +92,24 @@ def add_supply():
 
 @supply_bp.route('/get_quantity', methods=['GET'])
 def get_quantity():
-    crop_name = request.args.get("crop")
+    product_name = request.args.get("name")
+    category = request.args.get("category")
     email = session.get("email") or session.get("manager_email")
 
-    crop_entry = db.supply.find_one({"email": email, "name": crop_name, "category": "גידול"})
-    if not crop_entry:
-        return jsonify({"error": "הגידול לא נמצא במלאי"}), 404
+    if not product_name or not category:
+        return jsonify({"error": "שם מוצר או קטגוריה חסרים"}), 400
 
-    return jsonify({"quantity": crop_entry["quantity"]}), 200
+    supply_entry = supply_collection.find_one({
+        "email": email,
+        "name": product_name,
+        "category": category
+    })
+
+    if not supply_entry:
+        return jsonify({"error": "המוצר לא נמצא במלאי"}), 404
+
+    return jsonify({"quantity": supply_entry.get("quantity", 0)}), 200
+
 
 @supply_bp.route('/update_quantity', methods=['POST'])
 def update_quantity():
@@ -180,3 +192,66 @@ def update_supply_quantity():
         return jsonify({"error": "המוצר לא נמצא במלאי"}), 404
 
     return jsonify({"message": "כמות עודכנה בהצלחה"}), 200
+
+    
+@supply_bp.route("/add_sale", methods=["POST"])
+def add_sale():
+    if "email" not in session:
+        return jsonify({"error": "משתמש לא מחובר"}), 403
+
+    data = request.get_json()
+    email = session.get("email") or session.get("manager_email")
+    name = data.get("name")
+    quantity = float(data.get("quantity", 0))
+    unit_price = float(data.get("unit_price", 0))
+    sale_date_str = data.get("sale_date")
+
+    if not name or quantity <= 0 or unit_price <= 0 or not sale_date_str:
+        return jsonify({"error": "יש להזין את כל השדות החיוניים"}), 400
+
+    try:
+        sale_date = datetime.strptime(sale_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    except ValueError:
+        return jsonify({"error": "פורמט תאריך לא תקין"}), 400
+
+    sale_data = {
+        "email": email,
+        "name": name,
+        "quantity": quantity,
+        "unit_price": unit_price,
+        "sale_date": sale_date
+    }
+
+    Sale.add_sale(sale_data)
+
+    supply_collection.update_one(
+        {"email": email, "name": name},
+        {"$inc": {"quantity": -quantity}}
+    )
+
+    return jsonify({"message": "המכירה נשמרה בהצלחה"}), 200
+
+
+@supply_bp.route("/update_inventory_quantity", methods=["POST"])
+def update_inventory_quantity():
+    if "email" not in session:
+        return jsonify({"error": "משתמש לא מחובר"}), 403
+
+    data = request.get_json()
+    name = data.get("name")
+    new_quantity = float(data.get("new_quantity", -1))
+
+    if not name or new_quantity < 0:
+        return jsonify({"error": "ערך כמות לא תקין"}), 400
+
+    email = session.get("email") if session.get("role") == "manager" else session.get("manager_email")
+
+    result = supply_collection.update_one(
+        {"email": email, "name": name},
+        {"$set": {"quantity": new_quantity}}
+    )
+
+    if result.modified_count == 0:
+        return jsonify({"error": "המוצר לא נמצא או שהכמות לא השתנתה"}), 404
+
+    return jsonify({"message": "הכמות עודכנה בהצלחה"}), 200

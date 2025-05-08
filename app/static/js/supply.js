@@ -273,3 +273,104 @@ function closeEditSupplyModal() {
         });
     }
 }
+
+
+function openSaleModal(productName) {
+    document.getElementById("saleProductName").value = productName;
+    document.getElementById("saleQuantity").value = "";
+    document.getElementById("saleUnitPrice").value = "";
+    document.getElementById("saleModal").style.display = "block";
+}
+
+function closeSaleModal() {
+    document.getElementById("saleModal").style.display = "none";
+}
+
+async function submitSale() {
+    const name = document.getElementById("saleProductName").value;
+    const quantity = parseFloat(document.getElementById("saleQuantity").value);
+    const unit_price = parseFloat(document.getElementById("saleUnitPrice").value);
+    const sale_date = document.getElementById("saleDate").value;
+
+    if (!name || isNaN(quantity) || quantity <= 0 || isNaN(unit_price) || unit_price <= 0 || !sale_date) {
+        showAlert("שגיאה", "נא למלא את כל השדות עם ערכים תקינים!", true);
+        return;
+    }
+
+    try {
+        const response = await fetch("/supply/add_sale", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, quantity, unit_price, sale_date })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || "שגיאה בשמירת המכירה");
+        }
+
+        showAlert("הצלחה", "המכירה נשמרה בהצלחה!", false);
+        closeSaleModal();
+        setTimeout(() => location.reload(), 1000);
+    } catch (error) {
+        showAlert("שגיאה", error.message, true);
+        document.getElementById("saleModal").style.display = "block";
+    }
+}
+
+
+function openUpdateInventoryModal(productName, category) {
+    document.getElementById("updateProductName").value = productName;
+
+    fetch(`/supply/get_quantity?name=${encodeURIComponent(productName)}&category=${encodeURIComponent(category)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.quantity !== undefined) {
+                document.getElementById("currentQuantity").value = data.quantity;
+                document.getElementById("updateInventoryModal").style.display = "block";
+            } else {
+                showAlert("שגיאה", data.error || "לא ניתן לטעון את הכמות", true);
+            }
+        })
+        .catch(error => {
+            console.error("שגיאה בשליפת כמות:", error);
+            showAlert("שגיאה", "שגיאה בטעינת הכמות", true);
+        });
+}
+
+
+function closeUpdateInventoryModal() {
+    document.getElementById("updateInventoryModal").style.display = "none";
+}
+
+async function submitInventoryUpdate() {
+    const name = document.getElementById("updateProductName").value;
+    const newQuantity = parseFloat(document.getElementById("currentQuantity").value);
+
+    if (isNaN(newQuantity) || newQuantity < 0) {
+        showAlert("שגיאה", "נא להזין כמות חיובית או אפס", true);
+        return;
+    }
+
+    try {
+        const response = await fetch("/supply/update_inventory_quantity", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, new_quantity: newQuantity })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || "שגיאה בעדכון הכמות");
+        }
+
+        showAlert("הצלחה", "כמות עודכנה בהצלחה!", false);
+        closeUpdateInventoryModal();
+        setTimeout(() => location.reload(), 1000);
+    } catch (error) {
+        console.error("שגיאה:", error);
+        showAlert("שגיאה", error.message, true);
+    }
+}

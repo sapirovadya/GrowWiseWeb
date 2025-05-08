@@ -67,8 +67,16 @@
                         <td>{{ supply.name }}</td>
                         <td>{{ supply.quantity }}</td>
                         <td>
-                            <button class="edit-btn" onclick="editSupply('{{ supply.name }}', '{{ supply.quantity }}')">
-                                <i class="fas fa-edit"></i> ערוך
+                            <button class="edit-btn" style="margin-left: 7px;"
+                                onclick="editSupply('{{ supply.name }}', '{{ supply.quantity }}')">
+                                <i class="fas fa-credit-card"></i> קנייה
+                            </button>
+                            <button class="edit-btn" style="margin-left: 7px;"
+                                onclick="openSaleModal('{{ supply.name }}')">
+                                <i class="fas fa-hand-holding-usd"></i> מכירה
+                            </button>
+                            <button class="edit-btn" onclick="openUpdateInventoryModal('{{ supply.name }}', 'הדברה')">
+                                <i class="fas fa-edit"></i> שינוי מלאי
                             </button>
                         </td>
                     </tr>
@@ -77,6 +85,28 @@
             </table>
         </div>
     </div>
+
+
+    <!-- Modal for Updating Inventory -->
+    <div id="updateInventoryModal" class="modal supply-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeUpdateInventoryModal()">&times;</span>
+            <h2>עדכון כמות במלאי</h2>
+            <form>
+                <input type="hidden" id="updateProductName">
+                <div class="form-group">
+                    <label for="currentQuantity">כמות נוכחית:</label>
+                    <input type="number" id="currentQuantity" min="0" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="save-btn" onclick="submitInventoryUpdate()">שמור</button>
+                    <button type="button" class="close-btn" onclick="closeUpdateInventoryModal()">סגירה</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
     <div id="supplyModal" class="modal supply-modal">
         <div class="modal-content">
             <span class="close" onclick="closeSupplyModal()">&times;</span>
@@ -117,6 +147,7 @@
             </form>
         </div>
     </div>
+
     <!-- Modal for Editing Supply -->
     <div id="editSupplyModal" class="modal supply-modal">
         <div class="modal-content">
@@ -147,6 +178,34 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal for sales -->
+    <div id="saleModal" class="modal supply-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSaleModal()">&times;</span>
+            <h2>מכירת מוצר</h2>
+            <form>
+                <input type="hidden" id="saleProductName">
+                <div class="form-group">
+                    <label for="saleQuantity">כמות:</label>
+                    <input type="number" id="saleQuantity" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="saleUnitPrice">מחיר ליחידה:</label>
+                    <input type="number" id="saleUnitPrice" min="0.01" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="saleDate">תאריך מכירה:</label>
+                    <input type="date" id="saleDate" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="save-btn" onclick="submitSale()">אישור</button>
+                    <button type="button" class="close-btn" onclick="closeSaleModal()">סגירה</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Alert Box -->
     <div id="customAlert" class="alert-box" style="display:none;">
         <h5 class="alert-title">כותרת</h5>
