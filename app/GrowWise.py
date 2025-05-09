@@ -140,7 +140,7 @@ def home():
 
 
 if __name__ == "__main__":
-    # update_crops_data()
-    # update_israel_cities()
+    #update_crops_data()
+    #update_israel_cities()
     app.run(debug=True)
     
