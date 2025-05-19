@@ -341,6 +341,7 @@ async function openUpdateModal(plotId) {
 
         const crops = await response.json();
         cropSelect.innerHTML = '<option value="none">ללא</option>';
+        document.getElementById('cropDiv').style.display = 'block'; // <- חובה להציג את זה
 
         crops.forEach(crop => {
             if (crop.quantity > 0) {
@@ -459,11 +460,61 @@ function closeGrowthForecastModal() {
 // archive model
 function openArchiveModal(plotId) {
     selectedPlotId = plotId;
-    const modal = document.getElementById('archiveModal');
-    modal.style.display = 'flex';
+    document.getElementById('chooseHarvestOrArchiveModal').style.display = 'flex';
+}
+
+function closeHarvestOrArchiveModal() {
+    document.getElementById('chooseHarvestOrArchiveModal').style.display = 'none';
+}
+
+function openHarvestModal() {
+    closeHarvestOrArchiveModal();
+    document.getElementById('archiveModal').querySelector('.modal-title').textContent = 'קצירה';
+    document.querySelector(".btn-done").textContent = "הגדרת קצירה";
+    document.querySelector(".btn-done").onclick = harvestAndResetPlot;
+    document.getElementById('archiveModal').style.display = 'flex';
+}
+function openArchiveModalConfirm() {
+    closeHarvestOrArchiveModal();
+    document.getElementById('archiveModal').querySelector('.modal-title').textContent = 'העבר לארכיון';
+    document.querySelector(".btn-done").textContent = "סיום חלקה";
+    document.querySelector(".btn-done").onclick = finalizePlot;
+    document.getElementById('archiveModal').style.display = 'flex';
 }
 
 
+async function harvestAndResetPlot() {
+    const cropYield = document.getElementById('cropYield').value;
+    const priceYield = document.getElementById('priceYield').value || null;
+    if (!cropYield || cropYield <= 0) {
+        showAlert('שגיאה', 'נא להזין כמות יבול תקינה.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/Plots/harvest_plot/${selectedPlotId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                crop_yield: parseFloat(cropYield),
+                price_yield: priceYield ? parseFloat(priceYield) : null,
+            })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            showAlert('הצלחה', data.message, {
+                isSuccess: true,
+                redirectUrl: '/Plots/track_greenhouse'
+            });
+        } else {
+            showAlert('שגיאה', data.error || 'אירעה שגיאה.');
+        }
+    } catch (err) {
+        console.error(err);
+        showAlert('שגיאה', 'שגיאה בשליחת הבקשה לשרת.');
+    }
+}
 function closeArchiveModal() {
     const modal = document.getElementById('archiveModal');
     modal.style.display = 'none';
@@ -490,11 +541,12 @@ async function finalizePlot() {
                 price_yield: priceYield ? parseFloat(priceYield) : null
             })
         });
+        const data = await response.json();
 
         if (response.redirected) {
             window.location.href = response.url;
         } else if (response.ok) {
-            showAlert('החלקה הועברה לארכיון בהצלחה!', '', {
+            showAlert('הצלחה', data.message, {
                 isSuccess: true,
                 redirectUrl: '/Plots/track_greenhouse'
             });
@@ -509,89 +561,104 @@ async function finalizePlot() {
 }
 
 // plot form
+let selectedPlotType = null;
+let isExisting = false;
 
 async function openPlotForm(type) {
-    setTimeout(() => {
-        const plotTypeInput = document.getElementById("plotType");
-        plotTypeInput.value = type;
-    }, 100); // 
+    selectedPlotType = type;
+    document.getElementById('selectTypeModal').style.display = 'none';
+    document.getElementById('plotChoiceModal').style.display = 'flex';
+}
 
-    let plotFormModal = document.getElementById('plotFormModal');
-    let cropSelect = document.getElementById('crop');
-    let cropCategoryField = document.getElementById('cropCategory');
-    let selectTypeModal = document.getElementById('selectTypeModal');
-    let cropDiv = document.getElementById('cropDiv');
-    let sowDateDiv = document.getElementById('sowDateDiv');
-    let quantityPlantedDiv = document.getElementById('quantityPlantedDiv');
+document.getElementById("newPlotBtn").addEventListener("click", () => {
+    isExisting = false;
+    document.getElementById("plotChoiceModal").style.display = "none";
+    openNewPlotForm(selectedPlotType);
+});
 
-    selectTypeModal.style.display = 'none';
-    plotFormModal.style.display = 'flex';
-    //reset
+document.getElementById("existingPlotBtn").addEventListener("click", () => {
+    isExisting = true;
+    document.getElementById("plotChoiceModal").style.display = "none";
+    openNewPlotForm(selectedPlotType); // פתיחת המודל החדש גם עבור קיימת, כרגע
+});
+
+async function openNewPlotForm(type) {
+    const plotTypeInput = document.getElementById("plotType");
+    plotTypeInput.value = type;
+
+    const plotFormModal = document.getElementById('plotFormModal');
+    const cropSelect = document.getElementById('crop');
+    const cropCategoryField = document.getElementById('cropCategory');
+
+    // איפוס והסתרת שדות
     document.getElementById('plotForm').reset();
-    sowDateDiv.style.display = 'none';
-    quantityPlantedDiv.style.display = 'none';
+    cropSelect.innerHTML = '<option value="none">ללא</option>';
+    document.getElementById('cropDiv').style.display = 'block'; // <<- מציגים מיידית את שדה גידול
+    document.getElementById('sowDateDiv').style.display = 'none';
+    document.getElementById('quantityPlantedDiv').style.display = 'none';
+    document.getElementById('irrigationWaterTypeDiv').style.display = 'none';
+    document.getElementById('kosherDiv').style.display = 'none';
 
     try {
-        const response = await fetch("/supply/available_crops");
-        if (!response.ok) throw new Error("שגיאה בטעינת רשימת הגידולים");
+        if (isExisting) {
+            document.querySelector('label[for="quantityPlanted"]').textContent = "כמות שתילים";
+            const response = await fetch("/static/data/crops_data.json");
+            if (!response.ok) throw new Error("שגיאה בטעינת קובץ הגידולים");
+            const data = await response.json();
+            data.forEach(entry => {
+                entry.values.forEach(crop => {
+                    const option = document.createElement("option");
+                    option.value = crop;
+                    option.textContent = crop;
+                    option.dataset.category = entry.category;
+                    cropSelect.appendChild(option);
+                });
+            });
+        } else {
+            document.querySelector('label[for="quantityPlanted"]').textContent = "כמה זרעתי (בק״ג)";
+            const response = await fetch("/supply/available_crops");
+            if (!response.ok) throw new Error("שגיאה בטעינת רשימת הגידולים");
+            const crops = await response.json();
+            crops.forEach(crop => {
+                if (crop.quantity > 0) {
+                    const option = document.createElement("option");
+                    option.value = crop.name;
+                    option.textContent = `${crop.name} (זמין: ${crop.quantity} ק"ג)`;
+                    option.dataset.category = crop.category || "";
+                    cropSelect.appendChild(option);
+                }
+            });
+        }
 
-        const crops = await response.json();
-        cropSelect.innerHTML = '<option value="none">ללא</option>';
+        // פתיחת שדות נוספים רק לאחר בחירת גידול
+        cropSelect.addEventListener('change', function () {
+            const selected = this.options[this.selectedIndex];
+            const selectedValue = selected.value;
 
-        crops.forEach(crop => {
-            if (crop.quantity > 0) {
-                let option = document.createElement("option");
-                option.value = crop.name;
-                option.textContent = `${crop.name} (זמין: ${crop.quantity} ק"ג)`;
-                option.dataset.quantity = crop.quantity;
-                cropSelect.appendChild(option);
+            if (selectedValue !== "none") {
+                cropCategoryField.value = selected.dataset.category || "none";
+                document.getElementById('sowDateDiv').style.display = 'block';
+                document.getElementById('quantityPlantedDiv').style.display = 'block';
+                document.getElementById('irrigationWaterTypeDiv').style.display = 'block';
+                document.getElementById('kosherDiv').style.display = 'block';
+            } else {
+                cropCategoryField.value = "none";
+                document.getElementById('sowDateDiv').style.display = 'none';
+                document.getElementById('quantityPlantedDiv').style.display = 'none';
+                document.getElementById('irrigationWaterTypeDiv').style.display = 'none';
+                document.getElementById('kosherDiv').style.display = 'none';
             }
         });
 
-        cropDiv.style.display = crops.length >= 1 ? "block" : "none";
-
-
-    } catch (error) {
-        console.error("שגיאה בטעינת רשימת הגידולים:", error);
+    } catch (err) {
+        console.error(err);
     }
-    document.getElementById('crop').addEventListener('change', function () {
-        updateCropCategory();
-        const selectedCrop = this.value;
-        const sowDateDiv = document.getElementById('sowDateDiv');
-        const quantityPlantedDiv = document.getElementById('quantityPlantedDiv');
-        const cropCategoryField = document.getElementById('cropCategory');
-        const irrigationWaterTypeDiv = document.getElementById('irrigationWaterTypeDiv'); // חדש
 
-        if (selectedCrop === "none") {
-            sowDateDiv.style.display = 'none';
-            quantityPlantedDiv.style.display = 'none';
-            cropCategoryField.value = "none";
-            irrigationWaterTypeDiv.style.display = 'none';
-
-        } else {
-            sowDateDiv.style.display = 'block';
-            quantityPlantedDiv.style.display = 'block';
-            irrigationWaterTypeDiv.style.display = 'block';
-
-        }
-
-    });
-
-    document.getElementById('quantityPlanted').addEventListener('input', function () {
-        const selectedCrop = document.getElementById("crop");
-        const quantityPlantedInput = this;
-        const availableQuantity = parseFloat(selectedCrop.options[selectedCrop.selectedIndex].dataset.quantity);
-
-        if (quantityPlantedInput.value > availableQuantity) {
-            showAlert("שגיאה", `הזנת מספר הגדול יותר מהכמות במלאי - אתה יכול לשתול עד ${availableQuantity} ק"ג.`);
-            quantityPlantedInput.value = availableQuantity;
-        }
-    });
+    plotFormModal.style.display = 'flex';
 }
 
 async function savePlot() {
     const form = document.getElementById("plotForm");
-
     const plotTypeInput = document.getElementById("plotType");
     const plotNameField = document.getElementById("plotName");
     const metersField = document.getElementById("squareMeters");
@@ -600,7 +667,6 @@ async function savePlot() {
     const sowDateField = document.getElementById("sowDate");
     const quantityPlantedField = document.getElementById("quantityPlanted");
     const irrigationWaterTypeField = document.getElementById("irrigationWaterType");
-
     const kosherCheckbox = document.getElementById("kosherRequired");
     const kosherFileInput = document.getElementById("kosherCertificate");
 
@@ -622,15 +688,34 @@ async function savePlot() {
     const crop = cropField.value !== "none" ? cropField.value : "none";
     const cropCategory = crop !== "none" ? cropCategoryField.value : "none";
     const sowDate = sowDateField && sowDateField.value ? sowDateField.value : "";
-    const quantityPlanted = quantityPlantedField && quantityPlantedField.value ? parseFloat(quantityPlantedField.value) : "";
+    const quantityPlanted = quantityPlantedField && quantityPlantedField.value ? parseFloat(quantityPlantedField.value) : null;
+    const irrigationType = irrigationWaterTypeField ? irrigationWaterTypeField.value : "none";
 
     const today = new Date().toISOString().split("T")[0];
-    if (sowDate && sowDate > today) {
-        showAlert("שגיאה", "לא ניתן להזין תאריך עתידי לזריעה.");
-        return;
+
+    // אם נבחר גידול – חובה על שדות נוספים
+    if (crop !== "none") {
+        if (!sowDate) {
+            showAlert("שגיאה", "נא למלא תאריך זריעה.");
+            return;
+        }
+
+        if (sowDate > today) {
+            showAlert("שגיאה", "לא ניתן להזין תאריך עתידי לזריעה.");
+            return;
+        }
+
+        if (!irrigationType || irrigationType === "none") {
+            showAlert("שגיאה", "נא לבחור סוג מי השקיה.");
+            return;
+        }
+
+        if (!isExisting && (!quantityPlanted || quantityPlanted <= 0)) {
+            showAlert("שגיאה", "נא למלא כמות זריעה תקינה (בק״ג)");
+            return;
+        }
     }
 
-    // הכנת הנתונים לשליחה
     const formData = new FormData();
     formData.append("plot_type", plotTypeInput.value.trim());
     formData.append("plot_name", plotNameField.value.trim());
@@ -638,8 +723,9 @@ async function savePlot() {
     formData.append("crop_category", cropCategory);
     formData.append("crop", crop);
     formData.append("sow_date", sowDate);
-    formData.append("quantity_planted", quantityPlanted);
-    formData.append("irrigation_water_type", irrigationWaterTypeField.value || "none");
+    formData.append("quantity_planted", quantityPlanted || 0);
+    formData.append("irrigation_water_type", irrigationType);
+    formData.append("is_existing", isExisting ? "true" : "false");
 
     if (kosherCheckbox.checked) {
         formData.append("kosher_required", "on");
@@ -668,6 +754,7 @@ async function savePlot() {
         showAlert("שגיאה", "שגיאה בלתי צפויה בשמירה.");
     }
 }
+
 const cropElement = document.getElementById("crop");
 if (cropElement) {
     cropElement.addEventListener("change", () => {
@@ -700,6 +787,11 @@ if (kosherRequiredCheckbox) {
 }
 
 
+function formatDate(dateStr) {
+    if (!dateStr) return "לא זמין";
+    const date = new Date(dateStr);
+    return `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+}
 
 // plots view
 const plots = [];
@@ -766,29 +858,39 @@ function updateSingleView() {
         singleView.innerHTML = "<p style='text-align:center;'>אין חלקות פעילות להצגה.</p>";
         return;
     }
+
     const plot = plots[currentPlotIndex];
 
-    document.getElementById("plotTitle").textContent = plot.plot_name;
+    document.getElementById("plotTitle").textContent = plot.plot_name || "לא ידוע";
     document.getElementById("plotImage").src =
         plot.plot_type === "חלקה" ? "/static/img/land.png" : "/static/img/green_house.png";
+    document.getElementById("plotDetailsLink").href = `/Plots/plot_details?id=${plot._id}`;
 
-    const plotDetailsLink = document.getElementById("plotDetailsLink");
-    plotDetailsLink.href = `/Plots/plot_details?id=${plot._id}`;
+    const getText = (value, fallback = "לא זמין") => {
+        if (value === null || value === "" || value === undefined) return fallback;
+        return value;
+    };
 
-    document.getElementById("plottype").textContent = plot.plot_type || "לא זמין";
-    document.getElementById("plotLength").textContent = plot.length || "לא זמין";
-    document.getElementById("plotWidth").textContent = plot.width || "לא זמין";
-    document.getElementById("plotCrop").textContent =
-        plot.crop === "none" ? " טרם נבחר גידול" : (plot.crop || "לא זמין");
+    document.getElementById("plottype").textContent = getText(plot.plot_type);
+    document.getElementById("squareMetersDisplay").textContent = getText(plot.square_meters);
+    document.getElementById("plotCrop").textContent = plot.crop === "none" ? "טרם נבחר גידול" : getText(plot.crop);
+    document.getElementById("sowdate").textContent = plot.sow_date ? formatDate(plot.sow_date) : "טרם נבחר תאריך זריעה";
+    document.getElementById("lastIrrigationDate").textContent = plot.last_irrigation_date
+        ? formatDate(plot.last_irrigation_date)
+        : "טרם בוצעה השקיה"; document.getElementById("totalIrrigationAmount").textContent = getText(plot.total_irrigation_amount, "0");
+    const kosherRequired = plot.kosher_required ? "כן" : "לא";
+    document.getElementById("kosherrequired").textContent = kosherRequired;
 
-    document.getElementById("sowdate").textContent =
-        plot.sow_date === "" ? "טרם בוצעה זריעה" : (plot.sow_date || "לא זמין");
+    const kosherCertificateElem = document.getElementById("koshercertificate");
+    if (plot.kosher_certificate && plot.kosher_certificate !== "null") {
+        kosherCertificateElem.innerHTML = `<a href="/${plot.kosher_certificate}" target="_blank">צפייה בקובץ</a>`;
+    } else {
+        kosherCertificateElem.textContent = "אין קובץ מצורף";
+    }
 
-    document.getElementById("lastIrrigationDate").textContent =
-        plot.last_irrigation_date == null ? "טרם בוצעה השקייה" : plot.last_irrigation_date;
-
-    document.getElementById("totalIrrigationAmount").textContent =
-        plot.total_irrigation_amount == null ? "0" : plot.total_irrigation_amount;
+    if (document.getElementById("irrigationWaterTypeDisplay")) {
+        document.getElementById("irrigationWaterTypeDisplay").textContent = getText(plot.irrigation_water_type, "לא נבחר");
+    }
 }
 
 function closePlotForm() {

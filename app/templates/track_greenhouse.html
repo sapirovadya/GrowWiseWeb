@@ -79,6 +79,23 @@
     </div>
 
 
+    <!-- New modal after plot type selection -->
+    <div id="plotChoiceModal" class="modal select-plot" style="display: none;"
+        onclick="closeModal(event, 'plotChoiceModal')">
+        <div class="modal-dialog" onclick="event.stopPropagation()">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">האם זו חלקה חדשה או קיימת?</h5>
+                    <button type="button" class="btn-close" aria-label="Close"
+                        onclick="closeModal(null, 'plotChoiceModal')"></button>
+                </div>
+                <div class="modal-body">
+                    <button class="btn btn-secondary" id="newPlotBtn">חלקה/חממה חדשה</button>
+                    <button class="btn btn-secondary" id="existingPlotBtn">חלקה/חממה קיימת</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!--Adding new plots -->
     <div id="plotFormModal" class="modal plots">
@@ -152,29 +169,33 @@
     </div>
 
     <!-- Single layout view -->
-    <div id="singleView" class="single-view mt-4 text-center">
-        <h1 id="plotTitle" class="fw-bold mb-2"></h1>
-        <div class="plot-circle mx-auto mt-3">
+    <div id="singleView" class="single-view mt-1 text-center">
+        <div class="plot-circle mx-auto mt-1">
             <a id="plotDetailsLink" href="#">
                 <img id="plotImage" src="" alt="תמונה">
             </a>
         </div>
-        <div class="navigation-container">
+        <h1 id="plotTitle" class="fw-bold mb-2"></h1>
+        <hr class="section-divider" style="width: 280px; margin-right: 490px;">
+        <div
+            class="navigation-container d-flex align-items-center justify-content-center gap-3 flex-wrap flex-md-nowrap mt-4">
 
-            <button id="prevButton" class="btn btn-light rounded-circle mx-2">
+            <button id="prevButton" class="btn btn-light rounded-circle">
                 <i class="bi bi-chevron-right"></i>
             </button>
-            <br>
             <!-- הפרטים מתחת לתמונה -->
             <div id="plotDetails" class="text-center mx-auto">
                 <p><strong>צורת גידול: </strong> <span id="plottype"></span></p>
-                <p><strong>גודל(דונם): </strong> <span id="squareMeters"></span></p>
+                <p><strong>גודל(דונם): </strong> <span id="squareMetersDisplay"></span></p>
                 <p><strong>גידול: </strong> <span id="plotCrop"></span></p>
                 <p><strong>תאריך זריעה: </strong> <span id="sowdate"></span></p>
+                <p><strong>סוג מים להשקייה:</strong> <span id="irrigationWaterTypeDisplay"></span></p>
                 <p><strong>תאריך השקיה אחרון: </strong> <span id="lastIrrigationDate"></span></p>
                 <p><strong>כמות השקיה כוללת: </strong> <span id="totalIrrigationAmount"></span></p>
+                <p><strong>דרוש אישור כשרות:</strong> <span id="kosherrequired"></span></p>
+                <p><strong>אישור כשרות:</strong> <span id="koshercertificate"></span></p>
             </div>
-            <button id="nextButton" class="btn btn-light rounded-circle mx-2">
+            <button id="nextButton" class="btn btn-light rounded-circle">
                 <i class="bi bi-chevron-left"></i>
             </button>
         </div>
@@ -283,18 +304,15 @@
         });
 
         document.getElementById("prevButton").addEventListener("click", () => {
-            if (currentPlotIndex > 0) {
-                currentPlotIndex--;
-                updateSingleView();
-            }
+            currentPlotIndex = (currentPlotIndex - 1 + plots.length) % plots.length;
+            updateSingleView();
         });
 
         document.getElementById("nextButton").addEventListener("click", () => {
-            if (currentPlotIndex < plots.length - 1) {
-                currentPlotIndex++;
-                updateSingleView();
-            }
+            currentPlotIndex = (currentPlotIndex + 1) % plots.length;
+            updateSingleView();
         });
+
 
         document.addEventListener("DOMContentLoaded", loadPlots);
         document.addEventListener("DOMContentLoaded", async function () {

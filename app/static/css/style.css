@@ -572,6 +572,31 @@ textarea {
     gap: 50px;
 }
 
+#plotChoiceModal .modal-dialog {
+    max-width: 600px;
+    width: 90%;
+}
+
+#plotChoiceModal .modal-content {
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 1.2rem;
+}
+
+#plotChoiceModal .modal-body {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+#plotChoiceModal .modal-body button {
+    flex: 1;
+    max-width: 180px;
+    max-height: 50px;
+    font-size: 18px;
+}
+
 .toggle-button {
     background-color: #c6c6c6;
     border-radius: 50px;
@@ -1460,7 +1485,7 @@ td:last-child {
     display: flex;
     flex-direction: column;
     background-color: white;
-    padding: 20px;
+    padding: 10px;
     border: none;
 }
 
@@ -1473,6 +1498,7 @@ td:last-child {
     word-wrap: break-word;
     box-sizing: border-box;
     flex-grow: 1;
+
 }
 
 .select-plot .modal-content {
@@ -1480,6 +1506,11 @@ td:last-child {
     height: 100%;
     display: flex;
     flex-direction: column;
+}
+
+.select-plot .modal-body button {
+    margin-left: 20px;
+    font-size: 20px;
 }
 
 #singleView {
@@ -1545,14 +1576,14 @@ button.btn-light {
 }
 
 #prevButton {
-    right: 0px;
-    transform: translateX(-600%);
+    right: 350px;
+    transform: translateY(-500%);
 
 }
 
 #nextButton {
-    left: 300px;
-    transform: translateY(-650%);
+    left: 350px;
+    transform: translateY(-500%);
 
 }
 

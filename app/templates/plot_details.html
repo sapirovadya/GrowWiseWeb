@@ -92,9 +92,10 @@
                     {{ plot.last_irrigation_date | format_date }}
                     {% endif %}
                     <button id="getIrrigationButton" class="btn btn-primary"
-                    data-crop="{{ plot.crop if plot.crop not in ['none', '', None] else '' }}">קבל המלצת השקיה</button>
-            
-                    
+                        data-crop="{{ plot.crop if plot.crop not in ['none', '', None] else '' }}">קבל המלצת
+                        השקיה</button>
+
+
 
                 </p>
                 <p style="font-size: 17px;"><strong style="font-size: 19px;">כמות השקיה כוללת:</strong>
@@ -190,7 +191,7 @@
                             <div class="service-item-icon">
                                 <img src="/static/img/archive_color.png" alt="" width="80" height="80">
                             </div>
-                            <p style="font-size: 17px;"><strong>העבר לארכיון</strong></p>
+                            <p style="font-size: 17px;"><strong>קצירה או ארכיון</strong></p>
                         </div>
                         {% endif %}
                     </div>
@@ -408,6 +409,31 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeWeatherModal()">סגור</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Harvest or Archive -->
+    <div id="chooseHarvestOrArchiveModal" class="modal harvestOrArchive" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content p-4" style="min-width: 450px;">
+                <div class="modal-header  border-0">
+                    <h5 class="modal-title mx-auto">קצירה או ארכיון</h5>
+                    <button type="button" class="btn-close" onclick="closeHarvestOrArchiveModal()"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="d-flex flex-column gap-3 align-items-center">
+
+                        <button class="btn btn-secondary" style="width: 220px; font-size: 20px;"
+                            onclick="openHarvestModal()">
+                            קצירה ואיפוס נתונים
+                        </button>
+                        <button class="btn btn-secondary" style="width: 220px; font-size: 20px;"
+                            onclick="openArchiveModalConfirm()">
+                            העברת חלקה/חממה לארכיון
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
