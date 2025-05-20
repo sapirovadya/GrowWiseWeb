@@ -6,7 +6,7 @@
     <title>GrowWise</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <link href="/static/img/favicon_v3.ico" rel="icon">
+    <link href="/static/img/favicon_v7.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,9 +44,19 @@
         <hr class="section-divider ">
     </div>
     <div class="button-container" id="supp">
-        <button class="circle-button" onclick="openYieldPriceModal()">הכנסת מחיר לק״ג תפוקה</button>
-        <button class="circle-button" onclick="openWaterPriceModal()">הכנסת תעריף לק״וב</button>
-        <button class="circle-button" onclick="openFuelTypeModal()">הוצאות תדלוק</button>
+        <div class="leaf" onclick="openYieldPriceModal()">
+            <img src="/static/img/yield.png">
+            <span>הכנסת מחיר לק״ג תפוקה</span>
+        </div>
+        <div class="leaf" onclick="openWaterPriceModal()">
+            <img src="/static/img/water.png">
+            <span>הכנסת תעריף לקו״ב</span>
+        </div>
+
+        <div class="leaf" onclick="openFuelTypeModal()">
+            <img src="/static/img/fual.png">
+            <span>הוצאות תדלוק</span>
+        </div>
     </div>
 
     <!-- מודל לבחירת סוג מים -->
