@@ -3,23 +3,42 @@ from werkzeug.security import generate_password_hash
 import uuid
 from datetime import datetime
 
+# class User:
+#     def signup(self, data):
+#         # יצירת מזהה ייחודי למשתמש
+#         user_id = str(uuid.uuid4())
+
+#         # הצפנת סיסמה
+#         hashed_password = generate_password_hash(data.get("password"))
+
+#         # יצירת אובייקט המשתמש
+#         user = {
+#             "id": user_id,
+#             "first_name": data.get("first_name"),
+#             "last_name": data.get("last_name"),
+#             "email": data.get("email"),
+#             "password": hashed_password,
+#             "role": data.get("role"),  # מנהל או עובד
+#         }
+
+#         return user
+
 class User:
     def signup(self, data):
-        # יצירת מזהה ייחודי למשתמש
         user_id = str(uuid.uuid4())
 
-        # הצפנת סיסמה
-        hashed_password = generate_password_hash(data.get("password"))
-
-        # יצירת אובייקט המשתמש
         user = {
             "id": user_id,
             "first_name": data.get("first_name"),
             "last_name": data.get("last_name"),
             "email": data.get("email"),
-            "password": hashed_password,
-            "role": data.get("role"),  # מנהל או עובד
+            "role": data.get("role"),
         }
+
+        # רק אם הסיסמה קיימת – נצפין אותה (לא נדרש בגוגל)
+        if data.get("password"):
+            from werkzeug.security import generate_password_hash
+            user["password"] = generate_password_hash(data["password"])
 
         return user
 

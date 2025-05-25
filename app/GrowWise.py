@@ -18,23 +18,48 @@ from modules.expenses.routes import expenses_bp
 from modules.vehicles.routes import vehicles_bp
 from modules.reports.routes import reports_bp
 from modules.optimal_plots.routes import optimal_bp
-
-
-
+from flask_dance.contrib.google import make_google_blueprint, google
+from flask_session import Session
 import json
+from flask_dance.consumer.storage.session import SessionStorage
+
 
 # עדכן את הנתיב בהתאם
 
 load_dotenv()
 app = Flask(__name__)
-app.jinja_env.filters['format_date'] = format_date
+app.secret_key = os.getenv("APP_SECRET")
 
+app.jinja_env.filters['format_date'] = format_date
 mongo_key = os.getenv("MONGO_KEY")
+
 client = pymongo.MongoClient(mongo_key)
 app.db = client.get_database("dataGrow")
 
-app.secret_key = os.getenv("APP_SECRET")
 
+
+app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_PERMANENT"] = False  # הוספה חשובה
+
+Session(app)
+
+
+google_bp = make_google_blueprint(
+    client_id=os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+    scope=[
+        "openid",
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/userinfo.email"
+    ],
+    redirect_url="/users/google_login",
+    storage=SessionStorage()
+)
+
+
+
+
+app.register_blueprint(google_bp, url_prefix="/login")
 app.register_blueprint(users_bp_main, url_prefix="/users")
 app.register_blueprint(employee_bp, url_prefix="/employee")
 app.register_blueprint(manager_bp, url_prefix="/users/manager")

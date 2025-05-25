@@ -23,3 +23,6 @@ Thumbs.db
 
 # Ignore vitual-env files
 GrowWiseEnv/
+
+# Ignore Flask session data
+flask_session/

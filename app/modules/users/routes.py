@@ -11,7 +11,8 @@ from modules.users.co_manager.models import Co_Manager
 from modules.users.job_seeker.models import Job_Seeker
 from modules.task.models import task
 from modules.users.models import Notification
-
+from flask_dance.contrib.google import google
+from pymongo import MongoClient
 
 
 load_dotenv()
@@ -25,6 +26,171 @@ mongo_key = os.getenv("MONGO_KEY")
 client = pymongo.MongoClient(mongo_key)
 db = client.get_database("dataGrow")
 cities_collection = db.israel_cities  # שם האוסף
+
+@users_bp_main.route("/google_login")
+def google_login():
+    if not google.authorized:
+        return redirect(url_for("google.login"))
+
+    resp = google.get("/oauth2/v2/userinfo")
+    if not resp.ok:
+        return "שגיאה באימות Google", 400
+
+    user_info = resp.json()
+    email = user_info.get("email")
+    first_name = user_info.get("given_name")
+    last_name = user_info.get("family_name")
+
+    # בדיקה בכל אחת מהטבלאות לפי סדר
+    user = db.manager.find_one({"email": email})
+    if user:
+        session.update({
+            "email": user["email"],
+            "first_name": user.get("first_name", ""),
+            "last_name": user.get("last_name", ""),
+            "role": "manager"
+        })
+        return redirect(url_for("manager_bp.manager_home_page"))
+
+    user = db.co_manager.find_one({"email": email})
+    if user:
+        session.update({
+            "email": user["email"],
+            "first_name": user.get("first_name", ""),
+            "last_name": user.get("last_name", ""),
+            "role": "co_manager",
+            "manager_email": user.get("manager_email", "")
+        })
+        return redirect(url_for("co_manager_bp.co_manager_home_page"))
+
+    user = db.employee.find_one({"email": email})
+    if user:
+        session.update({
+            "email": user["email"],
+            "first_name": user.get("first_name", ""),
+            "last_name": user.get("last_name", ""),
+            "role": "employee",
+            "manager_email": user.get("manager_email", "")
+        })
+        return redirect(url_for("employee_bp.employee_home_page"))
+
+    user = db.job_seeker.find_one({"email": email})
+    if user:
+        session.update({
+            "email": user["email"],
+            "first_name": user.get("first_name", ""),
+            "last_name": user.get("last_name", ""),
+            "role": "job_seeker"
+        })
+        return redirect(url_for("job_seeker_bp.job_seeker_home_page"))
+
+    # אם המשתמש לא קיים – נשלח אותו לדף השלמת הרשמה
+    session.update({
+        "email": email,
+        "first_name": first_name,
+        "last_name": last_name
+    })
+    return redirect(url_for("users_bp_main.google_register_form"))
+
+
+
+
+@users_bp_main.route("/google_register_form")
+def google_register_form():
+    if "email" not in session:
+        return redirect(url_for("home"))
+    return render_template("google_register.html", 
+                           email=session["email"],
+                           first_name=session["first_name"],
+                           last_name=session["last_name"])
+
+
+@users_bp_main.route("/google_signup", methods=["POST"])
+def google_signup():
+    db = current_app.db
+    data = request.get_json()
+    email = session.get("email")
+
+    # בדיקה אם המשתמש כבר קיים באחת הטבלאות
+    existing = (
+        db.manager.find_one({"email": email}) or
+        db.co_manager.find_one({"email": email}) or
+        db.employee.find_one({"email": email}) or
+        db.job_seeker.find_one({"email": email})
+    )
+    if existing:
+        return jsonify({"success": False, "message": "המשתמש כבר קיים במערכת"}), 400
+
+
+    role = data.get("role")
+    manager_email = data.get("manager_email", "")
+    location = data.get("location", "")
+
+    user_data = {
+        "first_name": data.get("first_name"),
+        "last_name": data.get("last_name"),
+        "email": email,
+        "role": role,
+        "manager_email": manager_email,
+        "location": location
+    }
+
+    # דרישת אימייל מנהל במקרה של עובד/מנהל שותף
+    if role in ["employee", "co_manager"]:
+        manager = db.manager.find_one({"email": manager_email})
+        if not manager:
+            return jsonify({"success": False, "message": "אימייל המנהל אינו קיים במערכת"}), 400
+
+
+    if role == "manager":
+        user = Manager().signup(user_data)
+        db.manager.insert_one(user)
+        session["role"] = "manager"
+        session["manager_email"] = email
+
+    elif role == "co_manager":
+        user = Co_Manager().signup(user_data)
+        db.co_manager.insert_one(user)
+        db.manager.update_one({"email": manager_email}, {"$addToSet": {"co_managers": email}})
+        session["role"] = "co_manager"
+        session["manager_email"] = manager_email
+
+    elif role == "employee":
+        user = Employee().signup(user_data)
+        db.employee.insert_one(user)
+        db.manager.update_one({"email": manager_email}, {"$addToSet": {"workers": email}})
+        session["role"] = "employee"
+        session["manager_email"] = manager_email
+
+    elif role == "job_seeker":
+        user = Job_Seeker().signup(user_data)
+        db.job_seeker.insert_one(user)
+        session["role"] = "job_seeker"
+
+    else:
+        return jsonify({"success": False, "message": "תפקיד לא חוקי"}), 400
+
+
+    # עדכון session לכל התפקידים
+    session["user_id"] = user["id"]
+    session["first_name"] = user["first_name"]
+    session["last_name"] = user["last_name"]
+    session["email"] = user["email"]
+
+    # ניתוב לפי תפקיד
+    redirect_map = {
+        "manager": "manager_bp.manager_home_page",
+        "co_manager": "home",
+        "employee": "home",
+        "job_seeker": "home"
+    }
+
+    return jsonify({
+    "success": True,
+    "message": "ההרשמה הושלמה בהצלחה!",
+    "redirect_url": redirect_map.get(role, url_for("home"))
+})
+
 
 
 # הצגת טופס ההרשמה

@@ -5,6 +5,8 @@ import os
 from dotenv import load_dotenv
 import openai
 from bson import ObjectId
+from datetime import datetime
+import jdatetime
 
 load_dotenv()
 optimal_bp = Blueprint("optimal_bp", __name__)
@@ -16,6 +18,34 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 MODEL = "gpt-4o"
 TEMPERATURE = 1
 MAX_TOKENS = 500
+
+def get_season_and_date():
+    today = datetime.now()
+    month = today.month
+    day = today.day
+
+    # קביעת העונה (אביב או סתיו)
+    if month in [3, 4, 5]:
+        season = "spring"   # אביב
+    elif month in [9, 10, 11]:
+        season = "autumn"   # סתיו
+    else:
+        season = "other"    # עונות אחרות
+
+    # המרת תאריך עברי
+    heb_date = jdatetime.date.fromgregorian(date=today)
+    heb_month = heb_date.month
+    heb_day = heb_date.day
+
+    # בדיקה אם אחרי ט"ו באב (15 באב)
+    is_after_tu_bav = (heb_month > 5) or (heb_month == 5 and heb_day > 15)
+
+    return {
+        "date": today.strftime("%d/%m/%Y"),
+        "season": season,
+        "is_after_tu_bav": is_after_tu_bav
+    }
+
 
 @optimal_bp.route("/management", methods=["GET"])
 def optimal_management_page():
@@ -51,78 +81,87 @@ def generate_plan():
         selected_crops = data.get("selected_crops", [])
         selected_plots = data.get("selected_plots", [])
         email = session.get("email") or session.get("manager_email")
+        
+        # שליפת העיר מתוך פרטי המנהל
         manager = db.manager.find_one({"email": email})
         city = manager.get("location", "לא צוינה עיר")
+        
+        # בדיקת נתונים
         if not selected_crops or not selected_plots:
             return jsonify({"error": "חסרים נתונים"}), 400
 
+        # שליפת תאריך נוכחי ועונת השנה
+        date_info = get_season_and_date()
+        current_date = date_info["date"]
+        season = date_info["season"]
+        is_after_tu_bav = date_info["is_after_tu_bav"]
+
+        # שליפת מידע על הגידולים שנבחרו
         crop_data = list(db.supply.find({
             "email": email,
             "category": "גידול",
             "name": {"$in": selected_crops}
         }, {"_id": 0, "name": 1, "quantity": 1}))
 
+        # שליפת מידע על החלקות שנבחרו
         plot_data = []
         for p in selected_plots:
-            found = db.plots.find_one({"_id": p["id"]}, {"plot_name": 1, "length": 1, "width": 1})
+            found = db.plots.find_one({"_id": p["id"]}, {"plot_name": 1, "plot_type": 1, "square_meters": 1})
             if found:
                 plot_data.append({
                     "plot_name": found["plot_name"],
                     "plot_type": p["type"],
-                    "length": found["length"],
-                    "width": found["width"]
+                    "square_meters": found["square_meters"]
                 })
 
-        plot_lines = "\n".join([f"{p['plot_name']} - {p['plot_type']} בגודל {p['length']}x{p['width']} מטר" for p in plot_data])
+        # הכנת נתונים לפורמט טקסטואלי
+        plot_lines = "\n".join([f"{p['plot_name']} - {p['plot_type']} בגודל {p['square_meters']} דונם" for p in plot_data])
         crop_lines = "\n".join([f"{c['name']} - {c['quantity']} ק\"ג" for c in crop_data])
-       
+
+        # פרומפט אגרונומי מעודכן
         prompt = f"""
-        אתה אגרונום מומחה בעל ניסיון של למעלה מ-20 שנה בגידול ושתילת כל סוגי הגידולים הקיימים. כל תשובה שלך צריכה להיות מדויקת, מבוססת על ידע חקלאי מוסמך ואמין בלבד, בהתאם לשיטות הנהוגות במשרד החקלאות ובמחקר האגרונומי המעודכן ביותר.
+        אתה אגרונום מומחה בעל ניסיון של למעלה מ-20 שנה בגידול ושתילת כל סוגי הגידולים הקיימים. 
+        יש להשתמש בידע קיים שלך ובעיקר באתר 
+        agriteach.org.il ובכל הדפים הנמצאים בו
+    
+        כל תשובה שלך צריכה להיות מדויקת, מבוססת על ידע חקלאי מוסמך ואמין בלבד, ותמיד לשמור על אחידות מבנית בין תשובות דומות.
 
         מיקום המשק: {city}
+        תאריך נוכחי: {current_date}
 
-        רשימת חלקות או חממות זמינות לשתילה:
+        חלקות או חממות זמינות לשתילה:
         {plot_lines}
 
-        רשימת גידולים זמינים במלאי:
+        גידולים זמינים במלאי:
         {crop_lines}
 
-        עבור כל חלקה, בצע ניתוח מקצועי של הגידול המתאים ביותר, תוך התייחסות לפרמטרים הבאים:
-        1. סוג החלקה (חממה או אדמה)
-        2. מיקום גיאוגרפי של המשק ({city})
-        3. שטח החלקה
-        4. אקלים מקומי מתאים לגידול
+        הנחיות כלליות למתן המלצה:
+        - התייחס לסוג השטח (חלקה או חממה). אם הגידול לא מתאים לשטח שנבחר, ציין זאת בהמלצה בצורה ברורה. 
+        - במקרה של אי-התאמה, אין צורך לפרט מעבר לכך.
+        - אם השטח מתאים לגידול, יש להמשיך בהמלצה על בסיס הקטגוריות הבאות:
 
-        בנוסף, עליך להתייחס לעיתוי בשנה בעת מתן ההמלצה:
-        - שתילת עצים או כרמים (כל שתילה שאינה מתבצעת באמצעות זרעים) מומלצת רק לפני תאריך ט"ו באב (חודש אב בלוח השנה העברי). אם התאריך הנוכחי הוא לאחר ט"ו באב – יש לציין בהמלצה כי מומלץ להמתין לשתילה בעונה המתאימה, ולהימנע משתילה כעת.
-        - זריעת זרעים מומלצת בעונות האביב (מרץ–מאי) או הסתיו (ספטמבר–נובמבר). אם התאריך הנוכחי אינו בעונה זו – יש לציין בהמלצה כי לא מומלץ לזרוע בתקופה זו, תוך הסבר מקצועי.
+        הנחיות עונתיות:
+        - שתילת עצים או כרמים (שתילה שאינה מזרעים) מומלצת רק לפני ט"ו באב.
+        - אם התאריך הנוכחי הוא לאחר ט"ו באב ({'כן' if is_after_tu_bav else 'לא'}), ציין שיש להמתין לעונה מתאימה.
+        - זריעת זרעים מומלצת בעונות האביב (מרץ–מאי) או הסתיו (ספטמבר–נובמבר).
+        - העונה הנוכחית היא: {season}.
 
-        אם אתה סבור שתנאי האקלים באזור המשק מאפשרים חריגה מהעקרונות הללו – פרט זאת בהסבר.
-
-        אם גידול כלשהו אינו מתאים לחלקה מסוימת או למיקום הגיאוגרפי, אל תכלול אותו בטבלה. במקום זאת, הוסף טקסט הסבר מחוץ לטבלה בפורמט הבא:
-        "מומלץ לא לשתול את הגידול [שם גידול] בחלקה [שם חלקה] שב-[שם עיר], מכיוון ש-[הסבר קצר]".
-
-        לכל שתילה:
-        - קבע האם יש להשתמש בזרעים או בייחורים (שתילים)
-        - אם מדובר בזרעים – ציין את כמות הזרעים בקילוגרמים (ק"ג)
-        - אם מדובר בייחורים – ציין רק את מספר השתילים (ללא תוספות טקסט)
-        - המלץ על מרחק שתילה בין שתילים או ערוגות במטרים
-        - ציין את מספר הערוגות הנדרש בהתאם לגודל החלקה והגידול
-
-        החזר טבלה בפורמט HTML בלבד, עם העמודות הבאות:
+        פורמט הפלט:
+        1. החזר טבלה בפורמט HTML בלבד עם העמודות הבאות:
         - שם חלקה
         - סוג גידול
-        - כמות זרעים לזריעה (בק"ג) או מספר שתילים
+        - (לא חייב להשתמש בכל המלאי אלא רק מה שמומלץ לפי גודל החלקה)כמות זרעים לזריעה (בק"ג) או מספר שתילים
         - מרחק שתילה מומלץ (במטרים)
 
-        לאחר הטבלה, החזר הסברים מילוליים בפורמט HTML עבור כל חלקה, תוך שימוש במבנה קבוע לפסקה:
+        2. לאחר הטבלה, החזר פסקאות הסבר בפורמט HTML המפרטות את ההמלצות והסיבות לכל חלקה.
 
-        בחלקה/חממה [שם חלקה] שב-[שם עיר] בשטח של [מספר] מ"ר, יש לשתול/לזרוע [סוג גידול], מכיוון ש-[הסבר מקצועי מותאם למיקום, סוג הקרקע והאקלים]. נדרשות [מספר] ערוגות, עם מרחק של [מספר] מטרים בין ערוגה לערוגה.
-
-        יש להקפיד על ניסוח מקצועי, ברור, נטול סלנג או שפה לא תקנית.
-
-        אין להשתמש בתווי Markdown או בסימני קוד כמו ```html או ``` – יש להחזיר HTML תקני בלבד.
+        דגשים לפורמט:
+        - החזר HTML תקני בלבד, ללא שימוש בתווי Markdown או סימני קוד כמו ```html או ```.
+        - שמור על מבנה טבלה קבוע גם אם הנתונים משתנים.
+        - פסקאות ההסבר צריכות להיות קצרות, ממוקדות ומבוססות על עקרונות חקלאיים.
+        אין להשתמש במבנים אחרים או סימונים לא סטנדרטיים.
         """
+
 
         response = openai.ChatCompletion.create(
             model="gpt-4o",
@@ -138,6 +177,8 @@ def generate_plan():
         return jsonify({"error": f"שגיאה: {str(e)}"}), 500
 
 
+
+
 @optimal_bp.route("/get_empty_plots", methods=["GET"])
 def get_empty_plots():
     email = session.get("email") or session.get("manager_email")
@@ -148,17 +189,18 @@ def get_empty_plots():
             {"crop_category": {"$in": ["none", "", None]}},
             {"crop": {"$in": ["none", "", None]}}
         ],
-        "length": {"$exists": True, "$type": "number", "$gt": 0},
-        "width": {"$exists": True, "$type": "number", "$gt": 0}
+        "square_meters": {"$exists": True, "$type": "number", "$gt": 0}
     }, {
         "_id": 1,
         "plot_name": 1,
         "plot_type": 1,
-        "length": 1,
-        "width": 1
+        "square_meters": 1
     }))
 
     for p in plots:
         p["_id"] = str(p["_id"])
+        p["size"] = f"{p['square_meters']} דונם"
 
     return jsonify(plots)
+
+
