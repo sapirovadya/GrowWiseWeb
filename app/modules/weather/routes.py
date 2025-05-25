@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 
 load_dotenv(find_dotenv(), override=True)
-
+locationiq_api_key = os.getenv("LOCATIONIQ_API_KEY")
 mongo_key = os.getenv("MONGO_KEY")
 weatherbit_api_key = os.getenv("WEATHER_API_KEY")  
 client = pymongo.MongoClient(mongo_key)
@@ -20,6 +20,28 @@ weather_bp = Blueprint('weather_bp', __name__)
 MODEL = "gpt-4o"
 TEMPERATURE = 1
 MAX_TOKENS = 400
+
+def get_coordinates(city):
+    try:
+        api_key = os.getenv("LOCATIONIQ_API_KEY")
+        url = f"https://us1.locationiq.com/v1/search.php?key={api_key}&q={city}&format=json"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            if data:
+                lat = data[0]['lat']
+                lon = data[0]['lon']
+                return lat, lon
+            else:
+                print(f"לא נמצאו קואורדינטות עבור העיר: {city}")
+                return None, None
+        else:
+            print(f"שגיאה בשליפת קואורדינטות: {response.status_code}")
+            return None, None
+    except Exception as e:
+        print(f"שגיאה בשליפת קואורדינטות: {e}")
+        return None, None
+
 
 @weather_bp.route("/", methods=["GET"])
 def get_weather():
@@ -44,7 +66,6 @@ def get_weather():
         if not city:
             return jsonify({"error": "Location not found for the manager."}), 400
 
-        # בדיקה אם קיימים נתונים שמורים
         weather_cache = db.weather_cache.find_one({"city": city})
         if weather_cache and "timestamp" in weather_cache:
             last_update = weather_cache["timestamp"]
@@ -53,8 +74,14 @@ def get_weather():
 
         current_url = f"https://api.weatherbit.io/v2.0/current?city={city}&key={weatherbit_api_key}&lang=he"
         current_response = requests.get(current_url)
+
         if current_response.status_code != 200:
-            return jsonify({"error": f"Failed to fetch weather data: {current_response.status_code}"}), current_response.status_code
+            lat, lon = get_coordinates(city)
+            if lat and lon:
+                current_url = f"https://api.weatherbit.io/v2.0/current?lat={lat}&lon={lon}&key={weatherbit_api_key}&lang=he"
+                current_response = requests.get(current_url)
+            if current_response.status_code != 200:
+                return jsonify({"error": f"Failed to fetch weather data: {current_response.status_code}"}), current_response.status_code
 
         current_data = current_response.json().get("data", [])[0]
         temperature = current_data.get("temp", "לא זמין")
@@ -66,6 +93,11 @@ def get_weather():
 
         forecast_url = f"https://api.weatherbit.io/v2.0/forecast/daily?city={city}&key={weatherbit_api_key}&days=3&lang=he"
         forecast_response = requests.get(forecast_url)
+
+        if forecast_response.status_code != 200 and lat and lon:
+            forecast_url = f"https://api.weatherbit.io/v2.0/forecast/daily?lat={lat}&lon={lon}&key={weatherbit_api_key}&days=3&lang=he"
+            forecast_response = requests.get(forecast_url)
+
         if forecast_response.status_code != 200:
             return jsonify({"error": f"Failed to fetch forecast data: {forecast_response.status_code}"}), forecast_response.status_code
 
@@ -105,7 +137,6 @@ def get_weather():
     except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
-
 @weather_bp.route("/irrigation_recommendation", methods=["POST"])
 def irrigation_recommendation():
     try:
@@ -134,7 +165,6 @@ def irrigation_recommendation():
         if not crop_type:
             return jsonify({"error": "Missing required fields in the request."}), 400
 
-        # נשלוף מהקאש אם קיים ועדכני
         weather_cache = db.weather_cache.find_one({"city": city})
         if weather_cache and "timestamp" in weather_cache:
             last_update = weather_cache["timestamp"]
@@ -152,7 +182,6 @@ def irrigation_recommendation():
             else:
                 raise ValueError("Cache too old, force API call")
         else:
-            # שליפת מזג אוויר חדשה במידת הצורך
             current_url = f"https://api.weatherbit.io/v2.0/current?city={city}&key={weatherbit_api_key}&lang=he"
             forecast_url = f"https://api.weatherbit.io/v2.0/forecast/daily?city={city}&key={weatherbit_api_key}&days=3&lang=he"
 
