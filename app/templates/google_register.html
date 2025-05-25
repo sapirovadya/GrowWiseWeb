@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="utf-8">
+    <title>GrowWise - הרשמה דרך גוגל</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+        <!-- Navbar Start -->
+    <div class="container-fluid bg-white sticky-top">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
+                <a href="{{ url_for('home') }}" class="navbar-brand">
+                    <img class="img-fluid" src="/static/img/logo_growwise.png" alt="Logo">
+                </a>
+                <button type="button" class="navbar-toggler ms-auto me-0" data-bs-toggle="collapse"
+                    data-bs-target="#navbarCollapse">
+                    <span class="navbar-toggler-icon"></span>
+                    <span class="menu-text ms-2">תפריט</span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <div class="navbar-nav ms-auto">
+                        <a href="{{ url_for('home') }}" class="nav-item nav-link">בית</a>
+                        <a href="{{ url_for('users_bp_main.about_us') }}" class="nav-item nav-link">מי אנחנו</a>
+                        <a href="{{ url_for('users_bp_main.contact') }}" class="nav-item nav-link">צור קשר</a>
+
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <!-- Navbar End -->
+         <!-- Page Header Start -->
+    <div class="container-fluid page-header py-2 mb-1 wow" data-wow-delay="0.1s">
+        <div class="container text-center py-5">
+            <h1 class="display-2 text-dark mb-4 animated slideInDown"> הרשמה דרך גוגל</h1>
+        </div>
+    </div>
+    <!-- Page Header End -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <h3 class="mb-4 text-center">השלמת הרשמה</h3>
+                    <form id="googleRegisterForm" novalidate>
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="first_name" name="first_name"
+                                   value="{{ first_name }}" required pattern="^[א-תA-Za-z\s]+$"
+                                   title="יש להכניס רק אותיות בעברית או באנגלית">
+                            <label for="first_name">שם פרטי</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="last_name" name="last_name"
+                                   value="{{ last_name }}" required pattern="^[א-תA-Za-z\s]+$"
+                                   title="יש להכניס רק אותיות בעברית או באנגלית">
+                            <label for="last_name">שם משפחה</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" value="{{ email }}" disabled>
+                            <label for="email">כתובת אימייל</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-control" id="role" name="role" required>
+                                <option value="">בחר</option>
+                                <option value="manager">מנהל</option>
+                                <option value="co_manager">מנהל עבודה</option>
+                                <option value="employee">עובד</option>
+                                <option value="job_seeker">מתנדב</option>
+                            </select>
+                            <label for="role">תפקיד</label>
+                        </div>
+                        <div class="form-floating mb-3" id="manager_email_field" style="display: none;">
+                            <input type="email" class="form-control" id="manager_email" name="manager_email"
+                                   placeholder="אימייל של המנהל">
+                            <label for="manager_email">אימייל של המנהל</label>
+                        </div>
+                        <div class="mb-3" id="location_field" style="display: none;">
+                            <label for="location" class="form-label">מיקום המשק</label>
+                            <input list="cities_list" class="form-control" id="location" name="location"
+                                   placeholder="בחר עיר">
+                            <datalist id="cities_list"></datalist>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">הרשמה</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert box -->
+    <div id="customAlert" class="alert-box" style="display:none;">
+        <h5 class="alert-title">כותרת</h5>
+        <p class="alert-message">הודעה</p>
+        <button class="alert-close btn btn-primary" onclick="closeAlert()">סגור</button>
+    </div>
+
+<script>
+    const roleSelect = document.getElementById("role");
+    const managerEmailField = document.getElementById("manager_email_field");
+    const locationField = document.getElementById("location_field");
+    const locationInput = document.getElementById("location");
+    const citiesList = document.getElementById("cities_list");
+    const form = document.getElementById("googleRegisterForm");
+
+    let availableCities = [];
+
+    roleSelect.addEventListener("change", function () {
+        const role = this.value;
+        if (role === "employee" || role === "co_manager") {
+            managerEmailField.style.display = "block";
+            locationField.style.display = "none";
+            locationInput.value = "";
+        } else if (role === "manager") {
+            managerEmailField.style.display = "none";
+            locationField.style.display = "block";
+            loadCities();
+        } else {
+            managerEmailField.style.display = "none";
+            locationField.style.display = "none";
+            locationInput.value = "";
+        }
+    });
+
+    async function loadCities() {
+        try {
+            const res = await fetch('/users/get_cities');
+            const cities = await res.json();
+            availableCities = cities;
+
+            citiesList.innerHTML = '';
+            cities.forEach(city => {
+                const option = document.createElement("option");
+                option.value = city;
+                citiesList.appendChild(option);
+            });
+        } catch (e) {
+            console.error("שגיאה בטעינת ערים:", e);
+        }
+    }
+
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const first_name = document.getElementById("first_name").value.trim();
+        const last_name = document.getElementById("last_name").value.trim();
+        const role = roleSelect.value;
+        const manager_email = document.getElementById("manager_email").value.trim();
+        const location = locationInput.value.trim();
+
+        if (!role) {
+            showAlert("שגיאה", "יש לבחור תפקיד לפני ההרשמה.");
+            return;
+        }
+
+        if (role === "manager" && !location) {
+            showAlert("שגיאה", "יש לבחור מיקום המשק.");
+            return;
+        }
+
+        if ((role === "employee" || role === "co_manager") && !manager_email) {
+            showAlert("שגיאה", "יש להזין כתובת אימייל של המנהל.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/users/google_signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    first_name,
+                    last_name,
+                    role,
+                    manager_email,
+                    location
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || result.success === false) {
+                showAlert("שגיאה", result.message || "אירעה שגיאה בלתי צפויה.");
+            } else {
+                // הצלחה - הפניה לעמוד הבית או אחר
+                window.location.href = "/";
+            }
+        } catch (error) {
+            console.error("שגיאה:", error);
+            showAlert("שגיאה", "אירעה שגיאה בשרת.");
+        }
+    });
+
+    function showAlert(title, message) {
+        const alertBox = document.getElementById("customAlert");
+        alertBox.querySelector(".alert-title").textContent = title;
+        alertBox.querySelector(".alert-message").textContent = message;
+        alertBox.style.display = "block";
+    }
+
+    function closeAlert() {
+        document.getElementById("customAlert").style.display = "none";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const role = roleSelect.value;
+        if (role === "manager") {
+            locationField.style.display = "block";
+            loadCities();
+        } else if (role === "employee" || role === "co_manager") {
+            managerEmailField.style.display = "block";
+        }
+    });
+</script>
+
+</body>
+</html>
