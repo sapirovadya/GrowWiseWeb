@@ -3693,3 +3693,87 @@ input[list] {
         padding: 4px 8px !important;
     }
 }
+
+
+/* Plot selection modal styling */
+#plotModal .modal-dialog {
+    width: 450px;
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    padding: 20px;
+}
+
+#plotModal .modal-content {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#plotModal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+#plotModal .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#plotModal .modal-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+#plotModal .btn {
+    width: 100px;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+#plotModal .btn-success {
+    background-color: #8fb23e;
+    color: white;
+}
+
+#plotModal .btn-warning {
+    background-color: #ffc107;
+    color: black;
+}
+
+#plot-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-google {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    color: #444;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 50px;
+    transition: 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+}
+
+.btn-google:hover {
+    background-color: #f8f8f8;
+    color: #000;
+    text-decoration: none;
+}
+
+
