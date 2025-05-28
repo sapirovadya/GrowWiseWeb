@@ -98,3 +98,33 @@ def add_fuel_expense():
 
     result = Fuel.add_fuel_entry(data)
     return jsonify(result), 201
+
+@expenses_bp.route("/get_current_water_price", methods=["GET"])
+def get_current_water_price():
+    if "email" not in session or "role" not in session:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    water_type = request.args.get("water_type")
+    if not water_type:
+        return jsonify({"error": "Missing water_type"}), 400
+
+    role = session["role"]
+    user_email = session["email"]
+    filter_email = user_email if role == "manager" else session.get("manager_email")
+
+    if not filter_email:
+        return jsonify({"error": "Email missing"}), 400
+
+    # שליפת התעריף האחרון מסוג המים המבוקש
+    latest_price = db.water.find_one(
+        {"email": filter_email, "water_type": water_type},
+        sort=[("date", -1)]
+    )
+
+    if not latest_price:
+        return jsonify({"price": None}), 200
+
+    return jsonify({
+        "price": latest_price.get("price"),
+        "date": latest_price.get("date")
+    }), 200

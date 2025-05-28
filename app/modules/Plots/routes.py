@@ -316,21 +316,29 @@ def get_plots():
 @plot_bp.route('/get_plot/<plot_id>', methods=['GET'])
 def get_plot(plot_id):
     try:
-        try:
-            plot_oid = ObjectId(plot_id)
-        except Exception:
-            return jsonify({"error": "Invalid plot ID"}), 404
-
-        plot = db.plots.find_one({"_id": plot_oid})
+        plot = db.plots.find_one({"_id": plot_id})
         if not plot:
             return jsonify({"error": "Plot not found"}), 404
 
         plot["_id"] = str(plot["_id"])
-        return jsonify(plot), 200
+
+        # קביעת המייל לפי תפקיד
+        role = session.get("role")
+        email = session.get("email")
+        manager_email = email if role == "manager" else session.get("manager_email")
+
+        # שליפת גידולים רלוונטיים
+        crops = db.supply.find({
+            "email": manager_email,
+            "category": "גידול"
+        }, {"name": 1, "_id": 0})
+
+        crop_names = [item["name"] for item in crops]
+
+        return jsonify({"plot": plot, "available_crops": crop_names}), 200
 
     except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500
-
 
 
 @plot_bp.route('/plot_details', methods=['GET'])
@@ -571,18 +579,19 @@ def archive():
         else:
             return jsonify({"error": "Unauthorized role."}), 403
 
-        # שליפת חלקות מארכיון טבלת plots (ששדה archive=True)
+        # שליפת חלקות מארכיון
         plots_archive = list(db.plots.find({"manager_email": filter_email, "archive": True}))
-
-        # שליפת רשומות קציר ממסד הנתונים plots_yield
-        plots_yield = list(db.plots_yield.find({"manager_email": filter_email}))
-
-        # המרת ObjectId למחרוזת
-        for plot in plots_archive + plots_yield:
+        for plot in plots_archive:
             if "_id" in plot:
                 plot["_id"] = str(plot["_id"])
 
-        return render_template("plots_archive.html", plots=plots_archive + plots_yield)
+        # שליפת קצירות מטבלת plots_yield
+        plots_yield = list(db.plots_yield.find({"manager_email": filter_email}))
+        for plot in plots_yield:
+            if "_id" in plot:
+                plot["_id"] = str(plot["_id"])
+
+        return render_template("plots_archive.html", plots_archive=plots_archive, plots_yield=plots_yield)
 
     except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500

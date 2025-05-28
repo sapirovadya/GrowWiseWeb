@@ -352,7 +352,7 @@ async function openUpdateModal(plotId) {
                 cropSelect.appendChild(option);
             }
         });
-        cropDiv.style.display = crops.length > 1 ? "block" : "none";
+        cropDiv.style.display = crops.length > 0 ? "block" : "none";
 
     } catch (error) {
         console.error("שגיאה בטעינת הגידולים:", error);

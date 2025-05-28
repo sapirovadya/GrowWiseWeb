@@ -6,7 +6,7 @@
     <title>GrowWise</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <link href="/static/img/favicon_v3.ico" rel="icon">
+    <link href="/static/img/favicon_v7.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,6 +59,19 @@
             </a>
         </div>
         <div class="row justify-content-center align-items-center my-4">
+            <div class="alert text-end fw-bold"
+                style="background-color: #e6f4ff; color: #691a1a; font-size: 1.1rem; width: 900px; border-radius: 15px;">
+                {% set balance = (total_income - total_expenses)|round(2) %}
+                {% if balance > 0 %}
+                סיימת את השנה עם תזרים <span dir="ltr" style="unicode-bidi: plaintext;">{{ balance }}₪</span> חיובי, כל
+                הכבוד תמשיך כך
+                {% elif balance < 0 %} סיימת את השנה עם תזרים <span dir="ltr" style="unicode-bidi: plaintext;">{{
+                    balance }}₪</span> שלילי, נסה שנה הבאה להתנהל חכם יותר
+                    {% else %}
+                    סיימת את השנה עם תזרים מאוזן – 0 ₪
+                    {% endif %}
+            </div>
+
             <div class="col-md-6 text-center">
                 <canvas id="yearlyPieChart" data-chart='{{ yearly_pie_data|safe }}'
                     style="max-width: 400px; max-height: 400px;"></canvas>
@@ -85,7 +98,7 @@
         <div class="col-md-12 mt-0 d-flex justify-content-center">
             <div style="width: 80%; max-width: 800px;">
                 <h3 class="text-center">תזרים של שלוש השנים האחרונות</h3>
-                <canvas id="cashFlowChart" data-chart='{{ yearly_trend_data|safe }}'></canvas>
+                <canvas id="cashFlowChart" data-chart="{{ yearly_trend_data }}"></canvas>
             </div>
         </div>
     </div>

@@ -6,7 +6,7 @@
     <title>GrowWise</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <link href="/static/img/favicon_v3.ico" rel="icon">
+    <link href="/static/img/favicon_v7.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,7 +64,8 @@
         </div>
         {% if irrigation_cost_total is defined %}
         <div class="summary mt-2" style="font-size: 20px; color:#8fb23e; font-weight: bold;">
-            במהלך {{ days }} ימים, התזרים של החלקה הזו הוא {{ balance }} ₪
+            במהלך {{ days }} ימים, התזרים של החלקה הזו הוא <span dir="ltr" style="unicode-bidi: plaintext;">{{ balance
+                }}₪</span>
         </div>
 
         <div class="frame border-info rounded p-3 my-3 mt-4">
@@ -73,8 +74,8 @@
                 <li><strong>מה נשתל:</strong> {{ crop }}</li>
                 <li><strong>כמות שנזרעה:</strong> {{ quantity_planted }} ק״ג</li>
                 <li><strong>כמות שהושקה:</strong> {{ total_irrigation_amount }} קוב</li>
-                <li><strong>כמות היבול:</strong> {{ crop_yield }} ק״ג</li>
-                <li><strong>מחיר לק״ג:</strong> {{ price_yield }} ₪</li>
+                <li><strong>כמות היבול:</strong> {{ crop_yield }}</li>
+                <li><strong>מחיר לק״ג:</strong> {{ price_yield }}</li>
             </ul>
         </div>
 
@@ -90,7 +91,7 @@
         <div class="frame border border-success rounded p-3">
             <h3>הכנסות</h3>
             <ul>
-                <li>יבול: {{ income_yield }} ₪</li>
+                <li>יבול: {{ income_yield }}</li>
             </ul>
         </div>
         {% endif %}

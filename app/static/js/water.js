@@ -62,3 +62,35 @@ async function saveWaterPrice() {
         showAlert("שגיאה", "שגיאה בשליחת הנתונים לשרת.", false);
     }
 }
+
+function selectWaterTypeForWater(waterType) {
+    selectedWaterTypeForWaterPrice = waterType;
+
+    // סגירת מודל בחירה
+    document.getElementById("chooseWaterTypeForWaterModal").style.display = "none";
+
+    // הצגת מודל תעריף
+    document.getElementById("waterPriceModal").style.display = "block";
+
+    // שליפת התעריף
+    fetch(`/expenses/get_current_water_price?water_type=${encodeURIComponent(waterType)}`)
+        .then(res => res.json())
+        .then(data => {
+            const box = document.getElementById("currentWaterPriceBox");
+            const label = document.getElementById("currentWaterPriceLabel");
+            const span = document.getElementById("currentWaterPriceValue");
+
+            if (data.price != null) {
+                label.textContent = `תעריף נוכחי של ${waterType}:`;
+                span.textContent = data.price;
+            } else {
+                label.textContent = `תעריף נוכחי של ${waterType}:`;
+                span.textContent = "לא הוזן";
+            }
+
+            box.style.display = "block";
+        })
+        .catch(error => {
+            console.error("Error fetching water price:", error);
+        });
+}

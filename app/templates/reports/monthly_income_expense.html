@@ -6,7 +6,7 @@
     <title>GrowWise</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <link href="/static/img/favicon_v3.ico" rel="icon">
+    <link href="/static/img/favicon_v7.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -98,6 +98,13 @@
                     <ul class="text-end" dir="rtl" style="margin-top:10px;">
                         {% for category, amount in income_by_category.items() %}
                         <li>{{ category }}: {{ amount }} ₪</li>
+                        {% if category == "הכנסות ממכירת ציוד" and equipment_sales_by_item %}
+                        <ul style="font-size: 0.9em;">
+                            {% for item_name, item_total in equipment_sales_by_item.items() %}
+                            <li>{{ item_name }}: {{ item_total }} ₪</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
                         {% endfor %}
                     </ul>
                 </div>

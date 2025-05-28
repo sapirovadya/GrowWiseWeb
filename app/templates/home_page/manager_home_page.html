@@ -55,7 +55,7 @@
                 <span>ניהול חלקות אופטימלי</span>
             </div>
             <div class="leaf" onclick="navigateTo('reports')">
-                <img src="/static/img/leaf.png" alt="דוחות">
+                <img src="/static/img/reports.png" alt="דוחות">
                 <span>דו"חות</span>
             </div>
             <div class="leaf" onclick="navigateTo('team')">
@@ -102,7 +102,7 @@
                 'team': '{{ url_for("manager_bp.get_employees_list") }}',
                 'calculator': '{{ url_for("manager_bp.expense_page") }}',
                 'inventory': '{{ url_for("manager_bp.logistic_management") }}',
-                'jobs': '{{ url_for("posts_bp.social_feed") }}'
+                // 'jobs': '{{ url_for("posts_bp.social_feed") }}'
             };
 
             if (urls[page]) {

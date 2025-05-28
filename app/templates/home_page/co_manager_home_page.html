@@ -42,7 +42,7 @@
         <!-- עלים -->
         <div class="leaf-container">
             <div class="leaf" onclick="navigateTo('track_greenhouse')">
-                <img src="/static/img/managemant_plots.png" alt="מעקב">
+                <img src="/static/img/menagemant_plots.png" alt="מעקב">
                 <span>מעקב חלקות/חממות</span>
             </div>
             <div class="leaf" onclick="navigateTo('archive')">
@@ -91,10 +91,10 @@
             const urls = {
                 'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
                 'archive': '{{ url_for("plot_bp.archive") }}',
-                'optimal_management': '#',
+                // 'optimal_management': '{{ url_for("optimal_bp.optimal_management_page") }}',
                 // 'reports': '{{ url_for("reports_bp.reports_home") }}',
                 'team': '{{ url_for("manager_bp.get_employees_list") }}',
-                'calculator': '#',
+                'calculator': '{{ url_for("manager_bp.expense_page") }}',
                 'inventory': '{{ url_for("manager_bp.logistic_management") }}',
                 // 'jobs': '{{ url_for("posts_bp.social_feed") }}'
             };

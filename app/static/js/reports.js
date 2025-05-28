@@ -28,10 +28,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (balanceStatus) {
             if (balance > 0) {
                 balanceStatus.classList.add("alert", "alert-success");
-                balanceStatus.textContent = `החודש הצלחת להגיע לתזרים חיובי - ${balance.toFixed(2)} ₪`;
+                balanceStatus.innerHTML = `החודש הצלחת להגיע לתזרים חיובי - <span dir="ltr" style="unicode-bidi: plaintext;">${balance.toFixed(2)}₪</span>`;
             } else if (balance < 0) {
                 balanceStatus.classList.add("alert", "alert-danger");
-                balanceStatus.textContent = `החודש סיימת עם תזרים שלילי - ${Math.abs(balance).toFixed(2)}- ₪, לא נורא תנסה חודש הבא להגיע לתוצאות טובות יותר`;
+                balanceStatus.innerHTML = `החודש סיימת עם תזרים שלילי - <span dir="ltr" style="unicode-bidi: plaintext;">${balance.toFixed(2)}₪</span>, לא נורא תנסה חודש הבא להגיע לתוצאות טובות יותר`;
             } else {
                 balanceStatus.classList.add("alert", "alert-secondary");
                 balanceStatus.textContent = "החודש הסתיים עם תזרים מאוזן.";
@@ -97,24 +97,46 @@ document.addEventListener("DOMContentLoaded", async function () {
             options: { responsive: true }
         });
     }
-
     // --- גרף קו תזרים ---
     const lineCtx = document.getElementById('cashFlowChart');
     if (lineCtx) {
         const trendData = JSON.parse(lineCtx.dataset.chart);
+        console.log("📊 Trend Data:", trendData);
         new Chart(lineCtx, {
             type: 'line',
             data: {
                 labels: trendData.labels,
-                datasets: [{
-                    label: 'תזרים שנתי',
-                    data: trendData.data,
-                    fill: false,
-                    borderColor: 'blue',
-                    tension: 0.1
-                }]
+                datasets: [
+                    {
+                        label: 'תזרים',
+                        data: trendData.balance,
+                        borderColor: 'blue',
+                        backgroundColor: 'blue',
+                        tension: 0.1
+                    }
+                ]
             },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: {
+                        display: true,
+                        text: 'תזרים של שלוש השנים האחרונות',
+                        font: { size: 18 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return value.toLocaleString() + ' ₪';
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -188,7 +210,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                     sowSelect.innerHTML = "";
 
                     if (data.length <= 1) {
-                        // רק תאריך אחד או אפס → הסתר שדה
                         sowSelect.style.display = "none";
                         sowDateLabel.style.display = "none";
 
@@ -200,7 +221,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                             sowSelect.appendChild(option);
                         }
                     } else {
-                        // יש יותר מתאריך אחד → הצג שדה
                         sowSelect.style.display = "inline-block";
                         sowDateLabel.style.display = "inline-block";
 
