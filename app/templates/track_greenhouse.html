@@ -35,6 +35,19 @@
     <!-- Navbar Start -->
     {% include 'components/navbar.html' %}
     <!-- Navbar End -->
+    <div class="container">
+        <div class="container d-flex justify-content-between align-items-center mt-4">
+            <!-- צד שמאל: כותרת + סימן שאלה -->
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="title mb-0">ניהול חלקות וחממות</h1>
+                <button id="helpButton" class="btn help-btn" title="הסבר על העמוד">
+                    <i class="bi bi-question-circle-fill fs-4"></i>
+                </button>
+            </div>
+            <a onclick="goBack()" class="btn btn-primary">חזרה</a>
+        </div>
+        <hr class="section-divider">
+    </div>
 
     <!-- Sub toolbar-->
     <div class="container-fluid bg-white secondary-navbar">
@@ -198,6 +211,25 @@
             <button id="nextButton" class="btn btn-light rounded-circle">
                 <i class="bi bi-chevron-left"></i>
             </button>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal grow" style="display:none;">
+        <div class="modal-dialog" style="width: 700px; height: 600px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">הסבר על עמוד מעקב החלקות והחממות</h5>
+                    <button type="button" class="btn-close" onclick="closeHelpModal()"></button>
+                </div>
+                <div class="modal-body text-end">
+                    <p style="margin-bottom: 15px;">בסרטון הבא תקבל הסבר מהיר על השימוש בדף זה.</p>
+                    <video controls style="width: 100%; border-radius: 8px;">
+                        <source src="/static/video/Track_Greenhouse.mp4" type="video/mp4">
+                        הדפדפן שלך לא תומך בניגון וידאו.
+                    </video>
+                </div>
+            </div>
         </div>
     </div>
 
