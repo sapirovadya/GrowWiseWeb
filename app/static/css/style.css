@@ -2707,6 +2707,23 @@ input[list] {
     z-index: 10;
 }
 
+.help-btn {
+    background: none;
+    border: none;
+    color: #444;
+    padding: 0;
+    transition: color 0.2s ease-in-out;
+}
+
+.help-btn:hover {
+    color: #8fb23e;
+}
+
+.fs-4 {
+    font-size: 1.5rem;
+    /* או כל גודל שמתאים */
+}
+
 @media (min-width: 577px) {
 
     .mobile-buttons,
@@ -3775,5 +3792,3 @@ input[list] {
     color: #000;
     text-decoration: none;
 }
-
-

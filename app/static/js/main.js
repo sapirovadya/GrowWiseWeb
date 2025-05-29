@@ -103,6 +103,21 @@
 
 })(jQuery);
 
+document.getElementById("helpButton").addEventListener("click", () => {
+    document.getElementById("helpModal").style.display = "flex";
+});
+
+function closeHelpModal() {
+    const modal = document.getElementById("helpModal");
+    modal.style.display = "none";
+
+    // איפוס הסרטון כדי לעצור אותו
+    const video = modal.querySelector("video");
+    if (video) {
+        video.pause();
+        video.currentTime = 0;
+    }
+}
 /* Notification */
 
 function showNotificationBadge(newNotificationsCount) {
