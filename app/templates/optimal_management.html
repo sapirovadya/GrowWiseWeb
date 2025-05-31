@@ -38,7 +38,12 @@
 
     <div class="container">
         <div class="d-flex align-items-center justify-content-between">
-            <h1 class="title mb-0">ניהול שתילה אופטימלי</h1>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="title mb-0">ניהול שתילה אופטימלי</h1>
+                <button id="helpButton" class="btn help-btn" title="הסבר על העמוד">
+                    <i class="bi bi-question-circle-fill fs-4"></i>
+                </button>
+            </div>
             <button onclick="goBack()" class="btn btn-primary">חזרה</button>
         </div>
         <hr class="section-divider">
@@ -47,7 +52,7 @@
         <div id="crop-selection" class="mt-3" style="display:none;">
             <h5>בחר אילו גידולים לכלול בתכנון:</h5>
             <div id="crop-list" class="mb-3"></div>
-            <button class="btn btn-success" onclick="getPlan()">קבל המלצה</button>
+            <button class="btn btn-success" onclick="getPlan()" style="width: 200px;">קבל המלצה</button>
         </div>
         <hr>
         <div id="plan-result"></div>
@@ -95,6 +100,24 @@
         </div>
     </div>
 
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal grow" style="display:none;">
+        <div class="modal-dialog" style="width: 700px; height: 600px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">הסבר על עמוד ניהול שתילות או זריעות אופטימלי</h5>
+                    <button type="button" class="btn-close" onclick="closeHelpModal()"></button>
+                </div>
+                <div class="modal-body text-end">
+                    <p style="margin-bottom: 15px;">בסרטון הבא תקבל הסבר מהיר על השימוש בדף זה.</p>
+                    <video controls style="width: 100%; border-radius: 8px;">
+                        <source src="/static/video/optimal.mp4" type="video/mp4">
+                        הדפדפן שלך לא תומך בניגון וידאו.
+                    </video>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Alert Box -->
     <div id="customAlert" class="alert-box" style="display:none;">
         <h5 class="alert-title">כותרת</h5>
@@ -120,7 +143,7 @@
 
     <script>
 
-                document.addEventListener("DOMContentLoaded", async function () {
+        document.addEventListener("DOMContentLoaded", async function () {
             //מזג אוויר
             const shortWeatherDiv = document.getElementById("weather-info-short");
 
@@ -142,7 +165,7 @@
                 shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
             }
         });
-        
+
         let selectedPlots = [];
 
         let suggestion = data.suggestion;
