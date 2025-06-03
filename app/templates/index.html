@@ -158,6 +158,12 @@
                             <label for="password" class="form-label">סיסמא</label>
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
+                        <div class="mb-3 text-end">
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal" style="font-size: 0.9rem; color: #6c757d;">
+                                שכחתי סיסמה
+                            </a>
+
+                        </div>
                         <button type="submit" class="btn btn-primary w-100">התחבר</button>
                         
                         <div class="separator d-flex align-items-center justify-content-center text-muted my-3" style="font-size: 0.9rem;">
@@ -178,6 +184,32 @@
             </div>
         </div>
     </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <form method="POST" action="/users/forgot_password">
+            <div class="modal-header">
+            <h5 class="modal-title" id="forgotPasswordModalLabel">שחזור סיסמה</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
+            </div>
+            <div class="modal-body">
+            <p>אנא הזן את כתובת המייל שלך ונשלח לך קישור לאיפוס הסיסמה.</p>
+            <div class="mb-3">
+                <label for="forgot_email" class="form-label">כתובת מייל</label>
+                <input type="email" class="form-control" id="forgot_email" name="email" required>
+            </div>
+            </div>
+            <div class="modal-footer">
+            <button type="submit" class="btn btn-primary w-100">שלח קישור</button>
+            </div>
+        </form>
+        </div>
+    </div>
+    </div>
+
+
     <!-- Footer Start -->
     <div class="container-fluid bg-dark footer">
         <br>
@@ -201,6 +233,8 @@
 
     <!-- JavaScript -->
     <!-- Libraries -->
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/lib/wow/wow.min.js"></script>
@@ -282,7 +316,7 @@
                             userMessage = "משתמש לא מאושר";
                             break;
                         default:
-                            userMessage = "אירעה שגיאה. נסה שנית.";
+                            userMessage = "שגיאה במהלך ההתחברות";
                     }
 
                     showAlert("שגיאה", userMessage);

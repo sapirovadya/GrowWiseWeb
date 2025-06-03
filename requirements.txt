@@ -16,3 +16,5 @@ pdfkit
 WeasyPrint
 matplotlib
 jdatetime
+flask-mail
+itsdangerous>=2.1.2

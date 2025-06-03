@@ -5,10 +5,11 @@ from calendar import monthrange
 from pymongo import MongoClient
 import os
 from flask import make_response
+from dateutil.relativedelta import relativedelta
 import json
 import io
 import base64
-from weasyprint import HTML
+# from weasyprint import HTML
 import matplotlib
 matplotlib.use('Agg')
 matplotlib.rcParams['font.family'] = 'Arial'
@@ -39,10 +40,24 @@ def match_month(date_obj, selected_month):
 def reports_home():
     return render_template("/reports/reports.html")
 
-## דו״ח הוצאות הכנסות חודשי
+
+
+def get_all_relevant_emails(main_email):
+    user = db.manager.find_one({"email": main_email})
+    if not user:
+        return [main_email]
+    
+    emails = [main_email]
+    emails.extend(user.get("co_managers", []))
+    emails.extend(user.get("workers", []))
+    
+    return list(set(emails))
+
+
+
 @reports_bp.route("/monthly")
 def monthly_income_expense_report():
-    # קבלת שנה וחודש בנפרד מהבקשה
+
     year = request.args.get("year", datetime.now().year)
     month = request.args.get("month", f"{datetime.now().month:02d}")
 
@@ -95,22 +110,34 @@ def export_pdf():
 
     def pie_chart():
         fig, ax = plt.subplots(figsize=(6, 6))
-        values = list(report_data["expenses_by_category"].values()) + list(report_data["income_by_category"].values())
-        colors = ['#E53935'] * len(report_data["expenses_by_category"]) + ['#4CAF50'] * len(report_data["income_by_category"])
+
+        total_expenses = report_data["total_expenses"]
+        total_income = report_data["total_income"]
+        values = [total_expenses, total_income]
+        colors = ['#E53935', '#4CAF50']
+
+        wedges, texts, autotexts = ax.pie(
+            values,
+            colors=colors,
+            startangle=90,
+            autopct=lambda pct: f"{pct:1.2f}%",
+            textprops=dict(color="black", fontsize=22, fontweight='bold')
+        )
+
         
-        wedges, texts, autotexts = ax.pie(values, colors=colors, autopct='%1.1f%%', startangle=90)
+        legend_labels = ['תואצוה', 'תוסנכה']
+        legend_handles = [
+            plt.Line2D([0], [0], marker='o', color='w', label=legend_labels[0], markerfacecolor=colors[0], markersize=12),
+            plt.Line2D([0], [0], marker='o', color='w', label=legend_labels[1], markerfacecolor=colors[1], markersize=12)
+        ]
+        ax.legend(handles=legend_handles, loc='lower center', bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False, fontsize=22)
 
-        ax.legend(handles=[
-            plt.Line2D([0], [0], marker='o', color='w', label='תואצוה', markerfacecolor='#E53935', markersize=10),
-            plt.Line2D([0], [0], marker='o', color='w', label='תוסנכה', markerfacecolor='#4CAF50', markersize=10)
-        ], loc='lower center', bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False)
-
-        ax.axis('equal') 
+        ax.axis('equal')
         return fig
 
 
+
     def bar_chart():
-        import json
         fig, ax = plt.subplots(figsize=(5, 5))
         data = json.loads(report_data["yearly_data_json"])
         labels = [item["month"] for item in data]
@@ -160,103 +187,141 @@ def generate_monthly_report_data(month, filter_email):
     total_expenses = total_income = 0
     total_fuel = total_insurance = total_purchases = total_services = total_tests = 0
     total_irrigation_shafirim = total_irrigation_mushavim = 0
-    total_crop_income = 0
-
-    default_price_shafirim = 0
-    default_price_mushavim = 0
+    total_crop_income = total_equipment_sales = 0
+    equipment_sales_by_item = {}
+    default_price_shafirim = default_price_mushavim = 0
 
     year, month_num = int(month[:4]), int(month[5:])
     last_day = monthrange(year, month_num)[1]
-    month_start_date = datetime.strptime(f"{month}-01", "%Y-%m-%d")
-    month_end_date = datetime.strptime(f"{month}-{last_day}", "%Y-%m-%d")
+    month_start = datetime(year, month_num, 1)
+    month_end = datetime(year, month_num, last_day)
 
-    # --- מחירי מים ---
+    
     water_prices = sorted(
         db.water.find({"email": filter_email}),
-        key=lambda x: datetime.strptime(x.get("date", ""), "%Y-%m-%d")
+        key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d")
     )
-    for p in reversed(water_prices):
-        try:
-            water_date = datetime.strptime(p["date"], "%Y-%m-%d")
-            if water_date <= month_end_date:
-                if p.get("water_type") == "מים שפירים" and default_price_shafirim == 0:
-                    default_price_shafirim = float(p.get("price", 0))
-                if p.get("water_type") == "מים מושבים" and default_price_mushavim == 0:
-                    default_price_mushavim = float(p.get("price", 0))
-                if default_price_shafirim and default_price_mushavim:
-                    break
-        except:
-            continue
 
-    # --- הוצאות דלק ---
-    for item in db.fuel.find({"email": filter_email}):
+    def match_month(date_obj, selected_month):
+        try:
+            if not date_obj:
+                return False
+            if isinstance(date_obj, str):
+                if len(date_obj) == 10:
+                    date_obj = datetime.strptime(date_obj, "%Y-%m-%d")
+                elif len(date_obj) == 7:
+                    date_obj = datetime.strptime(date_obj, "%Y-%m")
+                else:
+                    return False
+            return date_obj.strftime("%Y-%m") == selected_month
+        except:
+            return False
+
+    
+    for item in db.irrigation.find({"email": filter_email}):
+        date_str = item.get("Irrigation_date")
+        if not date_str:
+            continue
+        try:
+            irrigation_date = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+        except:
+            try:
+                irrigation_date = datetime.strptime(date_str, "%Y-%m-%d")
+            except:
+                continue
+        if not match_month(irrigation_date, month):
+            continue
+        quantity = float(item.get("quantity_irrigation", 0))
+        water_type = item.get("irrigation_water_type", "")
+        rate = 0
+        for wp in reversed(water_prices):
+            try:
+                wp_date = datetime.strptime(wp["date"], "%Y-%m-%d")
+                if wp_date <= irrigation_date and wp.get("water_type") == water_type:
+                    rate = float(wp["price"])
+                    break
+            except:
+                continue
+        if water_type == "מים שפירים":
+            total_irrigation_shafirim += quantity * rate
+        elif water_type == "מים מושבים":
+            total_irrigation_mushavim += quantity * rate
+
+    
+    relevant_emails = get_all_relevant_emails(filter_email)
+    for item in db.fuel.find({"email": {"$in": relevant_emails}}):
         try:
             refuel_type = item.get("refuel_type")
             cost = float(item.get("cost", 0))
             amount = float(item.get("fuel_amount", 0))
             month_str = item.get("month", "") if refuel_type == "דלקן" else item.get("refuel_date", "")[:7]
-            if month_str.startswith(month):
+            if month_str == month:
                 total_fuel += cost * amount
         except:
             continue
 
-    # --- הוצאות ביטוח ---
+    
     for item in db.insurance_history.find({"manager_email": filter_email}):
         if match_month(item.get("insurance_date"), month):
             total_insurance += float(item.get("insurance_cost", 0))
 
-    # --- הוצאות השקייה ---
-    for item in db.irrigation.find({"email": filter_email}):
-        irrigation_date = item.get("Irrigation_date")
-        if not irrigation_date:
-            continue
-        try:
-            if isinstance(irrigation_date, str):
-                irrigation_date = datetime.strptime(irrigation_date, "%Y-%m-%d %H:%M:%S")
-            if match_month(irrigation_date, month):
-                quantity = float(item.get("quantity_irrigation", 0))
-                water_type = item.get("irrigation_water_type", "none")
-                if water_type == "מים שפירים":
-                    total_irrigation_shafirim += quantity * default_price_shafirim
-                elif water_type == "מים מושבים":
-                    total_irrigation_mushavim += quantity * default_price_mushavim
-        except:
-            continue
-
-    # --- הוצאות רכישות ---
-    for item in db.purchases.find({"email": filter_email}):
+    
+    relevant_emails = get_all_relevant_emails(filter_email)
+    for item in db.purchases.find({"email": {"$in": relevant_emails}}):
         if match_month(item.get("purchase_date"), month):
             try:
                 total_purchases += float(item.get("quantity", 0)) * float(item.get("unit_price", 0))
             except:
                 continue
 
-    # --- הוצאות טיפולים ---
+
+    
     for item in db.service_history.find({"manager_email": filter_email}):
         if match_month(item.get("service_date"), month):
             total_services += float(item.get("service_cost", 0))
 
-    # --- הוצאות טסטים ---
+    
     for item in db.test_history.find({"manager_email": filter_email}):
         if match_month(item.get("test_date"), month):
             total_tests += float(item.get("test_cost", 0))
 
-    # --- הכנסות מיבולים ---
+    
     for plot in db.plots.find({"manager_email": filter_email}):
         if match_month(plot.get("harvest_date"), month):
             try:
                 total_crop_income += float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
             except:
                 continue
+    for plot in db.plots_yield.find({"manager_email": filter_email}):
+        if match_month(plot.get("harvest_date"), month):
+            try:
+                total_crop_income += float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
+            except:
+                continue
 
-    # --- סיכום כולל ---
+    
+    for item in db.equipment_sales.find({"email": filter_email}):
+        try:
+            sale_date = item.get("sale_date")
+            if isinstance(sale_date, str):
+                sale_date = datetime.fromisoformat(sale_date[:10])
+            if match_month(sale_date, month):
+                quantity = float(item.get("quantity", 0))
+                unit_price = float(item.get("unit_price", 0))
+                item_total = quantity * unit_price
+                total_equipment_sales += item_total
+                name = item.get("name", "פריט לא ידוע")
+                equipment_sales_by_item[name] = equipment_sales_by_item.get(name, 0) + item_total
+        except:
+            continue
+
+    
     total_expenses = sum([
         total_fuel, total_insurance, total_irrigation_shafirim,
         total_irrigation_mushavim, total_purchases, total_services, total_tests
     ])
-    total_income = total_crop_income
+    total_income = total_crop_income + total_equipment_sales
 
-    # --- סיווג לפי קטגוריות ---
     expenses_by_category = {
         "דלק": round(total_fuel, 2),
         "ביטוחים": round(total_insurance, 2),
@@ -268,91 +333,155 @@ def generate_monthly_report_data(month, filter_email):
     }
 
     income_by_category = {
-        "יבול": round(total_crop_income, 2)
+        "יבול": round(total_crop_income, 2),
+        "מכירה ציוד": round(total_equipment_sales, 2)
     }
 
-    # --- גרף שנתי (yearly_data_json) ---
-    today = datetime.today().replace(day=1)
-    months_list = [(today - timedelta(days=30 * i)).strftime("%Y-%m") for i in reversed(range(12))]
+    
+    start_month = datetime(year, month_num, 1) - relativedelta(months=11)
+    months_list = [(start_month + relativedelta(months=i)).strftime("%Y-%m") for i in range(12)]
     yearly_data = {m: {"income": 0, "expense": 0} for m in months_list}
 
+    
     for plot in db.plots.find({"manager_email": filter_email}):
-        harvest_date = plot.get("harvest_date")
         try:
-            if harvest_date:
-                if isinstance(harvest_date, str):
-                    harvest_date = datetime.strptime(harvest_date, "%Y-%m-%d")
-                key = harvest_date.strftime("%Y-%m")
-                if key in yearly_data:
-                    yearly_data[key]["income"] += float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
+            d = plot.get("harvest_date")
+            if isinstance(d, str):
+                d = datetime.strptime(d, "%Y-%m-%d")
+            m = d.strftime("%Y-%m")
+            if m in yearly_data:
+                yearly_data[m]["income"] += float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
         except:
             continue
 
-    for item in db.fuel.find({"email": filter_email}):
+    for plot in db.plots_yield.find({"manager_email": filter_email}):
         try:
-            refuel_type = item.get("refuel_type")
-            cost = float(item.get("cost", 0))
-            amount = float(item.get("fuel_amount", 0))
-            month_str = item.get("month", "") if refuel_type == "דלקן" else item.get("refuel_date", "")[:7]
-            if month_str in yearly_data:
-                yearly_data[month_str]["expense"] += cost * amount
+            d = plot.get("harvest_date")
+            if isinstance(d, str):
+                d = datetime.strptime(d, "%Y-%m-%d")
+            m = d.strftime("%Y-%m")
+            if m in yearly_data:
+                yearly_data[m]["income"] += float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
         except:
             continue
 
-    for item in db.insurance_history.find({"manager_email": filter_email}):
+    
+    for item in db.equipment_sales.find({"email": filter_email}):
         try:
-            d = datetime.strptime(item.get("insurance_date", ""), "%Y-%m-%d")
-            key = d.strftime("%Y-%m")
-            if key in yearly_data:
-                yearly_data[key]["expense"] += float(item.get("insurance_cost", 0))
+            d = item.get("sale_date")
+            if isinstance(d, str):
+                d = datetime.fromisoformat(d[:10])
+            m = d.strftime("%Y-%m")
+            if m in yearly_data:
+                yearly_data[m]["income"] += float(item.get("quantity", 0)) * float(item.get("unit_price", 0))
         except:
             continue
 
-    for item in db.purchases.find({"email": filter_email}):
-        try:
-            d = datetime.strptime(item.get("purchase_date", ""), "%Y-%m-%d")
-            key = d.strftime("%Y-%m")
-            if key in yearly_data:
-                yearly_data[key]["expense"] += float(item.get("quantity", 0)) * float(item.get("unit_price", 0))
-        except:
-            continue
+    
+    for m in months_list:
+        y, mo = map(int, m.split("-"))
+        month_start = datetime(y, mo, 1)
+        last_day = monthrange(y, mo)[1]
+        month_end = datetime(y, mo, last_day)
 
-    for item in db.service_history.find({"manager_email": filter_email}):
-        try:
-            d = datetime.strptime(item.get("service_date", ""), "%Y-%m-%d")
-            key = d.strftime("%Y-%m")
-            if key in yearly_data:
-                yearly_data[key]["expense"] += float(item.get("service_cost", 0))
-        except:
-            continue
+        total_monthly_expense = 0
 
-    for item in db.test_history.find({"manager_email": filter_email}):
-        try:
-            d = datetime.strptime(item.get("test_date", ""), "%Y-%m-%d")
-            key = d.strftime("%Y-%m")
-            if key in yearly_data:
-                yearly_data[key]["expense"] += float(item.get("test_cost", 0))
-        except:
-            continue
+        
+       
+        relevant = get_all_relevant_emails(filter_email)
+        for item in db.fuel.find({"email": {"$in": relevant}}):
+            try:
+                refuel_type = item.get("refuel_type")
+                cost = float(item.get("cost", 0))
+                amount = float(item.get("fuel_amount", 0))
+                date_str = item.get("refuel_date") if refuel_type != "דלקן" else f"{item.get('month')}-01"
+                date = datetime.strptime(date_str, "%Y-%m-%d")
+                if month_start <= date <= month_end:
+                    total_monthly_expense += cost * amount
+            except:
+                continue
 
+        
+        for item in db.insurance_history.find({"manager_email": filter_email}):
+            try:
+                date = datetime.strptime(item.get("insurance_date", ""), "%Y-%m-%d")
+                if month_start <= date <= month_end:
+                    total_monthly_expense += float(item.get("insurance_cost", 0))
+            except:
+                continue
+
+        
+        relevant_emails = get_all_relevant_emails(filter_email)
+        for item in db.purchases.find({"email": {"$in": relevant_emails}}):
+            try:
+                d = datetime.strptime(item.get("purchase_date", ""), "%Y-%m-%d")
+                if start_date <= d <= end_date:
+                    q = float(item.get("quantity", 0))
+                    up = float(item.get("unit_price", 0))
+                    expense_by_category["רכישות"] += q * up
+            except:
+                continue
+
+
+        
+        for item in db.service_history.find({"manager_email": filter_email}):
+            try:
+                date = datetime.strptime(item.get("service_date", ""), "%Y-%m-%d")
+                if month_start <= date <= month_end:
+                    total_monthly_expense += float(item.get("service_cost", 0))
+            except:
+                continue
+
+        
+        for item in db.test_history.find({"manager_email": filter_email}):
+            try:
+                date = datetime.strptime(item.get("test_date", ""), "%Y-%m-%d")
+                if month_start <= date <= month_end:
+                    total_monthly_expense += float(item.get("test_cost", 0))
+            except:
+                continue
+
+        # 
+        for item in db.irrigation.find({"email": filter_email}):
+            date_str = item.get("Irrigation_date")
+            if not date_str:
+                continue
+            try:
+                date = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+            except:
+                try:
+                    date = datetime.strptime(date_str, "%Y-%m-%d")
+                except:
+                    continue
+            if not (month_start <= date <= month_end):
+                continue
+            quantity = float(item.get("quantity_irrigation", 0))
+            water_type = item.get("irrigation_water_type", "")
+            rate = get_latest_water_rate(water_prices, date, water_type)
+            total_monthly_expense += quantity * rate
+
+        yearly_data[m]["expense"] = round(total_monthly_expense, 2)
     yearly_data_json = json.dumps([
         {
-            "month": m,
+            "month": datetime.strptime(m, "%Y-%m").strftime("%m-%Y"),
             "income": round(yearly_data[m]["income"], 2),
-            "expense": round(yearly_data[m]["expense"], 2)
+            "expense": round(yearly_data[m]["expense"], 2),
+            "balance": round(yearly_data[m]["income"] - yearly_data[m]["expense"], 2)
         }
         for m in months_list
     ], ensure_ascii=False)
+
 
     return {
         "total_expenses": round(total_expenses, 2),
         "total_income": round(total_income, 2),
         "expenses_by_category": expenses_by_category,
         "income_by_category": income_by_category,
-        "yearly_data_json": yearly_data_json
+        "yearly_data_json": yearly_data_json,
+        "equipment_sales_by_item": {k: round(v, 2) for k, v in equipment_sales_by_item.items()}
     }
 
-## דו״ח הוצאות הכנסות שנתי
+##
 @reports_bp.route("/yearly")
 def yearly_report():
     selected_year = int(request.args.get("year", datetime.now().year))
@@ -362,186 +491,11 @@ def yearly_report():
     manager_email = session.get("manager_email")
     filter_email = user_email if user_role == "manager" else manager_email
 
-    start_date = datetime(selected_year, 1, 1)
-    end_date = datetime(selected_year, 12, 31)
-
-    income_by_category = defaultdict(float)
-    expense_by_category = defaultdict(float)
-
-    # יבול כהכנסה
-    for plot in db.plots.find({"manager_email": filter_email}):
-        try:
-            harvest_date = plot.get("harvest_date")
-            if isinstance(harvest_date, str):
-                harvest_date = datetime.strptime(harvest_date, "%Y-%m-%d")
-            if start_date <= harvest_date <= end_date:
-                income = float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
-                income_by_category["יבול"] += income
-        except:
-            continue
-
-    # דלק
-    for item in db.fuel.find({"email": filter_email}):
-        try:
-            refuel_date_str = item.get("refuel_date")
-            refuel_type = item.get("refuel_type")
-            if refuel_type == "דלקן":
-                refuel_date_str = f"{item.get('month', '')}-01"
-            refuel_date = datetime.strptime(refuel_date_str, "%Y-%m-%d")
-            if start_date <= refuel_date <= end_date:
-                cost = float(item.get("cost", 0)) * float(item.get("fuel_amount", 0))
-                expense_by_category["דלק"] += cost
-        except:
-            continue
-
-    # ביטוחים
-    for item in db.insurance_history.find({"manager_email": filter_email}):
-        try:
-            d = datetime.strptime(item.get("insurance_date", ""), "%Y-%m-%d")
-            if start_date <= d <= end_date:
-                expense_by_category["ביטוחים"] += float(item.get("insurance_cost", 0))
-        except:
-            continue
-
-    # השקיה לפי תעריף מים
-    shafirim_total, mushavim_total = calculate_yearly_irrigation_cost_split(filter_email, start_date, end_date)
-    expense_by_category[f"השקיית מים שפירים"] += shafirim_total
-    expense_by_category[f"השקיית מים מושבים"] += mushavim_total
-
-    # רכישות
-    for item in db.purchases.find({"email": filter_email}):
-        try:
-            d = datetime.strptime(item.get("purchase_date", ""), "%Y-%m-%d")
-            if start_date <= d <= end_date:
-                q = float(item.get("quantity", 0))
-                up = float(item.get("unit_price", 0))
-                expense_by_category["רכישות"] += q * up
-        except:
-            continue
-
-    # טיפולים
-    for item in db.service_history.find({"manager_email": filter_email}):
-        try:
-            d = datetime.strptime(item.get("service_date", ""), "%Y-%m-%d")
-            if start_date <= d <= end_date:
-                expense_by_category["טיפולים רכבים"] += float(item.get("service_cost", 0))
-        except:
-            continue
-
-    # טסטים
-    for item in db.test_history.find({"manager_email": filter_email}):
-        try:
-            d = datetime.strptime(item.get("test_date", ""), "%Y-%m-%d")
-            if start_date <= d <= end_date:
-                expense_by_category["טסטים"] += float(item.get("test_cost", 0))
-        except:
-            continue
-
-    total_income = sum(income_by_category.values())
-    total_expenses = sum(expense_by_category.values())
-
-    # הכנת גרף עוגה
-    pie_income = [{"category": k, "amount": round(v, 2)} for k, v in income_by_category.items()]
-    pie_expense = [{"category": k, "amount": round(v, 2)} for k, v in expense_by_category.items()]
-
-    # גרף עקומה של שלוש השנים האחרונות
-    balance_data = []
-    for y in range(selected_year - 2, selected_year + 1):
-        sy = datetime(y, 1, 1)
-        ey = datetime(y, 12, 31)
-        income, expense = 0, 0
-
-        # הכנסות מיבול
-        for plot in db.plots.find({"manager_email": filter_email}):
-            try:
-                d = plot.get("harvest_date")
-                if isinstance(d, str):
-                    d = datetime.strptime(d, "%Y-%m-%d")
-                if sy <= d <= ey:
-                    income += float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
-            except:
-                continue
-
-        # הוצאות - דלק
-        for item in db.fuel.find({"email": filter_email}):
-            try:
-                refuel_date_str = item.get("refuel_date")
-                refuel_type = item.get("refuel_type")
-                if refuel_type == "דלקן":
-                    refuel_date_str = f"{item.get('month', '')}-01"
-                d = datetime.strptime(refuel_date_str, "%Y-%m-%d")
-                if sy <= d <= ey:
-                    expense += float(item.get("cost", 0)) * float(item.get("fuel_amount", 0))
-            except:
-                continue
-
-        # הוצאות - ביטוחים
-        for item in db.insurance_history.find({"manager_email": filter_email}):
-            try:
-                d = datetime.strptime(item.get("insurance_date", ""), "%Y-%m-%d")
-                if sy <= d <= ey:
-                    expense += float(item.get("insurance_cost", 0))
-            except:
-                continue
-
-        # הוצאות - רכישות
-        for item in db.purchases.find({"email": filter_email}):
-            try:
-                d = datetime.strptime(item.get("purchase_date", ""), "%Y-%m-%d")
-                if sy <= d <= ey:
-                    q = float(item.get("quantity", 0))
-                    up = float(item.get("unit_price", 0))
-                    expense += q * up
-            except:
-                continue
-
-        # הוצאות - שירותים
-        for item in db.service_history.find({"manager_email": filter_email}):
-            try:
-                d = datetime.strptime(item.get("service_date", ""), "%Y-%m-%d")
-                if sy <= d <= ey:
-                    expense += float(item.get("service_cost", 0))
-            except:
-                continue
-
-        # הוצאות - טסטים
-        for item in db.test_history.find({"manager_email": filter_email}):
-            try:
-                d = datetime.strptime(item.get("test_date", ""), "%Y-%m-%d")
-                if sy <= d <= ey:
-                    expense += float(item.get("test_cost", 0))
-            except:
-                continue
-
-        shafirim_y, mushavim_y = calculate_yearly_irrigation_cost_split(filter_email, sy, ey)
-        expense += shafirim_y + mushavim_y
-
-        balance_data.append({"year": str(y), "balance": round(income - expense, 2)})
-
-    yearly_pie_data = json.dumps({
-        "labels": [x["category"] for x in pie_income + pie_expense],
-        "data": [x["amount"] for x in pie_income + pie_expense],
-        "colors": ['#4CAF50'] * len(pie_income) + ['#E53935'] * len(pie_expense)
-    }, ensure_ascii=False)
-    
-    yearly_trend_data = json.dumps({
-        "labels": [str(item["year"]) for item in balance_data],
-        "data": [item["balance"] for item in balance_data]
-    }, ensure_ascii=False)
+    report_data = generate_yearly_report_data(selected_year, filter_email)
 
     return render_template("/reports/yearly_income_expense.html",
                         datetime=datetime,
-                        selected_year=selected_year,
-                        pie_income=pie_income,
-                        pie_expense=pie_expense,
-                        total_income=round(total_income, 2),
-                        total_expenses=round(total_expenses, 2),
-                        expenses_by_category=expense_by_category,
-                        income_by_category=income_by_category,
-                        balance_data=json.dumps(balance_data, ensure_ascii=False),
-                        yearly_pie_data=yearly_pie_data,
-                        yearly_trend_data=yearly_trend_data)
-
+                        **report_data)
 
 
 def calculate_yearly_irrigation_cost_split(email, start_date, end_date):
@@ -611,8 +565,33 @@ def generate_yearly_report_data(selected_year, filter_email):
                 income_by_category["יבול"] += income
         except:
             continue
+            # 
+    for plot in db.plots_yield.find({"manager_email": filter_email}):
+        try:
+            harvest_date = plot.get("harvest_date")
+            if isinstance(harvest_date, str):
+                harvest_date = datetime.strptime(harvest_date, "%Y-%m-%d")
+            if start_date <= harvest_date <= end_date:
+                income = float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
+                income_by_category["יבול"] += income
+        except:
+            continue
 
-    for item in db.fuel.find({"email": filter_email}):
+# 
+    for item in db.equipment_sales.find({"email": filter_email}):
+        try:
+            sale_date = item.get("sale_date")
+            if isinstance(sale_date, str):
+                sale_date = datetime.fromisoformat(sale_date[:10])
+            if start_date <= sale_date <= end_date:
+                total = float(item.get("quantity", 0)) * float(item.get("unit_price", 0))
+                income_by_category["מכירה ציוד"] += total
+        except:
+            continue
+
+
+    relevant = get_all_relevant_emails(filter_email)
+    for item in db.fuel.find({"email": {"$in": relevant}}):
         try:
             refuel_date_str = item.get("refuel_date")
             refuel_type = item.get("refuel_type")
@@ -638,7 +617,8 @@ def generate_yearly_report_data(selected_year, filter_email):
     expense_by_category[f"השקיית מים שפירים"] += shafirim_total
     expense_by_category[f"השקיית מים מושבים"] += mushavim_total
 
-    for item in db.purchases.find({"email": filter_email}):
+    relevant_emails = get_all_relevant_emails(filter_email)
+    for item in db.purchases.find({"email": {"$in": relevant_emails}}):
         try:
             d = datetime.strptime(item.get("purchase_date", ""), "%Y-%m-%d")
             if start_date <= d <= end_date:
@@ -675,6 +655,34 @@ def generate_yearly_report_data(selected_year, filter_email):
         sy = datetime(y, 1, 1)
         ey = datetime(y, 12, 31)
         income, expense = 0, 0
+        for plot in db.plots.find({"manager_email": filter_email}):
+            try:
+                d = plot.get("harvest_date")
+                if isinstance(d, str):
+                    d = datetime.strptime(d, "%Y-%m-%d")
+                if sy <= d <= ey:
+                    income += float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
+            except:
+                continue
+        for plot in db.plots_yield.find({"manager_email": filter_email}):
+            try:
+                d = plot.get("harvest_date")
+                if isinstance(d, str):
+                    d = datetime.strptime(d, "%Y-%m-%d")
+                if sy <= d <= ey:
+                    income += float(plot.get("crop_yield", 0)) * float(plot.get("price_yield", 0))
+            except:
+                continue
+        for item in db.equipment_sales.find({"email": filter_email}):
+            try:
+                sale_date = item.get("sale_date")
+                if isinstance(sale_date, str):
+                    sale_date = datetime.fromisoformat(sale_date[:10])
+                if sy <= sale_date <= ey:
+                    total = float(item.get("quantity", 0)) * float(item.get("unit_price", 0))
+                    income += total
+            except:
+                continue
 
         for plot in db.plots.find({"manager_email": filter_email}):
             try:
@@ -686,7 +694,8 @@ def generate_yearly_report_data(selected_year, filter_email):
             except:
                 continue
 
-        for item in db.fuel.find({"email": filter_email}):
+        relevant = get_all_relevant_emails(filter_email)
+        for item in db.fuel.find({"email": {"$in": relevant}}):
             try:
                 refuel_date_str = item.get("refuel_date")
                 refuel_type = item.get("refuel_type")
@@ -735,7 +744,12 @@ def generate_yearly_report_data(selected_year, filter_email):
         shafirim_y, mushavim_y = calculate_yearly_irrigation_cost_split(filter_email, sy, ey)
         expense += shafirim_y + mushavim_y
 
-        balance_data.append({"year": str(y), "balance": round(income - expense, 2)})
+        balance_data.append({
+            "year": str(y),
+            "income": round(income, 2),
+            "expense": round(expense, 2),
+            "balance": round(income - expense, 2)
+        })
 
     yearly_pie_data = json.dumps({
         "labels": [x["category"] for x in pie_income + pie_expense],
@@ -745,8 +759,11 @@ def generate_yearly_report_data(selected_year, filter_email):
 
     yearly_trend_data = json.dumps({
         "labels": [str(item["year"]) for item in balance_data],
-        "data": [item["balance"] for item in balance_data]
+        "income": [item["income"] for item in balance_data],
+        "expense": [item["expense"] for item in balance_data],
+        "balance": [item["balance"] for item in balance_data]
     }, ensure_ascii=False)
+
 
     return {
         "selected_year": selected_year,
@@ -769,24 +786,42 @@ def export_yearly_pdf():
     filter_email = user_email if user_role == "manager" else manager_email
 
     report_data = generate_yearly_report_data(year, filter_email)
-
     def pie_chart():
-        fig, ax = plt.subplots(figsize=(4.5, 4.5))
-        labels = list(report_data["expenses_by_category"].keys()) + list(report_data["income_by_category"].keys())
-        values = list(report_data["expenses_by_category"].values()) + list(report_data["income_by_category"].values())
-        colors = ['#E53935'] * len(report_data["expenses_by_category"]) + ['#4CAF50'] * len(report_data["income_by_category"])
-        ax.pie(values, labels=None, colors=colors, autopct='%1.1f%%', startangle=90)
+        fig, ax = plt.subplots(figsize=(6, 6))
+
+        total_expenses = report_data["total_expenses"]
+        total_income = report_data["total_income"]
+        values = [total_expenses, total_income]
+        colors = ['#E53935', '#4CAF50']
+
+        wedges, texts, autotexts = ax.pie(
+            values,
+            colors=colors,
+            startangle=90,
+            autopct=lambda pct: f"{pct:.1f}%",
+            textprops=dict(color="black", fontsize=20, fontweight='bold')
+        )
+
+        ax.legend(handles=[
+            plt.Line2D([0], [0], marker='o', color='w', label='תואצוה', markerfacecolor='#E53935', markersize=12),
+            plt.Line2D([0], [0], marker='o', color='w', label='תוסנכה', markerfacecolor='#4CAF50', markersize=12)
+        ], loc='lower center', bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False, fontsize=22)
+
         ax.axis('equal')
         return fig
 
     def line_chart():
-        import json
         data = json.loads(report_data["yearly_trend_data"])
         fig, ax = plt.subplots(figsize=(5.5, 3.2))
-        ax.plot(data["labels"], data["data"], marker='o')
-        ax.set_ylabel("הרתי")
-        ax.set_xlabel("הנש")
+
+        ax.plot(data["labels"], data["balance"], marker='o', color='blue', linewidth=2)
+
+        ax.set_ylabel("(₪) םירזת", fontsize=18)
+        ax.set_xlabel("הנש", fontsize=18)
+        ax.grid(True)
         return fig
+
+
 
     pie_chart_image = generate_base64_chart(pie_chart)
     line_chart_image = generate_base64_chart(line_chart)
@@ -956,13 +991,12 @@ def plot_report():
 
     if plot_name and sow_date_str:
         try:
-            # המרה מפורמט תצוגה dd-mm-yyyy לפורמט של Mongo yyyy-mm-dd
             sow_date_formatted = datetime.strptime(sow_date_str, "%d-%m-%Y").strftime("%Y-%m-%d")
         except ValueError:
             flash("פורמט תאריך שגוי", "danger")
             return render_template("/reports/plot_report.html", plot_name=plot_name, sow_date=sow_date_str)
 
-        # חיפוש חלקה
+        # search plot
         plot = db.plots.find_one({
             "plot_name": plot_name,
             "sow_date": sow_date_formatted,
@@ -978,10 +1012,58 @@ def plot_report():
 
 def calculate_plot_report(plot, email):
     sow_date = datetime.strptime(plot["sow_date"], "%Y-%m-%d")
-    harvest_date = datetime.strptime(plot.get("harvest_date", datetime.now().strftime("%Y-%m-%d")), "%Y-%m-%d")
-    days_diff = (harvest_date - sow_date).days
+    plot_name = plot["plot_name"]
 
-    irrigations = db.irrigation.find({"email": email, "name": plot["plot_name"], "sow_date": plot["sow_date"]})
+    harvest_str = plot.get("harvest_date")
+    harvest_date_source = ""
+    alt_yield_doc = None
+
+    if not harvest_str:
+        alt_yield_doc = db.plots_yield.find_one(
+            {"manager_email": email, "plot_name": plot_name, "sow_date": plot["sow_date"]},
+            sort=[("harvest_date", -1)]
+        )
+        if alt_yield_doc and alt_yield_doc.get("harvest_date"):
+            harvest_str = alt_yield_doc["harvest_date"]
+            harvest_date_source = f" (מתוך טבלת קציר: {harvest_str})"
+    else:
+        harvest_date_source = f" ({harvest_str})"
+
+    if harvest_str:
+        harvest_date = datetime.strptime(harvest_str, "%Y-%m-%d")
+        days_diff = (harvest_date - sow_date).days
+
+        try:
+            yield_amount = float(plot.get("crop_yield") or 0)
+            price_yield = float(plot.get("price_yield") or 0)
+        except:
+            yield_amount = price_yield = 0
+
+        if (yield_amount == 0 or price_yield == 0) and not alt_yield_doc:
+            alt_yield_doc = db.plots_yield.find_one(
+                {"manager_email": email, "plot_name": plot_name, "sow_date": plot["sow_date"]},
+                sort=[("harvest_date", -1)]
+            )
+
+        if alt_yield_doc:
+            try:
+                yield_amount = float(alt_yield_doc.get("crop_yield") or yield_amount)
+                price_yield = float(alt_yield_doc.get("price_yield") or price_yield)
+            except:
+                pass
+
+        total_income = yield_amount * price_yield
+        yield_display = f"{yield_amount} ק״ג"
+        price_yield_display = f"{price_yield} ₪"
+        income_display = f"{total_income:.2f} ₪"
+    else:
+        days_diff = (datetime.now() - sow_date).days
+        total_income = 0
+        yield_display = "טרם בוצעה קצירה"
+        price_yield_display = "-"
+        income_display = "-"
+
+    irrigations = db.irrigation.find({"email": email, "name": plot_name, "sow_date": plot["sow_date"]})
     water_prices = sorted(
         db.water.find({"email": email}),
         key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d")
@@ -1013,27 +1095,19 @@ def calculate_plot_report(plot, email):
     total_irrigation_cost = irrigation_shafirim + irrigation_mushavim
     total_irrigation_amount = irrigation_shafirim_amount + irrigation_mushavim_amount
 
-    yield_amount = float(plot.get("crop_yield", 0))
-    price_yield = float(plot.get("price_yield", 0))
-    total_income = yield_amount * price_yield
-
-    total_expenses = total_irrigation_cost
-    balance = total_income - total_expenses
-
     return {
         "crop": plot.get("crop"),
         "quantity_planted": plot.get("quantity_planted"),
-        "crop_yield": plot.get("crop_yield"),
-        "price_yield": plot.get("price_yield"),
-        "total_irrigation_amount": round(total_irrigation_amount, 2), 
+        "crop_yield": yield_display + harvest_date_source,
+        "price_yield": price_yield_display,
+        "total_irrigation_amount": round(total_irrigation_amount, 2),
         "irrigation_cost_shafirim": round(irrigation_shafirim, 2),
         "irrigation_cost_mushavim": round(irrigation_mushavim, 2),
         "irrigation_cost_total": round(total_irrigation_cost, 2),
-        "income_yield": round(total_income, 2),
-        "balance": round(balance, 2),
+        "income_yield": income_display,
+        "balance": round(total_income - total_irrigation_cost, 2),
         "days": days_diff
     }
-
 
 
 @reports_bp.route("/get_plot_names")
@@ -1050,7 +1124,7 @@ def get_plot_names():
     valid_names = {}
     for plot in plots:
         name = plot.get("plot_name")
-        if plot.get("harvest_date") and name:
+        if name:
             valid_names.setdefault(name, set()).add(plot.get("sow_date"))
 
     return jsonify(sorted([name for name, sow_dates in valid_names.items() if len(sow_dates) > 1 or len(sow_dates) == 1]))
@@ -1058,8 +1132,6 @@ def get_plot_names():
 
 @reports_bp.route("/get_sow_dates")
 def get_sow_dates():
-    from datetime import datetime
-
     plot_name = request.args.get("plot_name")
     if not plot_name:
         return jsonify([])
@@ -1075,7 +1147,6 @@ def get_sow_dates():
         "harvest_date": {"$ne": None, "$ne": ""}
     })
 
-    # המרה לפורמט dd-mm-yyyy
     formatted_dates = []
     for date_str in sow_dates:
         try:
@@ -1086,11 +1157,9 @@ def get_sow_dates():
 
     return jsonify(sorted(formatted_dates))
 
-## דו״ח הוצאות רכב שנתי
+##  vehicle expenses yearly report 
 @reports_bp.route("/vehicle_expenses", methods=["GET"])
 def vehicle_expenses():
-    from datetime import datetime
-
     user_role = session.get("role")
     user_email = session.get("email")
     manager_email = user_email if user_role == "manager" else session.get("manager_email")
@@ -1099,7 +1168,7 @@ def vehicle_expenses():
     selected_year = request.args.get("year")
     vehicle_info = {}
     expenses = {}
-    pie_data = {}  # ברירת מחדל ריקה למקרה שלא נבחר רכב ושנה
+    pie_data = {}
 
     current_year = datetime.now().year
     years = [str(y) for y in range(current_year, current_year - 3, -1)]
@@ -1175,18 +1244,18 @@ def export_vehicle_pdf():
     if not vehicle_number or not year:
         return "חסרים פרמטרים", 400
 
-    # זיהוי המשתמש
+    # 
     user_role = session.get("role")
     user_email = session.get("email")
     manager_email = user_email if user_role == "manager" else session.get("manager_email")
 
-    # שאילתת פרטי רכב
+    # 
     vehicle_info = db.vehicles.find_one({
         "vehicle_number": vehicle_number,
         "manager_email": manager_email
     }) or {}
 
-    # עיצוב תאריכים
+    # 
     def format_date(date_str):
         try:
             return datetime.strptime(date_str, "%Y-%m-%d").strftime("%d-%m-%Y")
@@ -1197,11 +1266,11 @@ def export_vehicle_pdf():
         if field in vehicle_info:
             vehicle_info[field] = format_date(vehicle_info[field])
 
-    # טווח השנה הנבחרת
+    # 
     year_start = datetime(int(year), 1, 1)
     year_end = datetime(int(year), 12, 31, 23, 59, 59)
 
-    # חישוב הוצאות בפועל
+    # 
     def total_cost(col, date_field, price_field):
         return sum(
             float(doc.get(price_field, 0))
@@ -1223,17 +1292,15 @@ def export_vehicle_pdf():
     }
     expenses["total"] = sum(expenses.values())
 
-    # הגדרת נתוני גרף עוגה
     pie_data = {
         "labels": ["דלק", "טיפולים", "טסט", "ביטוח"],
         "data": [expenses["fuel"], expenses["service"], expenses["test"], expenses["insurance"]],
         "colors": ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
     }
 
-    # יצירת גרף עוגה כ־base64
     fig, ax = plt.subplots(figsize=(3.5, 3.5))
     matplotlib.rcParams['font.family'] = 'DejaVu Sans'
-    labels = [label[::-1] for label in pie_data["labels"]]  # הפיכת כיוון הטקסט    ax.pie(pie_data["data"], labels=pie_data["labels"], colors=pie_data["colors"], autopct='%1.1f%%', startangle=90)
+    labels = [label[::-1] for label in pie_data["labels"]]
     ax.pie(pie_data["data"], labels=labels, colors=pie_data["colors"],
        autopct='%1.1f%%', startangle=90)
     ax.axis('equal')
@@ -1244,7 +1311,7 @@ def export_vehicle_pdf():
     buf.close()
     plt.close(fig)
 
-    # רינדור לתבנית PDF
+    #PDF
     rendered = render_template("/pdf/vehicle_report_pdf.html",
                                vehicle_number=vehicle_number,
                                selected_year=year,
@@ -1252,9 +1319,10 @@ def export_vehicle_pdf():
                                expenses=expenses,
                                pie_chart_image=pie_chart_base64)
 
-    # יצירת קובץ PDF
     pdf_file = HTML(string=rendered, base_url=request.host_url).write_pdf()
     response = make_response(pdf_file)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=vehicle_report_{vehicle_number}_{year}.pdf'
     return response
+
+
