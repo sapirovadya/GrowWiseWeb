@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, url_for, redirect, session
 import pymongo
 from dotenv import load_dotenv
 import os
+from itsdangerous import URLSafeTimedSerializer
 from modules.users.routes import users_bp_main
 from modules.users.employee.routes import employee_bp
 from modules.users.manager.routes import manager_bp
@@ -22,6 +23,7 @@ from flask_dance.contrib.google import make_google_blueprint, google
 from flask_session import Session
 import json
 from flask_dance.consumer.storage.session import SessionStorage
+from flask_mail import Mail, Message
 
 
 # עדכן את הנתיב בהתאם
@@ -36,13 +38,20 @@ mongo_key = os.getenv("MONGO_KEY")
 client = pymongo.MongoClient(mongo_key)
 app.db = client.get_database("dataGrow")
 
-
-
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["SESSION_PERMANENT"] = False  # הוספה חשובה
 
 Session(app)
 
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('EMAIL_USER')
+app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASS')
+mail = Mail(app)
+
+# טוקן
+s = URLSafeTimedSerializer(app.secret_key)
 
 google_bp = make_google_blueprint(
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
@@ -55,9 +64,6 @@ google_bp = make_google_blueprint(
     redirect_url="/users/google_login",
     storage=SessionStorage()
 )
-
-
-
 
 app.register_blueprint(google_bp, url_prefix="/login")
 app.register_blueprint(users_bp_main, url_prefix="/users")
