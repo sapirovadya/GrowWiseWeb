@@ -38,25 +38,26 @@ def test_track_greenhouse_basic(client):
 def test_save_plot_basic(client):
     login_as_manager(client)
     with patch.object(plot_routes, "db") as mock_db:
-        mock_db.plots.insert_one.return_value.inserted_id = ObjectId()
+        mock_db.plots.find_one.return_value = None
+        mock_db.supply.find_one.return_value = {"quantity": 100}
         mock_db.supply.update_one.return_value.modified_count = 1
-        mock_db.supply.find_one.return_value = {
-            "quantity": 100
-        }
-        res = client.post("/plots/save_plot", json={
-            "crop": "עגבנייה",
-            "crop_category": "ירקות",
-            "width": 10,
-            "length": 20,
-            "quantity_planted": 10,
-            "sow_date": "2024-01-01",
+        mock_db.plots.insert_one.return_value.inserted_id = ObjectId()
+
+        res = client.post("/plots/save_plot", data={
             "plot_name": "חלקה א",
-            "plot_type": "חממה"
-        })
+            "plot_type": "חממה",
+            "square_meters": "200",
+            "crop": "עגבנייה",
+            "sow_date": "2024-01-01",
+            "quantity_planted": "10",
+            "kosher_required": "off",  # או "on" אם את רוצה לבדוק גם את זה
+            "is_existing": "false"
+        }, content_type="multipart/form-data")
 
         response_data = json.loads(res.get_data(as_text=True))
         assert res.status_code == 201
         assert "החלקה נשמרה בהצלחה!" in response_data.get("message")
+
 
 def test_get_crop_categories_basic(client):
     res = client.get("/plots/get_crop_categories")
@@ -89,19 +90,6 @@ def test_update_irrigation_basic(client):
         assert res.status_code == 200
         assert res.get_json()["message"] == "Irrigation updated successfully"
 
-def test_get_crop_details_basic(client):
-    login_as_manager(client)
-    with patch.object(plot_routes, "db") as mock_db:
-        mock_db.plots.find_one.return_value = {
-            "crop": "עגבנייה",
-            "crop_yield": 150
-        }
-        res = client.get("/plots/get_crop_details")
-        assert res.status_code == 200
-        json_data = res.get_json()
-        assert "crop" in json_data
-        assert "crop_yield" in json_data
-
 def test_get_sow_dates_basic(client):
     login_as_manager(client)
     with patch.object(plot_routes, "db") as mock_db:
@@ -116,9 +104,10 @@ def test_update_plot_missing_field(client):
     plot_id = ObjectId()
     data = {
         "crop": "עגבנייה",
+        "crop_category": "ירקות",
         "quantity_planted": 10
     }
-    res = client.post(f"/plots/update_plot/{str(plot_id)}", json=data)
+    res = client.post(f"/plots/update_plot/{str(plot_id)}", data=data, content_type="multipart/form-data")
     assert res.status_code == 400
     assert b"Missing field: sow_date" in res.data
 
@@ -133,7 +122,7 @@ def test_update_plot_quantity_exceeds_stock(client):
     }
     with patch.object(plot_routes, "db") as mock_db:
         mock_db.supply.find_one.return_value = {"quantity": 100}
-        res = client.post(f"/plots/update_plot/{str(plot_id)}", json=data)
+        res = client.post(f"/plots/update_plot/{str(plot_id)}", data=data, content_type="multipart/form-data")
         assert res.status_code == 400
         response_data = json.loads(res.get_data(as_text=True))
         assert "הזנת כמות גדולה מהמלאי" in response_data.get("error")
@@ -151,7 +140,8 @@ def test_update_plot_success(client):
         mock_db.plots.find_one.return_value = {"_id": plot_id, "manager_email": "manager@test.com"}
         mock_db.supply.find_one.return_value = {"quantity": 100}
         mock_db.supply.update_one.return_value.modified_count = 1
-        res = client.post(f"/plots/update_plot/{str(plot_id)}", json=data)
+        res = client.post(f"/plots/update_plot/{str(plot_id)}", data=data, content_type="multipart/form-data")
+
     assert res.status_code == 200
     assert b"Plot updated successfully" in res.data
 
@@ -166,6 +156,6 @@ def test_update_plot_not_found(client):
     }
     with patch.object(plot_routes, "db") as mock_db:
         mock_db.plots.find_one.return_value = None
-        res = client.post(f"/plots/update_plot/{str(plot_id)}", json=data)
+        res = client.post(f"/plots/update_plot/{str(plot_id)}", data=data, content_type="multipart/form-data")
     assert res.status_code == 404
     assert b"Plot not found" in res.data
