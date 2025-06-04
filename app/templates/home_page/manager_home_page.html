@@ -97,12 +97,12 @@
             const urls = {
                 'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
                 'archive': '{{ url_for("plot_bp.archive") }}',
-                // 'optimal_management': '{{ url_for("optimal_bp.optimal_management_page") }}',
-                // 'reports': '{{ url_for("reports_bp.reports_home") }}',
+                 'optimal_management': '{{ url_for("optimal_bp.optimal_management_page") }}',
+                 'reports': '{{ url_for("reports_bp.reports_home") }}',
                 'team': '{{ url_for("manager_bp.get_employees_list") }}',
                 'calculator': '{{ url_for("manager_bp.expense_page") }}',
                 'inventory': '{{ url_for("manager_bp.logistic_management") }}',
-                // 'jobs': '{{ url_for("posts_bp.social_feed") }}'
+                 'jobs': '{{ url_for("posts_bp.social_feed") }}'
             };
 
             if (urls[page]) {

@@ -1067,3 +1067,45 @@ async function updateCropCategory() {
         console.error(" שגיאה בטעינת קטגוריית הגידול:", error);
     }
 }
+
+// optimal plot Recommendation
+function applyRecommendation() {
+    const modalBody = document.getElementById("recommendationContent");
+    const rows = [...modalBody.querySelectorAll("table tr")].slice(1); // Skip table header
+    const updates = rows.map(row => {
+        const cells = row.querySelectorAll("td");
+        return {
+            plot_name: cells[0]?.innerText.trim(),
+            crop: cells[1]?.innerText.trim(),
+            quantity_planted: cells[2]?.innerText.trim()
+        };
+    });
+
+    fetch("/optimal/update_plots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updates })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (data.skipped && data.skipped.length > 0) {
+            showAlert(
+                "החלקות עודכנו חלקית",
+                `החלקות הבאות לא עודכנו כי חסרים בהן נתונים או כמות זריעה לא תקינה:${data.skipped.map(p => `${p}`).join("")}`,
+                true
+                );
+            } else {
+                showAlert("בוצע בהצלחה", "כל החלקות עודכנו לפי ההמלצה", false);
+                setTimeout(() => location.reload(), 1000);
+            }
+        } else {
+            showAlert("שגיאה", "לא ניתן לבצע המלצה זו", true);
+        }
+    })
+    .catch(err => {
+        console.error("Network error", err);
+        showAlert("שגיאת רשת", err.message, true);
+    });
+}
+

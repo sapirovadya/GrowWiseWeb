@@ -1,4 +1,3 @@
-# modules/optimal_plots/routes.py
 from flask import Blueprint, render_template, session, jsonify, request
 import pymongo
 import os
@@ -56,7 +55,8 @@ def get_inventory():
     email = session.get("email") or session.get("manager_email")
     crops = list(db.supply.find({
         "email": email,
-        "category": "גידול"
+        "category": "גידול",
+        "quantity": {"$gt": 0}
     }, {"_id": 0, "name": 1, "quantity": 1}))
     return jsonify(crops)
 
@@ -203,4 +203,96 @@ def get_empty_plots():
 
     return jsonify(plots)
 
+
+@optimal_bp.route("/update_plots", methods=["POST"])
+def update_plots():
+    try:
+        import json  # לוודא שהייבוא קיים
+        data = request.get_json()
+        updates = data.get("updates", [])
+        email = session.get("email") or session.get("manager_email")
+
+        if not updates:
+            return jsonify({"error": "No update data provided"}), 400
+
+        skipped_plots = []
+
+        for upd in updates:
+            plot_name = upd.get("plot_name")
+            crop = upd.get("crop")
+            raw_quantity = upd.get("quantity_planted", "")
+
+            if not plot_name or not crop:
+                skipped_plots.append(plot_name or "Unnamed Plot")
+                continue
+
+            # Clean and parse quantity
+            quantity_str = ''.join(c for c in raw_quantity if c.isdigit() or c == '.')
+            try:
+                quantity_value = float(quantity_str)
+                if quantity_value <= 0:
+                    skipped_plots.append(plot_name)
+                    continue
+            except (ValueError, TypeError):
+                skipped_plots.append(plot_name)
+                continue
+
+            # Find the plot
+            plot = db.plots.find_one({"plot_name": plot_name, "manager_email": email})
+            if not plot:
+                skipped_plots.append(plot_name)
+                continue
+
+            # Find the item in inventory
+            supply_item = db.supply.find_one({
+                "email": email,
+                "category": "גידול",
+                "name": crop
+            })
+
+            # Check if there's enough inventory
+            if not supply_item or supply_item.get("quantity", 0) < quantity_value:
+                skipped_plots.append(plot_name)
+                continue
+
+            # Get crop_category from JSON
+            crop_category = "ירקות"
+            try:
+                with open("static/data/crops_data.json", "r", encoding="utf-8") as f:
+                    crops_data = json.load(f)
+                for entry in crops_data:
+                    if crop in entry.get("values", []):
+                        crop_category = entry.get("category", "ירקות")
+                        break
+            except Exception as e:
+                print(f"⚠️ Failed to load crop category from JSON: {e}")
+
+            # Update the plot
+            db.plots.update_one(
+                {"_id": plot["_id"]},
+                {"$set": {
+                    "crop": crop,
+                    "crop_category": crop_category,
+                    "quantity_planted": quantity_value,
+                    "sow_date": datetime.now().strftime("%d/%m/%Y")
+                }}
+            )
+
+            # Reduce inventory
+            db.supply.update_one(
+                {"email": email, "category": "גידול", "name": crop},
+                {"$inc": {"quantity": -quantity_value}}
+            )
+
+        if skipped_plots:
+            return jsonify({
+                "success": True,
+                "skipped": skipped_plots,
+                "message": "Some plots were skipped due to invalid data or insufficient inventory."
+            })
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
