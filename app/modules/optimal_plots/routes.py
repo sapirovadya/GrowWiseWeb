@@ -207,7 +207,9 @@ def get_empty_plots():
 @optimal_bp.route("/update_plots", methods=["POST"])
 def update_plots():
     try:
-        import json  # לוודא שהייבוא קיים
+        import json
+        from bson import ObjectId
+
         data = request.get_json()
         updates = data.get("updates", [])
         email = session.get("email") or session.get("manager_email")
@@ -217,57 +219,70 @@ def update_plots():
 
         skipped_plots = []
 
+        # Load crop categories from static file
+        json_path = os.path.join(os.path.dirname(__file__), '..', '..', 'static', 'data', 'crops_data.json')
+        json_path = os.path.abspath(json_path)
+
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                crops_data = json.load(f)
+        except Exception as e:
+            print(f"⚠️ Failed to load crop category: {e}")
+            crops_data = []
+
         for upd in updates:
-            plot_name = upd.get("plot_name")
+            plot_id_str = upd.get("plot_id")
             crop = upd.get("crop")
             raw_quantity = upd.get("quantity_planted", "")
 
-            if not plot_name or not crop:
-                skipped_plots.append(plot_name or "Unnamed Plot")
+            if not plot_id_str or not crop:
+                skipped_plots.append("Unknown Plot")
                 continue
 
-            # Clean and parse quantity
+            # Parse and validate plot ID
+            try:
+                plot_id = plot_id_str
+            except Exception:
+                skipped_plots.append(plot_id_str)
+                continue
+
+            # Parse quantity
             quantity_str = ''.join(c for c in raw_quantity if c.isdigit() or c == '.')
             try:
                 quantity_value = float(quantity_str)
                 if quantity_value <= 0:
-                    skipped_plots.append(plot_name)
+                    skipped_plots.append(str(plot_id))
                     continue
             except (ValueError, TypeError):
-                skipped_plots.append(plot_name)
+                skipped_plots.append(str(plot_id))
                 continue
 
-            # Find the plot
-            plot = db.plots.find_one({"plot_name": plot_name, "manager_email": email})
+            # Find plot by ID and owner
+            plot = db.plots.find_one({"_id": plot_id, "manager_email": email})
+            print(f"Looking for plot with ID: {plot_id} and email: {email}")
+
             if not plot:
-                skipped_plots.append(plot_name)
+                skipped_plots.append(str(plot_id))
                 continue
 
-            # Find the item in inventory
+            # Validate crop in inventory
             supply_item = db.supply.find_one({
                 "email": email,
                 "category": "גידול",
                 "name": crop
             })
-
-            # Check if there's enough inventory
             if not supply_item or supply_item.get("quantity", 0) < quantity_value:
-                skipped_plots.append(plot_name)
+                skipped_plots.append(str(plot_id))
                 continue
 
-            # Get crop_category from JSON
-            crop_category = "ירקות"
-            try:
-                with open("static/data/crops_data.json", "r", encoding="utf-8") as f:
-                    crops_data = json.load(f)
-                for entry in crops_data:
-                    if crop in entry.get("values", []):
-                        crop_category = entry.get("category", "ירקות")
-                        break
-            except Exception as e:
-                print(f"⚠️ Failed to load crop category from JSON: {e}")
+            # Match crop to category
+            crop_category = "Unknown"
+            for entry in crops_data:
+                if crop in entry.get("values", []):
+                    crop_category = entry.get("category", "Unknown")
+                    break
 
-            # Update the plot
+            # Update plot
             db.plots.update_one(
                 {"_id": plot["_id"]},
                 {"$set": {
@@ -278,7 +293,7 @@ def update_plots():
                 }}
             )
 
-            # Reduce inventory
+            # Decrease quantity from inventory
             db.supply.update_one(
                 {"email": email, "category": "גידול", "name": crop},
                 {"$inc": {"quantity": -quantity_value}}
@@ -295,4 +310,3 @@ def update_plots():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-

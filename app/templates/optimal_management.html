@@ -279,6 +279,13 @@
                     // Remove markdown code blocks like html
                     let cleaned = data.suggestion.replace(/```html|```/g, "").trim();
                     modalBody.innerHTML = cleaned;
+                    // Add data-id to each table row according to selectedPlots
+                    const rows = modalBody.querySelectorAll("table tr");
+                    selectedPlots.forEach((plot, index) => {
+                        if (rows[index + 1]) { // skip the header row
+                            rows[index + 1].setAttribute("data-id", plot.id);
+                        }
+                    });
                 } else {
                     modalBody.innerHTML = `<p>⚠️ שגיאה: ${data.error}</p>`;
                 }

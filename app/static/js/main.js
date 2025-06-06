@@ -1072,9 +1072,11 @@ async function updateCropCategory() {
 function applyRecommendation() {
     const modalBody = document.getElementById("recommendationContent");
     const rows = [...modalBody.querySelectorAll("table tr")].slice(1); // Skip table header
+
     const updates = rows.map(row => {
         const cells = row.querySelectorAll("td");
         return {
+            plot_id: row.getAttribute("data-id"), // Use the assigned plot ID
             plot_name: cells[0]?.innerText.trim(),
             crop: cells[1]?.innerText.trim(),
             quantity_planted: cells[2]?.innerText.trim()
@@ -1090,10 +1092,10 @@ function applyRecommendation() {
     .then(data => {
         if (data.success) {
             if (data.skipped && data.skipped.length > 0) {
-            showAlert(
-                "החלקות עודכנו חלקית",
-                `החלקות הבאות לא עודכנו כי חסרים בהן נתונים או כמות זריעה לא תקינה:${data.skipped.map(p => `${p}`).join("")}`,
-                true
+                showAlert(
+                    "החלקות עודכנו חלקית",
+                    `החלקות הבאות לא עודכנו כי חסרים בהן נתונים או כמות זריעה לא תקינה: ${data.skipped.join(", ")}`,
+                    true
                 );
             } else {
                 showAlert("בוצע בהצלחה", "כל החלקות עודכנו לפי ההמלצה", false);
@@ -1108,4 +1110,3 @@ function applyRecommendation() {
         showAlert("שגיאת רשת", err.message, true);
     });
 }
-
