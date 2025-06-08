@@ -26,11 +26,16 @@
     // Sticky Navbar
     $(window).scroll(function () {
         if ($(this).scrollTop() > 300) {
-            $('.sticky-top').addClass('shadow-sm').css('top', '0px');
+            $('.sticky-top').addClass('shadow-sm');
         } else {
-            $('.sticky-top').removeClass('shadow-sm').css('top', '-150px');
+            $('.sticky-top').removeClass('shadow-sm');
         }
     });
+
+
+
+
+
 
 
     // Back to top button
@@ -118,6 +123,11 @@ function closeHelpModal() {
         video.currentTime = 0;
     }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const navbar = document.querySelector(".sticky-top");
+});
+
 /* Notification */
 
 function showNotificationBadge(newNotificationsCount) {
@@ -882,17 +892,35 @@ function updateSingleView() {
     document.getElementById("plotDetailsLink").href = `/Plots/plot_details?id=${plot._id}`;
 
     const getText = (value, fallback = "לא זמין") => {
-        if (value === null || value === "" || value === undefined) return fallback;
+        if (
+            value === null ||
+            value === "" ||
+            typeof value === "undefined" ||
+            (typeof value === "string" && value.toLowerCase() === "none")
+        ) {
+            return fallback;
+        }
         return value;
     };
 
     document.getElementById("plottype").textContent = getText(plot.plot_type);
     document.getElementById("squareMetersDisplay").textContent = getText(plot.square_meters);
-    document.getElementById("plotCrop").textContent = plot.crop === "none" ? "טרם נבחר גידול" : getText(plot.crop);
-    document.getElementById("sowdate").textContent = plot.sow_date ? formatDate(plot.sow_date) : "טרם נבחר תאריך זריעה";
+    document.getElementById("plotCrop").textContent = getText(
+        plot.crop === "none" ? "" : plot.crop,
+        "טרם נבחר גידול"
+    );
+    document.getElementById("sowdate").textContent = plot.sow_date
+        ? formatDate(plot.sow_date)
+        : "טרם נבחר תאריך זריעה";
     document.getElementById("lastIrrigationDate").textContent = plot.last_irrigation_date
         ? formatDate(plot.last_irrigation_date)
-        : "טרם בוצעה השקיה"; document.getElementById("totalIrrigationAmount").textContent = getText(plot.total_irrigation_amount, "0");
+        : "טרם בוצעה השקיה";
+    document.getElementById("totalIrrigationAmount").textContent = getText(plot.total_irrigation_amount, "0");
+    document.getElementById("irrigationWaterTypeDisplay").textContent = getText(
+        plot.irrigation_water_type,
+        "טרם נבחר סוג מים"
+    );
+
     const kosherRequired = plot.kosher_required ? "כן" : "לא";
     document.getElementById("kosherrequired").textContent = kosherRequired;
 
@@ -902,11 +930,8 @@ function updateSingleView() {
     } else {
         kosherCertificateElem.textContent = "אין קובץ מצורף";
     }
-
-    if (document.getElementById("irrigationWaterTypeDisplay")) {
-        document.getElementById("irrigationWaterTypeDisplay").textContent = getText(plot.irrigation_water_type, "לא נבחר");
-    }
 }
+
 
 function closePlotForm() {
     const plotFormModal = document.getElementById('plotFormModal');
@@ -1088,25 +1113,25 @@ function applyRecommendation() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ updates })
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            if (data.skipped && data.skipped.length > 0) {
-                showAlert(
-                    "החלקות עודכנו חלקית",
-                    `החלקות הבאות לא עודכנו כי חסרים בהן נתונים או כמות זריעה לא תקינה: ${data.skipped.join(", ")}`,
-                    true
-                );
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (data.skipped && data.skipped.length > 0) {
+                    showAlert(
+                        "החלקות עודכנו חלקית",
+                        `החלקות הבאות לא עודכנו כי חסרים בהן נתונים או כמות זריעה לא תקינה: ${data.skipped.join(", ")}`,
+                        true
+                    );
+                } else {
+                    showAlert("בוצע בהצלחה", "כל החלקות עודכנו לפי ההמלצה", false);
+                    setTimeout(() => location.reload(), 1000);
+                }
             } else {
-                showAlert("בוצע בהצלחה", "כל החלקות עודכנו לפי ההמלצה", false);
-                setTimeout(() => location.reload(), 1000);
+                showAlert("שגיאה", "לא ניתן לבצע המלצה זו", true);
             }
-        } else {
-            showAlert("שגיאה", "לא ניתן לבצע המלצה זו", true);
-        }
-    })
-    .catch(err => {
-        console.error("Network error", err);
-        showAlert("שגיאת רשת", err.message, true);
-    });
+        })
+        .catch(err => {
+            console.error("Network error", err);
+            showAlert("שגיאת רשת", err.message, true);
+        });
 }

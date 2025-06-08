@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <title>GrowWise</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <link href="/static/img/favicon_v3.ico" rel="icon">
+    <link href="/static/img/favicon_v7.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,6 +28,7 @@
 
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/media.css" rel="stylesheet">
 
 </head>
 
@@ -49,7 +50,7 @@
     </div>
 
     <!-- Sub toolbar-->
-    <div class="container-fluid bg-white secondary-navbar">
+    <div id="subToolbarWrapper" class="container-fluid bg-white secondary-navbar">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-2 py-lg-0">
                 <!-- Button adding new plot-->
@@ -111,7 +112,7 @@
 
     <!--Adding new plots -->
     <div id="plotFormModal" class="modal plots">
-        <div class=" modal-dialog">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">הגדרת חממה/חלקה</h5>
@@ -170,10 +171,12 @@
                                     accept=".pdf,.doc,.docx" class="form-control">
                             </div>
                         </div>
-
-                        <button type="button" class="btn btn-primary" onclick="savePlot()">שמירה</button>
-                        <button type="button" class="btn btn-secondary" onclick="closePlotForm()">סגירה</button>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-primary" onclick="savePlot()">שמירה</button>
+                            <button type="button" class="btn btn-secondary" onclick="closePlotForm()">סגירה</button>
+                        </div>
                     </form>
+
 
                 </div>
             </div>
@@ -188,12 +191,12 @@
             </a>
         </div>
         <h1 id="plotTitle" class="fw-bold mb-2"></h1>
-        <hr class="section-divider" style="width: 280px; margin-right: 490px;">
+        <hr class="section-divider" style="width: 280px; margin-right: 495px;">
         <div
             class="navigation-container d-flex align-items-center justify-content-center gap-3 flex-wrap flex-md-nowrap mt-4">
 
             <button id="prevButton" class="btn btn-light rounded-circle">
-                <i class="bi bi-chevron-right"></i>
+                <i class="bi bi-chevron-left"></i>
             </button>
             <!-- הפרטים מתחת לתמונה -->
             <div id="plotDetails" class="text-center mx-auto">
@@ -208,7 +211,7 @@
                 <p><strong>אישור כשרות:</strong> <span id="koshercertificate"></span></p>
             </div>
             <button id="nextButton" class="btn btn-light rounded-circle">
-                <i class="bi bi-chevron-left"></i>
+                <i class="bi bi-chevron-right"></i>
             </button>
         </div>
     </div>

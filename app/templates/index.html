@@ -9,7 +9,7 @@
     <meta content="" name="description">
 
     <!-- Favicon -->
-    <link href="/static/img/favicon_v3.ico" rel="icon">
+    <link href="/static/img/favicon_v7.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,6 +36,7 @@
 
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/media.css" rel="stylesheet">
 
 </head>
 
@@ -159,25 +160,28 @@
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
                         <div class="mb-3 text-end">
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal" style="font-size: 0.9rem; color: #6c757d;">
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal"
+                                style="font-size: 0.9rem; color: #6c757d;">
                                 שכחתי סיסמה
                             </a>
 
                         </div>
                         <button type="submit" class="btn btn-primary w-100">התחבר</button>
-                        
-                        <div class="separator d-flex align-items-center justify-content-center text-muted my-3" style="font-size: 0.9rem;">
+
+                        <div class="separator d-flex align-items-center justify-content-center text-muted my-3"
+                            style="font-size: 0.9rem;">
                             <div class="flex-grow-1" style="height: 1px; background-color: #ccc;"></div>
                             <span class="px-2">אפשר גם דרך</span>
                             <div class="flex-grow-1" style="height: 1px; background-color: #ccc;"></div>
                         </div>
 
-                        <div style="margin-top: 15px;">  
-                        <a href="{{ url_for('google.login') }}" class="btn btn-google d-flex align-items-center justify-content-center">
-                        <img src="https://developers.google.com/identity/images/g-logo.png" 
-                            alt="Google icon" style="width: 20px; height: 20px; margin-left: 8px;">
-                       Google
-                        </a>
+                        <div style="margin-top: 15px;">
+                            <a href="{{ url_for('google.login') }}"
+                                class="btn btn-google d-flex align-items-center justify-content-center">
+                                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google icon"
+                                    style="width: 20px; height: 20px; margin-left: 8px;">
+                                Google
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -186,27 +190,28 @@
     </div>
 
     <!-- Forgot Password Modal -->
-    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-        <form method="POST" action="/users/forgot_password">
-            <div class="modal-header">
-            <h5 class="modal-title" id="forgotPasswordModalLabel">שחזור סיסמה</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/users/forgot_password">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="forgotPasswordModalLabel">שחזור סיסמה</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>אנא הזן את כתובת המייל שלך ונשלח לך קישור לאיפוס הסיסמה.</p>
+                        <div class="mb-3">
+                            <label for="forgot_email" class="form-label">כתובת מייל</label>
+                            <input type="email" class="form-control" id="forgot_email" name="email" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary w-100">שלח קישור</button>
+                    </div>
+                </form>
             </div>
-            <div class="modal-body">
-            <p>אנא הזן את כתובת המייל שלך ונשלח לך קישור לאיפוס הסיסמה.</p>
-            <div class="mb-3">
-                <label for="forgot_email" class="form-label">כתובת מייל</label>
-                <input type="email" class="form-control" id="forgot_email" name="email" required>
-            </div>
-            </div>
-            <div class="modal-footer">
-            <button type="submit" class="btn btn-primary w-100">שלח קישור</button>
-            </div>
-        </form>
         </div>
-    </div>
     </div>
 
 
@@ -233,7 +238,7 @@
 
     <!-- JavaScript -->
     <!-- Libraries -->
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
