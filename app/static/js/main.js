@@ -595,17 +595,24 @@ async function openPlotForm(type) {
     document.getElementById('plotChoiceModal').style.display = 'flex';
 }
 
-document.getElementById("newPlotBtn").addEventListener("click", () => {
-    isExisting = false;
-    document.getElementById("plotChoiceModal").style.display = "none";
-    openNewPlotForm(selectedPlotType);
-});
+const newPlotBtn = document.getElementById("newPlotBtn");
+if (newPlotBtn) {
+    newPlotBtn.addEventListener("click", () => {
+        isExisting = false;
+        document.getElementById("plotChoiceModal").style.display = "none";
+        openNewPlotForm(selectedPlotType);
+    });
+}
 
-document.getElementById("existingPlotBtn").addEventListener("click", () => {
-    isExisting = true;
-    document.getElementById("plotChoiceModal").style.display = "none";
-    openNewPlotForm(selectedPlotType); // פתיחת המודל החדש גם עבור קיימת, כרגע
-});
+
+const existingPlotBtn = document.getElementById("existingPlotBtn");
+if (existingPlotBtn) {
+    existingPlotBtn.addEventListener("click", () => {
+        isExisting = true;
+        document.getElementById("plotChoiceModal").style.display = "none";
+        openNewPlotForm(selectedPlotType);
+    });
+}
 
 async function openNewPlotForm(type) {
     const plotTypeInput = document.getElementById("plotType");
@@ -1135,3 +1142,79 @@ function applyRecommendation() {
             showAlert("שגיאת רשת", err.message, true);
         });
 }
+document.addEventListener("DOMContentLoaded", async function () {
+    const weatherText = document.getElementById("weather-text");
+    const weatherIcon = document.getElementById("weather-icon");
+    const shortWeatherDiv = document.getElementById("shortWeatherDiv"); // ודא שיש div כזה ב־HTML
+    const detailedWeatherButton = document.getElementById("detailedWeatherButton");
+    const detailedWeatherInfo = document.getElementById("detailedWeatherInfo");
+
+    try {
+        const response = await fetch("/weather");
+        if (!response.ok) throw new Error("שגיאה בטעינת מזג האוויר");
+
+        const data = await response.json();
+
+        // עדכון תצוגת סרגל כלים (מזג אוויר מקוצר)
+        if (shortWeatherDiv) {
+            shortWeatherDiv.innerHTML = `
+                <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                <strong>${data.city}</strong> ${data.temperature}°C
+            `;
+        }
+
+        // עדכון תצוגה כללית של טקסט ואייקון (אם קיים)
+        if (weatherText && weatherIcon) {
+            weatherText.innerHTML = `<strong>${data.city}</strong> - ${data.temperature}°C`;
+            weatherIcon.src = data.weather_icon;
+        }
+
+        // הכנה למודאל מפורט
+        if (detailedWeatherInfo) {
+            let forecastHTML = `
+                <p><strong>עיר:</strong> ${data.city}</p>
+                <p><strong>טמפרטורה:</strong> ${data.temperature}°C</p>
+                <p><strong>לחות:</strong> ${data.humidity}%</p>
+                <p><strong>רוח:</strong> ${data.wind_speed} קמ"ש</p>
+                <p><strong>תיאור:</strong> ${data.weather_description}</p>
+                <p><strong>גשם נוכחי:</strong> ${data.precipitation_now}</p>
+                <h5>תחזית גשם לימים הקרובים</h5>
+                <ul style="list-style: none; padding: 0;">
+            `;
+
+            if (data.rain_forecast && data.rain_forecast.length > 0) {
+                data.rain_forecast.forEach(day => {
+                    forecastHTML += `
+                        <li>
+                            <strong>${day.date}</strong>: 
+                            ${day.rain_mm} מ"מ, 
+                            ${day.rain_probability}% סיכוי לגשם
+                        </li>
+                    `;
+                });
+            } else {
+                forecastHTML += "<li>אין נתוני תחזית זמינים.</li>";
+            }
+
+            forecastHTML += "</ul>";
+            detailedWeatherInfo.innerHTML = forecastHTML;
+        }
+
+        // כפתור פתיחה של המודאל
+        if (detailedWeatherButton) {
+            detailedWeatherButton.addEventListener("click", () => {
+                document.getElementById("detailedWeatherModal").style.display = "flex";
+            });
+        }
+
+    } catch (error) {
+        console.error("❌ שגיאה בטעינת מזג האוויר:", error);
+        if (shortWeatherDiv) {
+            shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+        }
+        if (detailedWeatherInfo) {
+            detailedWeatherInfo.innerHTML = `<p>שגיאה בטעינת הנתונים</p>`;
+        }
+    }
+});
+

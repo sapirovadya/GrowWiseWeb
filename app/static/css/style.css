@@ -2830,20 +2830,22 @@ input[list] {
     border-radius: 6px;
     cursor: pointer;
     font-size: 15px;
-    /* מוקטן קצת */
     width: 100px;
-    /* כמו כפתור "סגור" */
     height: 45px;
-    /* גובה סטנדרטי */
     font-weight: bold;
     white-space: nowrap;
-    /* מונע שבירת שורה */
     overflow: hidden;
     text-overflow: ellipsis;
-    /* אם איכשהו יעבור רוחב */
     text-align: center;
 }
 
 .btn-apply-recommendation:hover {
     background-color: #79a230;
+}
+
+/* all pages*/
+.video-help .modal-dialog {
+    min-width: 1200px !important;
+    height: auto !important;
+
 }

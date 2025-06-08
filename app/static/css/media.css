@@ -428,20 +428,6 @@
     }
 
 
-    #weather-info-short {
-        font-weight: bold;
-        font-size: 9.5px;
-        width: 130px !important;
-        height: 29px !important;
-        transform: translateX(50px);
-    }
-
-    #weather-info-short img {
-        width: 20px !important;
-        height: 14px !important;
-        margin-left: 5px;
-    }
-
     /* pop-up info */
     .modal-body {
         padding: 25px;
@@ -489,6 +475,7 @@
         opacity: 1;
     }
 
+    /*home-pages*/
     .leaf {
         width: 140px;
         height: 140px;
@@ -889,42 +876,6 @@
         color: white;
     }
 
-    .move-buttons-lower {
-        margin-top: 20px !important;
-    }
-
-    .move-buttons-lower .container {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        justify-items: center;
-        width: 100%;
-    }
-
-    .move-buttons-lower .row {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .move-buttons-lower .col-3 {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        width: 100%;
-    }
-
-    .move-buttons-lower .col-3 img {
-        width: 70px;
-        height: 70px;
-    }
-
-    .move-buttons-lower .col-3 p {
-        font-size: 14px;
-    }
-
     /* מודל המשימות */
     #plotTasksModal .modal-dialog {
         max-width: 95vw !important;
@@ -1045,8 +996,8 @@
         padding: 4px 8px !important;
     }
 
-    .grow .modal-dialog {
-        width: auto;
+    .video-help .modal-dialog {
+        min-width: 700px !important;
         height: auto !important;
 
     }
@@ -1087,5 +1038,172 @@
     .select-plot .modal-dialog {
         width: 500px;
         height: auto;
+    }
+
+    /* plot details*/
+    .name {
+        width: 155px;
+        margin-right: 115px;
+    }
+
+    .task-per-plot .modal-dialog {
+        width: 400px;
+        height: auto !important;
+    }
+
+    .harvestOrArchive.modal {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    .harvestOrArchive .modal-dialog {
+        width: auto;
+    }
+
+    .harvestOrArchive .modal-content {
+        border-radius: 12px;
+        text-align: right;
+    }
+
+    .harvestOrArchive .modal-body {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+    }
+
+    .harvestOrArchive .modal-body button {
+        width: 100% !important;
+        max-width: 260px;
+        font-size: 16px;
+        padding: 10px;
+    }
+
+    .move-buttons-lower {
+        margin-top: 0 !important;
+    }
+
+    .move-buttons-lower .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px 10px;
+        padding: 10px 10px;
+    }
+
+    .move-buttons-lower .row.justify-content-center {
+        display: contents;
+    }
+
+    .move-buttons-lower .col-3 {
+        flex: 0 0 48%;
+        max-width: 48%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0 !important;
+        text-align: center;
+    }
+
+    .move-buttons-lower .col-3 img {
+        width: 60px;
+        height: 60px;
+    }
+
+    .move-buttons-lower .col-3 p {
+        font-size: 14px;
+        margin-top: 8px;
+        font-weight: bold;
+    }
+
+    /*all pages*/
+    .mobile-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        width: 100%;
+    }
+
+    .navbar-toggler {
+        margin-top: 10px;
+        order: 1;
+        margin-left: 0;
+    }
+
+    #weather-info-short {
+        position: absolute;
+        right: 70px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 10px;
+        white-space: nowrap;
+    }
+
+    .navbar-brand {
+        order: 3;
+        margin-left: -10px;
+    }
+
+    /*reports*/
+    .btn-sm {
+        width: 70px;
+        height: 32px;
+    }
+
+    .alert.alert-danger,
+    .alert.alert-success {
+        width: 95% !important;
+        margin: 0 auto;
+        font-size: 14px;
+    }
+
+    .alert ul {
+        padding-right: 20px;
+    }
+
+    .alert li {
+        font-size: 13px;
+    }
+
+    .alert.text-end.fw-bold {
+        width: 95% !important;
+        font-size: 1rem !important;
+        padding: 10px;
+        margin: 10px auto;
+    }
+
+    #cashFlowChart {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 250px;
+    }
+
+    .col-md-12.mt-0.d-flex.justify-content-center>div {
+        width: 95% !important;
+        max-width: none !important;
+    }
+
+    .report-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .report-filters label {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .report-filters select {
+        font-size: 14px;
+        width: auto;
     }
 }

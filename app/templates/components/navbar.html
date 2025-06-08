@@ -30,10 +30,10 @@
                             </div>
 
                             {% if session['role'] %}
-                            <div id="weather-info-short" class="d-flex align-items-center">
+                            <div id="weather-info-short" class="d-flex align-items-center weather-info">
                                 <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
                                     style="width: 24px; height: 24px; margin-right: 8px;">
-                                <span>
+                                <span id="weather-text">
                                     <strong>{{ city }}</strong> - {{ temperature }}°C
                                 </span>
                             </div>

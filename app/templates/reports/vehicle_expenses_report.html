@@ -29,6 +29,8 @@
 
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/media.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -44,7 +46,7 @@
         <hr class="section-divider">
         <br>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <form method="GET">
+            <form method="GET" class="report-filters">
                 <label>בחר רכב:</label>
                 <select name="vehicle_number" required onchange="this.form.submit()">
                     <option value="">בחר...</option>

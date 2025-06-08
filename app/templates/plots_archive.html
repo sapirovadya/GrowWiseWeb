@@ -28,6 +28,8 @@
 
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/media.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -49,89 +51,94 @@
 
         {% if plots_yield %}
         <h2 class="mt-4">קצירה</h2>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>שם החלקה</th>
-                    <th>מה נזרע</th>
-                    <th>תאריך זריעה</th>
-                    <th>כמות שנזרעה (ק״ג)</th>
-                    <th>כמות השקייה (קו״ב)</th>
-                    <th>תאריך קצירה</th>
-                    <th>תפוקת יבול (ק״ג)</th>
-                    <th>דרוש אישור כשרות?</th>
-                    <th>אישור כשרות</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for plot in plots_yield %}
-                <tr>
-                    <td>{{ plot.plot_name }}</td>
-                    <td>{{ plot.crop or "לא זמין" }}</td>
-                    <td>{{ plot.sow_date | format_date }}</td>
-                    <td>{{ plot.quantity_planted or "לא זמין" }}</td>
-                    <td>{{ plot.total_irrigation_amount or "0" }}</td>
-                    <td>{{ plot.harvest_date | format_date }}</td>
-                    <td>{{ plot.crop_yield or "0" }}</td>
-                    <td>{{ "כן" if plot.kosher_required else "לא" }}</td>
-                    <td>
-                        {% if plot.kosher_required and plot.kosher_certificate %}
-                        <a href="{{ url_for('static', filename=plot.kosher_certificate.replace('static/', '')) }}"
-                            target="_blank">
-                            {{ plot.kosher_certificate.split('/')[-1] }}
-                        </a>
-                        {% else %}
-                        אין
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
+        <div class="table-responsive">
 
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>שם החלקה</th>
+                        <th>מה נזרע</th>
+                        <th>תאריך זריעה</th>
+                        <th>כמות שנזרעה (ק״ג)</th>
+                        <th>כמות השקייה (קו״ב)</th>
+                        <th>תאריך קצירה</th>
+                        <th>תפוקת יבול (ק״ג)</th>
+                        <th>דרוש אישור כשרות?</th>
+                        <th>אישור כשרות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plot in plots_yield %}
+                    <tr>
+                        <td>{{ plot.plot_name }}</td>
+                        <td>{{ plot.crop or "לא זמין" }}</td>
+                        <td>{{ plot.sow_date | format_date }}</td>
+                        <td>{{ plot.quantity_planted or "לא זמין" }}</td>
+                        <td>{{ plot.total_irrigation_amount or "0" }}</td>
+                        <td>{{ plot.harvest_date | format_date }}</td>
+                        <td>{{ plot.crop_yield or "0" }}</td>
+                        <td>{{ "כן" if plot.kosher_required else "לא" }}</td>
+                        <td>
+                            {% if plot.kosher_required and plot.kosher_certificate %}
+                            <a href="{{ url_for('static', filename=plot.kosher_certificate.replace('static/', '')) }}"
+                                target="_blank">
+                                {{ plot.kosher_certificate.split('/')[-1] }}
+                            </a>
+                            {% else %}
+                            אין
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
         {% if plots_archive %}
         <h2 class="mt-5">ארכיון</h2>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>שם החלקה</th>
-                    <th>מה נזרע</th>
-                    <th>תאריך זריעה</th>
-                    <th>כמות שנזרעה (ק״ג)</th>
-                    <th>כמות השקייה (קו״ב)</th>
-                    <th>תאריך קצירה</th>
-                    <th>תפוקת יבול (ק״ג)</th>
-                    <th>דרוש אישור כשרות?</th>
-                    <th>אישור כשרות</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for plot in plots_archive %}
-                <tr>
-                    <td>{{ plot.plot_name }}</td>
-                    <td>{{ plot.crop or "לא זמין" }}</td>
-                    <td>{{ plot.sow_date | format_date }}</td>
-                    <td>{{ plot.quantity_planted or "לא זמין" }}</td>
-                    <td>{{ plot.total_irrigation_amount or "0" }}</td>
-                    <td>{{ plot.harvest_date | format_date }}</td>
-                    <td>{{ plot.crop_yield or "0" }}</td>
-                    <td>{{ "כן" if plot.kosher_required else "לא" }}</td>
-                    <td>
-                        {% if plot.kosher_required and plot.kosher_certificate %}
-                        <a href="{{ url_for('static', filename=plot.kosher_certificate.replace('static/', '')) }}"
-                            target="_blank">
-                            {{ plot.kosher_certificate.split('/')[-1] }}
-                        </a>
-                        {% else %}
-                        אין
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
+        <div class="table-responsive">
+
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>שם החלקה</th>
+                        <th>מה נזרע</th>
+                        <th>תאריך זריעה</th>
+                        <th>כמות שנזרעה (ק״ג)</th>
+                        <th>כמות השקייה (קו״ב)</th>
+                        <th>תאריך קצירה</th>
+                        <th>תפוקת יבול (ק״ג)</th>
+                        <th>דרוש אישור כשרות?</th>
+                        <th>אישור כשרות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plot in plots_archive %}
+                    <tr>
+                        <td>{{ plot.plot_name }}</td>
+                        <td>{{ plot.crop or "לא זמין" }}</td>
+                        <td>{{ plot.sow_date | format_date }}</td>
+                        <td>{{ plot.quantity_planted or "לא זמין" }}</td>
+                        <td>{{ plot.total_irrigation_amount or "0" }}</td>
+                        <td>{{ plot.harvest_date | format_date }}</td>
+                        <td>{{ plot.crop_yield or "0" }}</td>
+                        <td>{{ "כן" if plot.kosher_required else "לא" }}</td>
+                        <td>
+                            {% if plot.kosher_required and plot.kosher_certificate %}
+                            <a href="{{ url_for('static', filename=plot.kosher_certificate.replace('static/', '')) }}"
+                                target="_blank">
+                                {{ plot.kosher_certificate.split('/')[-1] }}
+                            </a>
+                            {% else %}
+                            אין
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
 
         {% if not plots_yield and not plots_archive %}
         <p class="no-data">אין חלקות להצגה.</p>
@@ -139,8 +146,8 @@
     </div>
 
     <!-- Help Modal -->
-    <div id="helpModal" class="modal grow" style="display:none;">
-        <div class="modal-dialog" style="width: 700px; height: 600px;">
+    <div id="helpModal" class="modal video-help" style="display:none;">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">הסבר על עמוד ארכיון חלקות וחממות</h5>
@@ -156,11 +163,15 @@
             </div>
         </div>
     </div>
-
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
+    <!-- טעינת Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     <script src="/static/js/main.js"></script>
     <script src="/static/js/supply.js"></script>

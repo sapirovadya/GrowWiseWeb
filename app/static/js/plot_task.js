@@ -36,18 +36,28 @@ async function loadPlotTasks(plotId) {
         taskElement.innerHTML = html;
         container.appendChild(taskElement);
     });
-
     if (data.is_manager) {
-        document.getElementById("addTaskArea").style.display = "block";
-        const employeeSelect = document.getElementById("newTaskEmployee");
-        employeeSelect.innerHTML = "";
-        data.employees.forEach(e => {
-            const option = document.createElement("option");
-            option.value = e.email;
-            option.textContent = e.name;
-            employeeSelect.appendChild(option);
-        });
+        let addTaskArea = document.getElementById("addTaskArea");
+        if (!addTaskArea) {
+            addTaskArea = document.createElement("div");
+            addTaskArea.id = "addTaskArea";
+            addTaskArea.style.display = "none";
+            container.prepend(addTaskArea);
+        }
+        addTaskArea.style.display = "block";
+
+        const employeeSelect = document.getElementById("newTaskEmployeeSelect");
+        if (employeeSelect) {
+            employeeSelect.innerHTML = "";
+            data.employees.forEach(e => {
+                const option = document.createElement("option");
+                option.value = e.email;
+                option.textContent = e.name;
+                employeeSelect.appendChild(option);
+            });
+        }
     }
+
 }
 
 function toggleTaskDescription(taskId) {
