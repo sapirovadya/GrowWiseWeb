@@ -6,7 +6,7 @@
     <title>GrowWise</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <link href="/static/img/favicon_v3.ico" rel="icon">
+    <link href="/static/img/favicon_v7.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,6 +29,8 @@
 
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/media.css" rel="stylesheet">
+
     <script>
         function navigateToPage(category) {
             window.location.href = `/supply-inventory-${category}`;
@@ -67,17 +69,20 @@
                         <td>{{ supply.name }}</td>
                         <td>{{ supply.quantity }}</td>
                         <td>
-                            <button class="edit-btn" style="margin-left: 7px;"
-                                onclick="editSupply('{{ supply.name }}', '{{ supply.quantity }}')">
-                                <i class="fas fa-credit-card"></i> קנייה
-                            </button>
-                            <button class="edit-btn" style="margin-left: 7px;"
-                                onclick="openSaleModal('{{ supply.name }}')">
-                                <i class="fas fa-hand-holding-usd"></i> מכירה
-                            </button>
-                            <button class="edit-btn" onclick="openUpdateInventoryModal('{{ supply.name }}', 'הדברה')">
-                                <i class="fas fa-edit"></i> שינוי מלאי
-                            </button>
+                            <div class="btn-group-mobile">
+                                <button class="edit-btn" style="margin-left: 7px;"
+                                    onclick="editSupply('{{ supply.name }}', '{{ supply.quantity }}')">
+                                    <i class="fas fa-credit-card"></i> קנייה
+                                </button>
+                                <button class="edit-btn" style="margin-left: 7px;"
+                                    onclick="openSaleModal('{{ supply.name }}')">
+                                    <i class="fas fa-hand-holding-usd"></i> מכירה
+                                </button>
+                                <button class="edit-btn"
+                                    onclick="openUpdateInventoryModal('{{ supply.name }}', 'הדברה')">
+                                    <i class="fas fa-edit"></i> שינוי מלאי
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}

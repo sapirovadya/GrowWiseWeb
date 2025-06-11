@@ -2341,23 +2341,26 @@ button.btn-light:hover {
     color: white;
 }
 
+
+/*הוספת מחיר לתפוקת ייבול*/
 #yieldPriceModal {
     justify-content: center;
     align-items: center;
+    overflow: hidden;
 }
 
-/*הוספת מחיר לתפוקת ייבול*/
 #yieldPriceModal .modal-dialog {
-    width: 60%;
-    max-width: 700px;
-    height: auto;
+    width: 90%;
+    max-width: 630px;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 #yieldPriceModal .modal-content {
     padding: 0px !important;
     border-radius: 12px;
     width: 55% !important;
-
+    box-sizing: border-box;
 }
 
 #yieldPriceModal .modal-footer {
@@ -2848,4 +2851,20 @@ input[list] {
     min-width: 1200px !important;
     height: auto !important;
 
+}
+
+/*expenses - water*/
+#waterPriceModal {
+    overflow: hidden !important;
+}
+
+#waterPriceModal .modal-dialog {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#waterPriceModal .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
 }

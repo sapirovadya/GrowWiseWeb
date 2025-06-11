@@ -6,7 +6,7 @@
     <title>GrowWise</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <link href="/static/img/favicon_v3.ico" rel="icon">
+    <link href="/static/img/favicon_v7.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,6 +29,8 @@
 
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/media.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -56,7 +58,7 @@
             </div>
             <br>
             <!-- Vehicels table-->
-            <table class="table table-bordered">
+            <table class="table table-bordered vehicle-table">
                 <thead>
                     <tr>
                         <th>מספר רכב</th>
@@ -227,26 +229,26 @@
 
     <div id="editKmModal" class="modal fade">
         <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">עדכן ק"מ / שעות עבודה</h5>
-              <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-              <form id="editKmForm">
-                <input type="hidden" id="editKmVehicleId">
-                <label for="editKmWorkHours">ק"מ / שעות עבודה</label>
-                <input type="text" id="editKmWorkHours" class="form-control" required>
-                <div class="mt-3 text-end modal-footer">
-                  <button type="submit" class="btn btn-success">שמור</button>
-                  <button type="button" class="btn btn-danger" onclick="clearKmField()">איפוס שדה</button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">עדכן ק"מ / שעות עבודה</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
                 </div>
-              </form>
+                <div class="modal-body">
+                    <form id="editKmForm">
+                        <input type="hidden" id="editKmVehicleId">
+                        <label for="editKmWorkHours">ק"מ / שעות עבודה</label>
+                        <input type="text" id="editKmWorkHours" class="form-control" required>
+                        <div class="mt-3 text-end modal-footer">
+                            <button type="submit" class="btn btn-success">שמור</button>
+                            <button type="button" class="btn btn-danger" onclick="clearKmField()">איפוס שדה</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-      
+    </div>
+
 
     <!-- Alert Box -->
     <div id="customAlert" class="alert-box" style="display:none;">

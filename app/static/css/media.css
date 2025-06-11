@@ -50,7 +50,6 @@
         max-width: 100%;
         padding: 0;
         margin: 0;
-        overflow: hidden;
     }
 
     .container-fluid.footer .container {
@@ -143,7 +142,7 @@
         height: auto;
         box-shadow: none !important;
         border-radius: 0;
-        z-index: 1055 !important;
+        z-index: 9999 !important;
         margin: 0 !important;
     }
 
@@ -242,8 +241,9 @@
 
     .title {
         text-align: center;
-        font-size: 20px;
-        margin-bottom: 20px;
+        font-size: 1.3rem;
+        font-weight: bold;
+        margin-bottom: 0;
     }
 
     .modal-dialog {
@@ -503,6 +503,17 @@
     }
 
     /* Attendance-manager */
+
+    .btn.flex-fill {
+        font-size: 1.2rem;
+        padding: 10px;
+    }
+
+    #message {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
     .attendance-manager .table-responsive {
         overflow-x: auto;
         display: block;
@@ -527,9 +538,8 @@
 
 
     .attendance-manager .button-circle {
-        position: absolute;
         top: 10px;
-        right: 10px;
+        right: 15px;
         width: 45px;
         height: 45px;
         display: flex;
@@ -539,11 +549,15 @@
         background-color: var(--primary);
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         z-index: 1000;
+        padding: 0;
+        border: none;
+        margin: 0;
+        flex-shrink: 0;
     }
 
     .attendance-manager .button-circle img {
-        width: 24px;
-        height: 24px;
+        width: 40px;
+        height: 40px;
     }
 
     .attendance-manager h1 {
@@ -618,13 +632,6 @@
         color: white;
     }
 
-    .attendance-modal .button-group {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        margin-top: -10px !important;
-    }
-
     .attendance-modal .btn {
         width: 120px;
         padding: 10px;
@@ -640,32 +647,41 @@
         margin-top: 5px;
     }
 
-    .attendance-manager .button-circle {
-        position: absolute;
-        top: -6px;
-        right: 10px;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: var(--primary);
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000 !important;
-        opacity: 1 !important;
-        visibility: visible !important;
+
+    .search-group {
+        flex-direction: column;
+        align-items: flex-start;
     }
 
-    .attendance-manager .button-circle img {
-        width: 22px;
-        height: 22px;
+    .search-group input {
+        width: 100%;
     }
 
     .attendance-manager {
         position: relative;
     }
 
+    .edit-attendance-btn {
+        background-color: #f0ad4e;
+        color: #fff;
+        border: none;
+        padding: 6px 12px;
+        font-size: 15px;
+        font-weight: bold;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease-in-out;
+    }
+
+    .edit-attendance-btn:hover {
+        background-color: #ec971f;
+        transform: scale(1.03);
+        color: #fff;
+    }
 
     #singleView {
         position: relative;
@@ -759,7 +775,7 @@
         color: white;
     }
 
-    /* חדש */
+    /*supply*/
     .supply-modal .modal-content {
         width: 95%;
         padding: 15px;
@@ -784,6 +800,101 @@
         justify-content: center;
         align-items: center;
         margin-top: 70px;
+    }
+
+    #seedsTable tr,
+    #pesticidesTable tr,
+    #generalProductsTable tr {
+        display: block;
+        background: #f2f2f2 !important;
+        border: none;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    #seedsTable thead,
+    #pesticidesTable thead,
+    #generalProductsTable thead {
+        display: none !important;
+    }
+
+    #seedsTable td,
+    #pesticidesTable td,
+    #generalProductsTable td {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    #seedsTable td:last-child,
+    #pesticidesTable td:last-child,
+    #generalProductsTable td:last-child {
+        display: block !important;
+        padding: 8px 0;
+    }
+
+    .btn-group-mobile {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 1px !important;
+        width: 100%;
+    }
+
+    .btn-group-mobile .edit-btn {
+        flex: 1 1 30%;
+        min-width: 100px;
+        padding: 8px 2px;
+        font-size: 16px;
+        text-align: center;
+        direction: rtl;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: none;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        white-space: nowrap;
+    }
+
+    #seedsTable td:last-child .btn-group-mobile,
+    #pesticidesTable td:last-child .btn-group-mobile,
+    #generalProductsTable td:last-child .btn-group-mobile {
+        flex-direction: row !important;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 6px;
+        direction: rtl;
+    }
+
+    #seedsTable td::before,
+    #pesticidesTable td::before,
+    #generalProductsTable td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        flex: 1;
+        text-align: right;
+    }
+
+    .btn-group-mobile .edit-btn i {
+        margin-left: 4px;
+        font-size: 16px;
+    }
+
+    #seedsTable td input[type="text"],
+    #seedsTable td input[type="number"],
+    #pesticidesTable td input[type="text"],
+    #pesticidesTable td input[type="number"],
+    #generalProductsTable td input[type="text"],
+    #generalProductsTable td input[type="number"] {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        font-size: 16px;
     }
 
     .custom-modal .modal-dialog {
@@ -1206,4 +1317,466 @@
         font-size: 14px;
         width: auto;
     }
+
+    /*my team*/
+    .employee-table {
+        width: 93%;
+        border-collapse: collapse;
+    }
+
+    .employee-table thead {
+        display: none;
+    }
+
+    .employee-table tbody,
+    .employee-table tr,
+    .employee-table td {
+        display: block;
+        width: 100%;
+        text-align: right;
+    }
+
+    .employee-table tr {
+        margin-bottom: 20px;
+        padding: 10px;
+    }
+
+    .employee-table td {
+        padding: 8px 10px;
+        border: none;
+        position: relative;
+    }
+
+    .employee-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        display: inline-block;
+        width: 120px;
+        color: #333;
+    }
+
+    #taskModal .modal-content {
+        width: 95% !important;
+        max-width: 320px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 0 auto;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        text-align: right;
+    }
+
+    #taskModal form label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+        font-size: 16px;
+    }
+
+    #taskModal form input,
+    #taskModal form textarea {
+        width: 100%;
+        padding: 10px;
+        font-size: 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+
+    #taskModal form .btn {
+        width: 48%;
+        font-size: 16px;
+        padding: 10px;
+        margin: 5px 1%;
+        border-radius: 8px;
+    }
+
+    #taskModal form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #taskModal .section-divider {
+        margin: 10px 0;
+    }
+
+    /*all task*/
+
+    .btn.filter {
+        width: 55px !important;
+        height: auto !important;
+        text-align: center;
+        margin-left: 10px;
+    }
+
+
+    .task-table thead {
+        display: none;
+    }
+
+    .task-table tr {
+        display: block;
+        margin-bottom: 20px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        text-align: right;
+        padding: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .task-table td {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        text-align: right;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        font-size: 15px;
+        gap: 10px;
+    }
+
+    .task-table td * {
+        text-align: right !important;
+        direction: rtl !important;
+    }
+
+    .task-table td:last-child {
+        border-bottom: none;
+    }
+
+    .task-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #555;
+        white-space: nowrap;
+        flex: none;
+        min-width: 110px;
+    }
+
+    .task-table td[data-label="פעולה:"],
+    .task-table td:last-child {
+        justify-content: flex-start;
+        padding-right: 10px;
+        direction: rtl;
+    }
+
+    .task-table td[data-label="פעולה:"] .btn,
+    .task-table td:last-child .btn {
+        font-size: 15px;
+        border-radius: 6px;
+        text-align: center;
+        width: auto;
+        height: auto;
+    }
+
+    /*expenses - yield*/
+
+    #yieldPriceModal {
+        display: none;
+        /* ברירת מחדל — מוסתר */
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 1050;
+    }
+
+    #yieldPriceModal.active {
+        display: flex;
+    }
+
+
+    #yieldPriceModal .modal-content {
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 1rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        background-color: #fff;
+    }
+
+    #yieldPriceModal .modal-body label {
+        font-weight: bold;
+        margin-top: 10px;
+        display: block;
+        font-size: 1rem;
+    }
+
+    #yieldPriceModal .modal-body input,
+    #yieldPriceModal .modal-body select {
+        font-size: 1rem;
+        padding: 10px;
+        width: 100%;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+
+    #yieldPriceModal .modal-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding-top: 10px;
+    }
+
+    #yieldPriceModal .modal-footer .btn {
+        flex: 1;
+        font-size: 1rem;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    /*expenses - water*/
+    #chooseWaterTypeForWaterModal {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1060;
+    }
+
+    #chooseWaterTypeForWaterModal.show {
+        display: flex;
+    }
+
+    #chooseWaterTypeForWaterModal .modal-dialog {
+        width: 100%;
+        width: 1000px;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #chooseWaterTypeForWaterModal .modal-header {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    #chooseWaterTypeForWaterModal .modal-title {
+        flex-grow: 1;
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    #chooseWaterTypeForWaterModal .btn-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        font-weight: bold;
+        color: #444;
+        cursor: pointer;
+    }
+
+    #chooseWaterTypeForWaterModal .modal-body {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 5px;
+        align-items: center;
+    }
+
+    #chooseWaterTypeForWaterModal .modal-body .btn {
+        width: 100%;
+        max-width: 100%;
+        font-size: 18px;
+        height: auto;
+        border-radius: 10px;
+        font-weight: bold;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    #waterPriceModal {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1060;
+    }
+
+    #waterPriceModal.show {
+        display: flex;
+    }
+
+    #waterPriceModal .modal-dialog {
+        width: 1000px !important;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transform: translateY(90px);
+
+    }
+
+    #waterPriceModal .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    #waterPriceModal .modal-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin: 0 auto;
+        text-align: center;
+        flex-grow: 1;
+    }
+
+    #waterPriceModal .btn-close {
+        font-size: 24px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        color: #333;
+    }
+
+    #currentWaterPriceBox {
+        margin-bottom: 5px;
+        text-align: center;
+        font-size: 16px;
+        padding: 7px;
+        border-radius: 8px;
+    }
+
+    #waterPriceModal .modal-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    #waterPriceModal .modal-body label {
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    #waterPriceModal .modal-body input {
+        font-size: 16px;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    #waterPriceModal .modal-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    #waterPriceModal .modal-footer .btn {
+        flex: 1;
+        font-size: 16px;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    /*vehicles*/
+    .vehicle-table thead {
+        display: none;
+    }
+
+    .vehicle-table tr {
+        display: block;
+        margin-bottom: 15px;
+        background: #ffffff;
+        direction: rtl !important;
+
+        border: 2px solid #ccc;
+        border-radius: 12px;
+        padding: 10px;
+        justify-content: flex-start !important;
+        text-align: start;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .vehicle-table td {
+        display: flex;
+        direction: rtl !important;
+        text-align: right !important;
+        justify-content: flex-end !important;
+        align-items: flex-end;
+        padding: 6px 0;
+        white-space: normal;
+        font-size: 15px;
+        border: none;
+        border-bottom: 1px solid #eee;
+        line-height: 1.4;
+    }
+
+    .vehicle-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #444;
+        flex: 1;
+        text-align: right;
+        padding-left: 5px;
+    }
+
+    .vehicle-table .btn-group-management {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: start !important;
+        gap: 6px;
+    }
+
+    .vehicle-table .btn-group-management .btn {
+        flex: 0 0 48%;
+        font-size: 14px;
+        padding: 6px 4px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .vehicle-table .btn-delete-vehicle {
+        display: block;
+        margin: 10px auto 0 auto;
+        width: 30%;
+        text-align: center;
+    }
+
+    .vehicle-table td:last-child {
+        border-bottom: none;
+    }
+
+    .vehicle-table .btn {
+        font-size: 14px;
+        padding: 6px 10px;
+        margin: 2px 4px;
+        width: 100%;
+    }
+
+    .vehicle-table .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+    }
+
 }

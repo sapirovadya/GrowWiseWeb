@@ -9,7 +9,7 @@
     <meta content="" name="description">
 
     <!-- Favicon -->
-    <link href="/static/img/favicon_v3.ico" rel="icon">
+    <link href="/static/img/favicon_v7.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,6 +36,8 @@
 
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/media.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -141,12 +143,13 @@
                             <datalist id="cities_list"></datalist>
                         </div>
                         <button class="btn btn-primary w-100 py-3" type="submit">הרשמה</button>
-                        <div> <br>  
-                        <a href="{{ url_for('google.login') }}" class="btn btn-google d-flex align-items-center justify-content-center">
-                        <img src="https://developers.google.com/identity/images/g-logo.png" 
-                            alt="Google icon" style="width: 20px; height: 20px; margin-left: 8px;">
-                        הרשמה דרך Google
-                        </a>
+                        <div> <br>
+                            <a href="{{ url_for('google.login') }}"
+                                class="btn btn-google d-flex align-items-center justify-content-center">
+                                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google icon"
+                                    style="width: 20px; height: 20px; margin-left: 8px;">
+                                הרשמה דרך Google
+                            </a>
                         </div>
                     </form>
                 </div>

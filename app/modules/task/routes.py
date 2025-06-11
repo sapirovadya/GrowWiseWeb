@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify,session
 import pymongo
+from bson import ObjectId
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -85,6 +86,7 @@ def get_tasks():
             # מציגים רק אם העובד עדיין קיים
             if employee_email in existing_emails:
                 result.append({
+                    "_id": str(task["_id"]),
                     "employee_name": existing_emails[employee_email],
                     "task_name": task["task_name"],
                     "task_content": task["task_content"],
@@ -100,6 +102,7 @@ def get_tasks():
         result = []
         for task in tasks:
             result.append({
+                "_id": str(task["_id"]),
                 "employee_name": "אתה",
                 "task_name": task["task_name"],
                 "task_content": task["task_content"],
@@ -107,9 +110,24 @@ def get_tasks():
                 "status": task["status"]
             })
 
+
         return jsonify(result)
 
 
 @task_bp.route('/alltasks.html', methods=['GET'])
 def render_all_tasks():
     return render_template('all_tasks.html')
+
+@task_bp.route('/update_status', methods=['POST'])
+def update_task_status():
+    data = request.get_json()
+    task_id = data.get("id")
+    new_status = data.get("status")
+
+    if not task_id or new_status not in ["in_progress", "done"]:
+        return jsonify({"success": False, "error": "Invalid data"}), 400
+
+    result = db.task.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": new_status}})
+    if result.modified_count == 1:
+        return jsonify({"success": True})
+    return jsonify({"success": False, "error": "No update occurred"})
