@@ -44,7 +44,11 @@
                     <i class="bi bi-question-circle-fill fs-4"></i>
                 </button>
             </div>
-            <a onclick="goBack()" class="btn btn-primary">חזרה</a>
+            {% if session['role'] == "manager" or session['role'] == "co_manager" %}
+            <a href="{{ url_for('manager_bp.manager_home_page') }}" class="btn btn-primary">חזרה</a>
+            {% elif session['role'] == "employee" %}
+            <a href="{{ url_for('employee_bp.employee_home_page') }}" class="btn btn-primary">חזרה</a>
+            {% endif %}
         </div>
         <hr class="section-divider">
     </div>
@@ -68,7 +72,7 @@
         </div>
     </div>
 
-    <div class="container mt-4 plots-container">
+    <div class="container mt-3 plots-container">
         <div id="plotsContainer">
             <!--Show all plots-->
         </div>

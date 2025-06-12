@@ -563,15 +563,16 @@ textarea {
 
 .plot-container {
     text-align: center;
-    margin-bottom: 50px;
-    margin-top: 15px;
+    margin-bottom: 6px;
+    margin-top: 6px;
 }
 
 #plotsContainer {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
-    gap: 50px;
+    gap: 70px;
+    margin-top: 0;
 }
 
 #plotChoiceModal .modal-dialog {
@@ -659,8 +660,8 @@ span.me-2 {
     background-color: transparent;
     border: none;
     border-top: 3px solid #8fb23e;
-    margin-top: 10px;
-    margin-bottom: 5px;
+    margin-top: 4px;
+    margin-bottom: 3px;
 }
 
 .secondary-navbar {
@@ -1430,7 +1431,7 @@ td:last-child {
 /* profile */
 .profile-container {
     max-width: 600px;
-    margin: 50px auto;
+    margin: 10px auto;
     padding: 20px;
     background-color: #f9f9f9;
     border: 1px solid #ddd;

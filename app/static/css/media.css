@@ -1779,4 +1779,17 @@
         width: 100%;
     }
 
+    /*profile- change password*/
+    .btn-change {
+        width: auto;
+        height: auto;
+        font-size: 16px;
+    }
+
+    /*optimal plots*/
+    .btn-outline-success {
+        width: auto;
+        height: auto;
+        font-size: 18spx;
+    }
 }

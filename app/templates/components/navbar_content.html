@@ -64,6 +64,8 @@ session['role'] == "employee"%} <div class="nav-item dropdown">
             ואספקה</a>
         <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
             הוצאות</a>
+        <a href='{{ url_for("optimal_bp.optimal_management_page") }}' class="dropdown-item">
+            ניהול חלקות אופטימלי</a>
         {% endif %}
     </div>
 </div>

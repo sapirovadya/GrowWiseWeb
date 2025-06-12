@@ -86,7 +86,7 @@
                 'archive': '{{ url_for("plot_bp.archive") }}',
                 'task': '/task/alltasks.html',
                 'attendance': '{{ url_for("attendance_bp.report_attendance_page") }}',
-                'inventory': '#',
+                'inventory': '{{ url_for("manager_bp.logistic_management") }}',
             };
 
             if (urls[page]) {

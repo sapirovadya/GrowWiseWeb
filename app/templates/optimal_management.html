@@ -6,7 +6,7 @@
     <title>GrowWise</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <link href="/static/img/favicon_v3.ico" rel="icon">
+    <link href="/static/img/favicon_v7.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,6 +29,8 @@
 
     <!-- Template Stylesheet -->
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/media.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -44,7 +46,7 @@
                     <i class="bi bi-question-circle-fill fs-4"></i>
                 </button>
             </div>
-            <button onclick="goBack()" class="btn btn-primary">חזרה</button>
+            <a href="{{ url_for('manager_bp.manager_home_page') }}" class="btn btn-primary">חזרה</a>
         </div>
         <hr class="section-divider">
         <br>
@@ -95,7 +97,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
-                    <button type="button" class="btn-apply-recommendation" onclick="applyRecommendation()">בצע המלצה</button>
+                    <button type="button" class="btn-apply-recommendation" onclick="applyRecommendation()">בצע
+                        המלצה</button>
                 </div>
             </div>
         </div>
@@ -182,7 +185,7 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.length === 0) {
-                        alert("אין חלקות זמינות לבחירה.");
+                        showAlert("שגיאה", "אין חלקות זמינות לבחירה.");
                         return;
                     }
 
@@ -214,7 +217,7 @@
                 }));
 
             if (selectedPlots.length === 0) {
-                alert("יש לבחור לפחות חלקה אחת");
+                showAlert("שגיאה", "יש לבחור לפחות חלקה אחת");
                 return;
             }
 
@@ -245,7 +248,7 @@
             const selected = document.querySelectorAll("input[name='crops']:checked");
             if (selected.length > limit) {
                 checkbox.checked = false;
-                alert("ניתן לבחור עד " + limit + " גידולים בלבד (לפי מספר החלקות)");
+                showAlert("שגיאה", "ניתן לבחור עד " + limit + " גידולים בלבד (לפי מספר החלקות)");
             }
         }
 
@@ -253,7 +256,7 @@
         async function getPlan() {
             const selectedCrops = Array.from(document.querySelectorAll("input[name='crops']:checked")).map(cb => cb.value);
             if (selectedCrops.length !== selectedPlots.length) {
-                alert("בחרי בדיוק " + selectedPlots.length + " גידולים");
+                showAlert("שגיאה", "בחרי בדיוק " + selectedPlots.length + " גידולים");
                 return;
             }
 
