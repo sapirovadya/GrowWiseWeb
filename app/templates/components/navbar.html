@@ -29,7 +29,8 @@
                                 </div>
                             </div>
 
-                            {% if session['role'] %}
+                            {% if session['role'] == "manager" or session['role'] == "co_manager" or session['role'] ==
+                            "employee"%}
                             <div id="weather-info-short" class="d-flex align-items-center weather-info">
                                 <img id="weather-icon" src="{{ weather_icon }}" alt="Weather Icon"
                                     style="width: 24px; height: 24px; margin-right: 8px;">

@@ -55,10 +55,9 @@ session['role'] == "employee"%} <div class="nav-item dropdown">
         <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">המשימות שלי</a>
 
         {% elif session['role'] == "manager" or session['role'] == "co_manager" %}
-        <a href="{{ url_for('plot_bp.archive') }}" class="dropdown-item">ארכיון</a>
         <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">הצוות
             שלי</a>
-        <a href='/task/alltasks.html' class="dropdown-item">כל המשימות</a>
+        <a href='/task/alltasks.html' class="dropdown-item">משימות עובדים</a>
         <a href="{{url_for('attendance_bp.attendance_manager_page')}}" class="dropdown-item">נוכחות עובדים</a>
         <a href="{{ url_for('supply_bp.supply_inventory') }}" class="dropdown-item">מלאי
             ואספקה</a>
@@ -66,6 +65,12 @@ session['role'] == "employee"%} <div class="nav-item dropdown">
             הוצאות</a>
         <a href='{{ url_for("optimal_bp.optimal_management_page") }}' class="dropdown-item">
             ניהול חלקות אופטימלי</a>
+        <a href="{{ url_for('plot_bp.archive') }}" class="dropdown-item">ארכיון חלקות וחממות</a>
+        <a href='{{ url_for("reports_bp.reports_home") }}' class="dropdown-item">
+            דו״חות</a>
+        <a href='{{ url_for("posts_bp.social_feed") }}' class="dropdown-item">רשת חברתית</a>
+        {% elif session['role'] == "job_seeker" %}
+        <a href='{{ url_for("posts_bp.social_feed") }}' class="dropdown-item">רשת חברתית</a>
         {% endif %}
     </div>
 </div>

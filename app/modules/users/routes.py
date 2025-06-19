@@ -391,7 +391,13 @@ def profile_page():
         if user:
             return render_template('profile.html', user=user)
         else:
-            return redirect(url_for('employee_bp.employee_home_page'))  
+            return redirect(url_for('employee_bp.employee_home_page'))
+    elif role == "job_seeker":
+        user = db.job_seeker.find_one({"email": user_email})  
+        if user:
+            return render_template('profile.html', user=user)
+        else:
+            return redirect(url_for('job_seeker_bp.job_seeker_home_page'))   
     else:
         return redirect(url_for('home')) 
 

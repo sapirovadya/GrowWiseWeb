@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta
 import json
 import io
 import base64
-# from weasyprint import HTML
+from weasyprint import HTML
 import matplotlib
 matplotlib.use('Agg')
 matplotlib.rcParams['font.family'] = 'Arial'
@@ -1188,25 +1188,66 @@ def vehicle_expenses():
         year_start = datetime(int(selected_year), 1, 1)
         year_end = datetime(int(selected_year), 12, 31, 23, 59, 59)
 
-        def total_cost(col, date_field, price_field):
-            return sum(
-                float(doc.get(price_field, 0))
-                for doc in db[col].find({
-                    "vehicle_number": vehicle_number,
-                    "manager_email": manager_email,
-                    date_field: {
-                        "$gte": year_start.strftime("%Y-%m-%d"),
-                        "$lte": year_end.strftime("%Y-%m-%d")
-                    }
-                })
-            )
+        def calculate_fuel_cost(vehicle_number, manager_email, selected_year):
+            start_date = datetime(int(selected_year), 1, 1)
+            end_date = datetime(int(selected_year), 12, 31, 23, 59, 59)
+
+            relevant_emails = get_all_relevant_emails(manager_email)
+            total = 0
+
+            for doc in db.fuel.find({
+                "vehicle_number": vehicle_number,
+                "email": {"$in": relevant_emails}
+            }):
+                try:
+                    refuel_type = doc.get("refuel_type", "")
+                    if refuel_type == "דלקן":
+                        month_str = doc.get("month", "")
+                        if not month_str or len(month_str) != 7:
+                            continue
+                        date = datetime.strptime(month_str + "-01", "%Y-%m-%d")
+                    else:
+                        date_str = doc.get("refuel_date", "")
+                        if not date_str or len(date_str) < 10:
+                            continue
+                        date = datetime.strptime(date_str[:10], "%Y-%m-%d")
+
+                    if not (start_date <= date <= end_date):
+                        continue
+
+                    amount = float(doc.get("fuel_amount", 0))
+                    cost = float(doc.get("cost", 0))
+                    total += amount * cost
+                except Exception as e:
+                    print("Fuel calc error:", e)
+                    continue
+
+            return round(total, 2)
+        def total_cost(col, date_field, price_field, start_date, end_date, vehicle_number, manager_email):
+            total = 0
+            for doc in db[col].find({
+                "vehicle_number": vehicle_number,
+                "manager_email": manager_email
+            }):
+                try:
+                    date_str = doc.get(date_field)
+                    if not date_str or len(date_str) < 10:
+                        continue
+                    date = datetime.strptime(date_str[:10], "%Y-%m-%d")
+                    if not (start_date <= date <= end_date):
+                        continue
+                    total += float(doc.get(price_field, 0))
+                except:
+                    continue
+            return total
 
         expenses = {
-            "fuel": total_cost("fuel", "fuel_date", "fuel_price"),
-            "service": total_cost("service_history", "service_date", "service_cost"),
-            "test": total_cost("test_history", "test_date", "test_cost"),
-            "insurance": total_cost("insurance_history", "insurance_date", "insurance_cost"),
+            "fuel": calculate_fuel_cost(vehicle_number, manager_email, selected_year),
+            "service": total_cost("service_history", "service_date", "service_cost", year_start, year_end, vehicle_number, manager_email),
+            "test": total_cost("test_history", "test_date", "test_cost", year_start, year_end, vehicle_number, manager_email),
+            "insurance": total_cost("insurance_history", "insurance_date", "insurance_cost", year_start, year_end, vehicle_number, manager_email),
         }
+
         expenses["total"] = sum(expenses.values())
 
         pie_data = {
@@ -1264,23 +1305,62 @@ def export_vehicle_pdf():
 
     year_start = datetime(int(year), 1, 1)
     year_end = datetime(int(year), 12, 31, 23, 59, 59)
+    
+    def calculate_fuel_cost(vehicle_number, manager_email, selected_year):
+        start_date = datetime(int(selected_year), 1, 1)
+        end_date = datetime(int(selected_year), 12, 31, 23, 59, 59)
 
-  
-    def total_cost(col, date_field, price_field):
-        return sum(
-            float(doc.get(price_field, 0))
-            for doc in db[col].find({
-                "vehicle_number": vehicle_number,
-                "manager_email": manager_email,
-                date_field: {
-                    "$gte": year_start.strftime("%Y-%m-%d"),
-                    "$lte": year_end.strftime("%Y-%m-%d")
-                }
-            })
-        )
+        relevant_emails = get_all_relevant_emails(manager_email)
+        total = 0
+
+        for doc in db.fuel.find({
+            "vehicle_number": vehicle_number,
+            "email": {"$in": relevant_emails}
+        }):
+            try:
+                refuel_type = doc.get("refuel_type", "")
+                if refuel_type == "דלקן":
+                    month_str = doc.get("month", "")
+                    if not month_str or len(month_str) != 7:
+                        continue
+                    date = datetime.strptime(month_str + "-01", "%Y-%m-%d")
+                else:
+                    date_str = doc.get("refuel_date", "")
+                    if not date_str or len(date_str) < 10:
+                        continue
+                    date = datetime.strptime(date_str[:10], "%Y-%m-%d")
+
+                if not (start_date <= date <= end_date):
+                    continue
+
+                amount = float(doc.get("fuel_amount", 0))
+                cost = float(doc.get("cost", 0))
+                total += amount * cost
+            except Exception as e:
+                print("Fuel calc error:", e)
+                continue
+
+        return round(total, 2)
+    def total_cost(col, date_field, price_field, start_date, end_date, vehicle_number, manager_email):
+        total = 0
+        for doc in db[col].find({
+            "vehicle_number": vehicle_number,
+            "manager_email": manager_email
+        }):
+            try:
+                date_str = doc.get(date_field)
+                if not date_str or len(date_str) < 10:
+                    continue
+                date = datetime.strptime(date_str[:10], "%Y-%m-%d")
+                if not (start_date <= date <= end_date):
+                    continue
+                total += float(doc.get(price_field, 0))
+            except:
+                continue
+        return total
 
     expenses = {
-        "fuel": total_cost("fuel", "fuel_date", "fuel_price"),
+    "fuel": calculate_fuel_cost(vehicle_number, manager_email, selected_year),
         "service": total_cost("service_history", "service_date", "service_cost"),
         "test": total_cost("test_history", "test_date", "test_cost"),
         "insurance": total_cost("insurance_history", "insurance_date", "insurance_cost"),
@@ -1319,5 +1399,3 @@ def export_vehicle_pdf():
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=vehicle_report_{vehicle_number}_{year}.pdf'
     return response
-
-
