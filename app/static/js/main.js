@@ -108,9 +108,16 @@
 
 })(jQuery);
 
-document.getElementById("helpButton").addEventListener("click", () => {
-    document.getElementById("helpModal").style.display = "flex";
-});
+const helpButton = document.getElementById("helpButton");
+if (helpButton) {
+    helpButton.addEventListener("click", () => {
+        const modal = document.getElementById("helpModal");
+        if (modal) {
+            modal.style.display = "flex";
+        }
+    });
+}
+
 
 function closeHelpModal() {
     const modal = document.getElementById("helpModal");
@@ -196,7 +203,6 @@ function closeOnOutsideClick(event) {
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
-    // --- התראות ---
     const badge = document.getElementById("notificationBadge");
     if (badge) {
         try {
@@ -1101,47 +1107,112 @@ async function updateCropCategory() {
 }
 
 // optimal plot Recommendation
+
 function applyRecommendation() {
     const modalBody = document.getElementById("recommendationContent");
-    const rows = [...modalBody.querySelectorAll("table tr")].slice(1); // Skip table header
+    const rows = [...modalBody.querySelectorAll("table tr")].slice(1);
 
     const updates = rows.map(row => {
         const cells = row.querySelectorAll("td");
         return {
-            plot_id: row.getAttribute("data-id"), // Use the assigned plot ID
+            plot_id: row.getAttribute("data-id"),
             plot_name: cells[0]?.innerText.trim(),
             crop: cells[1]?.innerText.trim(),
             quantity_planted: cells[2]?.innerText.trim()
         };
     });
 
+    fetch("/optimal/check_updates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updates })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            showAlert("שגיאה", data.error, true);
+        } else if (data.valid.length === 0) {
+            showAlert("שגיאה", "לא ניתן לעדכן אף חלקה בגלל שגיאות במלאי או בכמות", true);
+        } else {
+            if (data.skipped.length > 0) {
+                const skippedNames = data.skipped.map(p => p.plot_name).join(", ");
+                showAlert("שגיאה חלקית", `החלקות הבאות לא עודכנו: ${skippedNames}`, true);
+            }
+            openWaterTypeModal(data.valid); 
+        }
+    })
+    .catch(err => {
+        console.error("Network error", err);
+        showAlert("שגיאת רשת", err.message, true);
+    });
+}
+
+function openWaterTypeModal(validPlots) {
+    const modal = document.getElementById("waterTypeModal");
+    const container = document.getElementById("waterTypeOptions");
+    container.innerHTML = ""; 
+
+    validPlots.forEach((plot, i) => {
+        const div = document.createElement("div");
+        div.classList.add("mb-3");
+        div.innerHTML = `
+            <label><strong>${plot.plot_name}</strong></label><br>
+            <select class="form-select water-select" data-id="${plot.plot_id}">
+                <option value="">בחר סוג מים</option>
+                <option value="מים שפירים">מים שפירים</option>
+                <option value="מים מושבים">מים מושבים</option>
+                <option value="משולב">משולב</option>
+            </select>
+        `;
+        container.appendChild(div);
+    });
+
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+function confirmWaterSelection() {
+    const selects = document.querySelectorAll(".water-select");
+    const updates = [];
+
+    for (let sel of selects) {
+        const waterType = sel.value;
+        if (!waterType) {
+            showAlert("שגיאה", "יש לבחור סוג מים לכל חלקה", true);
+            return;
+        }
+
+        const row = document.querySelector(`tr[data-id="${sel.dataset.id}"]`);
+        const cells = row.querySelectorAll("td");
+
+        updates.push({
+            plot_id: sel.dataset.id,
+            plot_name: cells[0].innerText.trim(),
+            crop: cells[1].innerText.trim(),
+            quantity_planted: cells[2].innerText.trim(),
+             irrigation_water_type: waterType
+        });
+    }
+
+  
     fetch("/optimal/update_plots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ updates })
     })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                if (data.skipped && data.skipped.length > 0) {
-                    showAlert(
-                        "החלקות עודכנו חלקית",
-                        `החלקות הבאות לא עודכנו כי חסרים בהן נתונים או כמות זריעה לא תקינה: ${data.skipped.join(", ")}`,
-                        true
-                    );
-                } else {
-                    showAlert("בוצע בהצלחה", "כל החלקות עודכנו לפי ההמלצה", false);
-                    setTimeout(() => location.reload(), 1000);
-                }
-            } else {
-                showAlert("שגיאה", "לא ניתן לבצע המלצה זו", true);
-            }
-        })
-        .catch(err => {
-            console.error("Network error", err);
-            showAlert("שגיאת רשת", err.message, true);
-        });
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showAlert("בוצע בהצלחה", "החלקות עודכנו לפי ההמלצה", false);
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showAlert("שגיאה", data.error || "קרתה שגיאה בעדכון", true);
+        }
+    });
 }
+
+
+
 document.addEventListener("DOMContentLoaded", async function () {
     const weatherText = document.getElementById("weather-text");
     const weatherIcon = document.getElementById("weather-icon");

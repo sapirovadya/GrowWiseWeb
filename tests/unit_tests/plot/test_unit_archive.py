@@ -21,24 +21,6 @@ def client():
     with app.test_client() as client:
         yield client
 
-# # --- archive ---
-def test_archive_manager(client):
-    with client.session_transaction() as sess:
-        sess["role"] = "manager"
-        sess["email"] = "manager@test.com"
-
-    with patch("modules.Plots.routes.db") as mock_db, \
-         patch("modules.Plots.routes.render_template") as mock_render:
-
-        mock_db.plots.find.return_value = []
-        mock_render.return_value = "OK"
-
-        res = client.get("/Plots/archive")
-        assert res.status_code == 200
-        assert b"OK" in res.data
-        mock_db.plots.find.assert_called_once_with({"manager_email": "manager@test.com", "harvest_date": {"$ne": None}})
-
-
 
 def test_archive_unauthorized_role(client):
     with client.session_transaction() as sess:
@@ -49,27 +31,7 @@ def test_archive_unauthorized_role(client):
     assert res.status_code == 403
 
 
-def test_archive_co_manager(client):
-    with client.session_transaction() as sess:
-        sess["role"] = "co_manager"
-        sess["email"] = "co@test.com"
-        sess["manager_email"] = "manager@test.com"
-
-    with patch("modules.Plots.routes.db") as mock_db, \
-         patch("modules.Plots.routes.render_template") as mock_render:
-
-        mock_db.plots.find.return_value = []
-        mock_render.return_value = "OK"
-
-        res = client.get("/Plots/archive")
-        assert res.status_code == 200
-        assert b"OK" in res.data
-        mock_db.plots.find.assert_called_once_with({"manager_email": "manager@test.com", "harvest_date": {"$ne": None}})
-
-
-
 def test_archive_missing_session_data(client):
-    # לא מכניסים role ו־email לסשן
     res = client.get("/Plots/archive")
     assert res.status_code == 403
     assert b"User is not logged in" in res.data

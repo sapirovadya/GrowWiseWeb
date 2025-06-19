@@ -94,49 +94,69 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     <script src="/static/js/main.js"></script>
-    <script>
-        function navigateTo(page) {
-            const urls = {
-                'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
-                'archive': '{{ url_for("plot_bp.archive") }}',
-                'optimal_management': '{{ url_for("optimal_bp.optimal_management_page") }}',
-                'reports': '{{ url_for("reports_bp.reports_home") }}',
-                'team': '{{ url_for("manager_bp.get_employees_list") }}',
-                'calculator': '{{ url_for("manager_bp.expense_page") }}',
-                'inventory': '{{ url_for("manager_bp.logistic_management") }}',
-                'jobs': '{{ url_for("posts_bp.social_feed") }}'
-            };
+<script>
+    // Redirect to the selected page based on key
+    function navigateTo(page) {
+        const urls = {
+            'track_greenhouse': '{{ url_for("plot_bp.track_greenhouse") }}',
+            'archive': '{{ url_for("plot_bp.archive") }}',
+            'optimal_management': '{{ url_for("optimal_bp.optimal_management_page") }}',
+            'reports': '{{ url_for("reports_bp.reports_home") }}',
+            'team': '{{ url_for("manager_bp.get_employees_list") }}',
+            'calculator': '{{ url_for("manager_bp.expense_page") }}',
+            'inventory': '{{ url_for("manager_bp.logistic_management") }}',
+            'jobs': '{{ url_for("posts_bp.social_feed") }}'
+        };
 
-            if (urls[page]) {
-                window.location.href = urls[page];
-            }
+        if (urls[page]) {
+            window.location.href = urls[page];
         }
+    }
 
-        document.addEventListener("DOMContentLoaded", async function () {
-            //מזג אוויר
-            const shortWeatherDiv = document.getElementById("weather-info-short");
+    // Load and update weather info
+    async function loadWeatherInfo() {
+        const shortWeatherDiv = document.getElementById("weather-info-short");
+        if (!shortWeatherDiv) return; // Prevent error if element not found
 
-            try {
-                const response = await fetch("/weather");
-                if (!response.ok) {
-                    throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                // עדכון התצוגה הקצרה בסרגל הכלים
-                shortWeatherDiv.innerHTML = `
-                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
-                    <strong>${data.city}</strong> ${data.temperature}°C
-                `;
-            } catch (error) {
-                console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
-                shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+        try {
+            const response = await fetch("/weather");
+            if (!response.ok) {
+                throw new Error(`Weather fetch error: ${response.status}`);
             }
-        });
 
+            const data = await response.json();
 
-    </script>
+            shortWeatherDiv.innerHTML = `
+                <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                <strong>${data.city}</strong> ${data.temperature}°C
+            `;
+        } catch (error) {
+            console.error("Weather load error:", error);
+            shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadWeatherInfo);
+    document.addEventListener("DOMContentLoaded", async function () {
+    const badge = document.getElementById("notificationBadge");
+    if (badge) {
+        try {
+            const res = await fetch("/users/get_notifications");
+            const data = await res.json();
+            if (data.new_notifications_count > 0) {
+                badge.style.display = "flex";
+                badge.textContent = data.new_notifications_count;
+            } else {
+                badge.style.display = "none";
+            }
+        } catch (err) {
+            console.error("Notification fetch error:", err);
+        }
+    }
+});
+
+</script>
+
 
 </body>
 

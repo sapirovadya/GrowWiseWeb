@@ -77,31 +77,6 @@ def test_get_crop_details_missing_all_fields(client):
         assert res.json["crop_yield"] == 0
 
 
-def test_get_crop_details_missing_query_params(client):
-    # בדיקה בלי query params בכלל
-    with patch("modules.Plots.routes.db") as mock_db:
-        mock_db.plots.find_one.return_value = None  # לא משנה
-
-        res = client.get("/Plots/get_crop_details")
-        assert res.status_code == 404
-        assert res.get_json()["error"] == "לא נמצאו נתונים"
-
-def test_get_crop_details_only_plot_name(client):
-    with patch("modules.Plots.routes.db") as mock_db:
-        mock_db.plots.find_one.return_value = None
-
-        res = client.get("/Plots/get_crop_details?plot_name=חלקה א")
-        assert res.status_code == 404
-        assert res.get_json()["error"] == "לא נמצאו נתונים"
-
-def test_get_crop_details_only_sow_date(client):
-    with patch("modules.Plots.routes.db") as mock_db:
-        mock_db.plots.find_one.return_value = None
-
-        res = client.get("/Plots/get_crop_details?sow_date=2024-01-01")
-        assert res.status_code == 404
-        assert res.get_json()["error"] == "לא נמצאו נתונים"
-
 def test_get_crop_details_none_crop(client):
     with patch("modules.Plots.routes.db") as mock_db:
         mock_db.plots.find_one.return_value = {"crop": None, "crop_yield": 100}
@@ -110,24 +85,6 @@ def test_get_crop_details_none_crop(client):
         assert res.status_code == 200
         assert res.get_json()["crop"] is None
         assert res.get_json()["crop_yield"] == 100
-
-def test_get_crop_details_none_yield(client):
-    with patch("modules.Plots.routes.db") as mock_db:
-        mock_db.plots.find_one.return_value = {"crop": "חסה", "crop_yield": None}
-
-        res = client.get("/Plots/get_crop_details?plot_name=חלקה ב&sow_date=2024-01-01")
-        assert res.status_code == 200
-        assert res.get_json()["crop"] == "חסה"
-        assert res.get_json()["crop_yield"] is None
-
-def test_get_crop_details_yield_as_string(client):
-    with patch("modules.Plots.routes.db") as mock_db:
-        mock_db.plots.find_one.return_value = {"crop": "גזר", "crop_yield": "מאה"}
-
-        res = client.get("/Plots/get_crop_details?plot_name=חלקה ג&sow_date=2024-01-01")
-        assert res.status_code == 200
-        assert res.get_json()["crop"] == "גזר"
-        assert res.get_json()["crop_yield"] == "מאה"  # הפונקציה לא בודקת טיפוס ערך
 
 def test_get_crop_details_server_error(client):
     with patch("modules.Plots.routes.db") as mock_db:

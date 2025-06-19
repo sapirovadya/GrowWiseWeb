@@ -110,7 +110,7 @@
                     <!-- טופס יצירת קשר -->
                     <div class="col-lg-8">
                         <div class="contact-form-container">
-                            <form action="forms/contact.php" method="post" role="form" class="php-email-form">
+                            <form id="contact-form" method="post" role="form" class="php-email-form">
                                 <div class="row">
                                     <div class="col-md-6 form-group">
                                         <input type="text" name="name" class="form-control" id="name"
@@ -142,6 +142,15 @@
         </section><!-- /Contact Section -->
 
     </main>
+    
+        <!-- Custom Alert Box -->
+        <div id="customAlert" class="custom-alert" style="display: none;">
+        <div class="custom-alert-box">
+            <h3 class="alert-title">הצלחה</h3>
+            <p class="alert-message">ההודעה נשלחה בהצלחה!</p>
+            <button class="alert-close" onclick="closeAlert()">סגור</button>
+        </div>
+        </div>
 
     <!-- Footer Start -->
     {% include 'components/footer.html' %}
@@ -175,10 +184,10 @@
         function showNotificationBadge(newNotificationsCount) {
             const badge = document.getElementById("notificationBadge");
             if (newNotificationsCount > 0) {
-                badge.style.display = "flex"; // הצגת העיגול האדום
-                badge.textContent = newNotificationsCount; // הצגת מספר ההתראות
+                badge.style.display = "flex";
+                badge.textContent = newNotificationsCount;
             } else {
-                badge.style.display = "none"; // הסתרת העיגול האדום
+                badge.style.display = "none"; 
             }
         }
 
@@ -190,14 +199,14 @@
             if (modal.style.display === "none" || modal.style.display === "") {
                 modal.style.display = "block";
 
-                // הסתרת האייקון האדום (בזמן פתיחת ההתראות)
+               
                 badge.style.display = "none";
 
-                // סימון התראות כנצפות בשרת
+                
                 fetch("/users/mark_notifications_seen", { method: "POST" })
                     .catch(error => console.error("Error marking notifications as seen:", error));
 
-                // טעינת התראות
+               
                 fetch("/users/get_notifications")
                     .then(response => response.json())
                     .then(data => {
@@ -226,7 +235,7 @@
             const modal = document.getElementById("notificationModal");
             modal.style.display = "none";
 
-            // הסרת המאזין
+            
             document.removeEventListener("click", closeOnOutsideClick);
         }
 
@@ -234,7 +243,7 @@
             const modal = document.getElementById("notificationModal");
             const notificationIcon = document.getElementById("notificationIcon");
 
-            // בדיקה אם הלחיצה התבצעה מחוץ לחלון ומחוץ לאייקון
+            
             if (!modal.contains(event.target) && event.target !== notificationIcon) {
                 closeNotifications();
             }
@@ -242,12 +251,12 @@
 
 
         document.addEventListener("DOMContentLoaded", async function () {
-            // טעינת התראות
+           
             try {
                 const notificationsResponse = await fetch("/users/get_notifications");
                 const notificationsData = await notificationsResponse.json();
 
-                showNotificationBadge(notificationsData.new_notifications_count); // עדכון העיגול האדום עם מספר ההתראות החדשות
+                showNotificationBadge(notificationsData.new_notifications_count); // עדכון 
             } catch (error) {
                 console.error("Error fetching notifications:", error);
             }
@@ -258,10 +267,10 @@
         function logout() {
             fetch('/users/logout', {
                 method: 'POST',
-                credentials: 'same-origin'  // שולח את ה-cookies של ה-session
+                credentials: 'same-origin' 
             }).then(response => {
                 if (response.redirected) {
-                    window.location.href = response.url;  // מפנה לדף הבית
+                    window.location.href = response.url;
                 } else {
                     alert('שגיאה במהלך הניתוק.');
                 }
@@ -270,7 +279,7 @@
             });
         }
         document.addEventListener("DOMContentLoaded", async function () {
-            //מזג אוויר
+           
             const shortWeatherDiv = document.getElementById("weather-info-short");
 
             try {
@@ -281,16 +290,66 @@
 
                 const data = await response.json();
 
-                // עדכון התצוגה הקצרה בסרגל הכלים
+               
                 shortWeatherDiv.innerHTML = `
                     <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
-                    <strong>${data.city}</strong> ${data.temperature}°C
+                    ${data.city} ${data.temperature}°C
                 `;
             } catch (error) {
                 console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
                 shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
             }
         });
+
+
+        document.getElementById("contact-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const formData = new FormData(form);
+
+            fetch("/users/send_contact", {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert("הצלחה", "ההודעה נשלחה בהצלחה!");
+                    form.reset();
+                } else {
+                    alert("שגיאה בשליחת ההודעה. נסה שוב מאוחר יותר.");
+                }
+            })
+            .catch(error => {
+                console.error("Error sending contact message:", error);
+                alert("אירעה שגיאה כללית. נסה שוב.");
+            });
+        });
+
+
+        function showAlert(title, message) {
+            const alertBox = document.getElementById("customAlert");
+            const alertTitle = alertBox.querySelector(".alert-title");
+            const alertButton = alertBox.querySelector(".alert-close");
+
+            alertTitle.textContent = title;
+            alertBox.querySelector(".alert-message").textContent = message;
+            alertBox.style.display = "flex";
+            
+            if (title.includes("שגיאה")) {
+                alertTitle.style.color = "#D9534F";
+                alertButton.style.backgroundColor = "#D9534F";
+            } else {
+                alertTitle.style.color = "#6BA342";
+                alertButton.style.backgroundColor = "#6BA342";
+            }
+        }
+
+        function closeAlert() {
+            document.getElementById("customAlert").style.display = "none";
+        }
+
     </script>
 </body>
 

@@ -2869,3 +2869,63 @@ input[list] {
     overflow-y: auto;
     padding: 20px;
 }
+
+.list-check li {
+    position: relative;
+    padding-right: 20px;
+    margin-bottom: 10px;
+}
+
+.list-check li::before {
+    content: "•";
+    position: absolute;
+    right: 0;
+    color: #0b0b0b;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.custom-alert {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-alert-box {
+    background-color: white;
+    border-radius: 10px;
+    padding: 30px 20px;
+    text-align: center;
+    width: 320px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.custom-alert-box .alert-title {
+    color: #6BA342;
+    font-size: 22px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.custom-alert-box .alert-message {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.custom-alert-box .alert-close {
+    background-color: #6BA342;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+}

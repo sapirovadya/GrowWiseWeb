@@ -23,20 +23,17 @@ def get_season_and_date():
     month = today.month
     day = today.day
 
-    # קביעת העונה (אביב או סתיו)
     if month in [3, 4, 5]:
-        season = "spring"   # אביב
+        season = "spring"   
     elif month in [9, 10, 11]:
-        season = "autumn"   # סתיו
+        season = "autumn"   
     else:
-        season = "other"    # עונות אחרות
+        season = "other"    
 
-    # המרת תאריך עברי
     heb_date = jdatetime.date.fromgregorian(date=today)
     heb_month = heb_date.month
     heb_day = heb_date.day
 
-    # בדיקה אם אחרי ט"ו באב (15 באב)
     is_after_tu_bav = (heb_month > 5) or (heb_month == 5 and heb_day > 15)
 
     return {
@@ -82,28 +79,23 @@ def generate_plan():
         selected_plots = data.get("selected_plots", [])
         email = session.get("email") or session.get("manager_email")
         
-        # שליפת העיר מתוך פרטי המנהל
         manager = db.manager.find_one({"email": email})
         city = manager.get("location", "לא צוינה עיר")
         
-        # בדיקת נתונים
         if not selected_crops or not selected_plots:
             return jsonify({"error": "חסרים נתונים"}), 400
 
-        # שליפת תאריך נוכחי ועונת השנה
         date_info = get_season_and_date()
         current_date = date_info["date"]
         season = date_info["season"]
         is_after_tu_bav = date_info["is_after_tu_bav"]
 
-        # שליפת מידע על הגידולים שנבחרו
         crop_data = list(db.supply.find({
             "email": email,
             "category": "גידול",
             "name": {"$in": selected_crops}
         }, {"_id": 0, "name": 1, "quantity": 1}))
 
-        # שליפת מידע על החלקות שנבחרו
         plot_data = []
         for p in selected_plots:
             found = db.plots.find_one({"_id": p["id"]}, {"plot_name": 1, "plot_type": 1, "square_meters": 1})
@@ -114,11 +106,9 @@ def generate_plan():
                     "square_meters": found["square_meters"]
                 })
 
-        # הכנת נתונים לפורמט טקסטואלי
         plot_lines = "\n".join([f"{p['plot_name']} - {p['plot_type']} בגודל {p['square_meters']} דונם" for p in plot_data])
         crop_lines = "\n".join([f"{c['name']} - {c['quantity']} ק\"ג" for c in crop_data])
 
-        # פרומפט אגרונומי מעודכן
         prompt = f"""
         אתה אגרונום מומחה בעל ניסיון של למעלה מ-20 שנה בגידול ושתילת כל סוגי הגידולים הקיימים. 
         יש להשתמש בידע קיים שלך ובעיקר באתר 
@@ -234,6 +224,7 @@ def update_plots():
             plot_id_str = upd.get("plot_id")
             crop = upd.get("crop")
             raw_quantity = upd.get("quantity_planted", "")
+            irrigation_water_type = upd.get("irrigation_water_type")
 
             if not plot_id_str or not crop:
                 skipped_plots.append("Unknown Plot")
@@ -289,7 +280,8 @@ def update_plots():
                     "crop": crop,
                     "crop_category": crop_category,
                     "quantity_planted": quantity_value,
-                    "sow_date": datetime.now().strftime("%d/%m/%Y")
+                    "sow_date": datetime.now().strftime("%d/%m/%Y"),
+                    "irrigation_water_type": irrigation_water_type
                 }}
             )
 
@@ -310,3 +302,57 @@ def update_plots():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@optimal_bp.route("/check_updates", methods=["POST"])
+def check_updates():
+    try:
+        data = request.get_json()
+        updates = data.get("updates", [])
+        email = session.get("email") or session.get("manager_email")
+
+        if not updates:
+            return jsonify({"error": "לא התקבלו נתונים לבדיקה"}), 400
+
+        valid = []
+        skipped = []
+
+        for upd in updates:
+            plot_id = upd.get("plot_id")
+            crop = upd.get("crop")
+            raw_quantity = upd.get("quantity_planted")
+
+            if not plot_id or not crop:
+                skipped.append({"plot_id": plot_id, "plot_name": upd.get("plot_name", "לא ידוע")})
+                continue
+
+            # בדיקת תקינות כמות
+            try:
+                quantity = float(''.join(c for c in raw_quantity if c.isdigit() or c == '.'))
+                if quantity <= 0:
+                    raise ValueError()
+            except:
+                skipped.append({"plot_id": plot_id, "plot_name": upd.get("plot_name", "לא ידוע")})
+                continue
+
+            # בדיקת זמינות במלאי
+            supply_item = db.supply.find_one({
+                "email": email,
+                "category": "גידול",
+                "name": crop
+            })
+            if not supply_item or supply_item.get("quantity", 0) < quantity:
+                skipped.append({"plot_id": plot_id, "plot_name": upd.get("plot_name", "לא ידוע")})
+                continue
+
+            valid.append({
+                "plot_id": plot_id,
+                "plot_name": upd.get("plot_name", "לא ידוע"),
+                "crop": crop,
+                "quantity_planted": raw_quantity
+            })
+
+        return jsonify({"valid": valid, "skipped": skipped})
+
+    except Exception as e:
+        return jsonify({"error": f"שגיאה בשרת: {str(e)}"}), 500

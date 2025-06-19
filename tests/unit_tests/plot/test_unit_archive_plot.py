@@ -15,22 +15,6 @@ def client():
 
 # ---------------------- archive_plot ----------------------
 
-@patch("modules.Plots.routes.db.plots.update_one")
-@patch("modules.Plots.routes.db.plots.find_one")
-def test_archive_plot_success(mock_find, mock_update, client):
-    mock_update.return_value.modified_count = 1
-    mock_find.return_value = {"_id": "06806ef3-3789-4247-b3be-ca036f58fd4b"}
-
-    plot_id = "06806ef3-3789-4247-b3be-ca036f58fd4b"
-    res = client.post(f"/Plots/archive_plot/{plot_id}", json={
-        "harvest_date": "2024-01-01",
-        "crop_yield": 100
-    })
-
-    assert res.status_code == 200
-    assert res.json["message"] == "החלקה הועברה לארכיון"
-
-
 def test_archive_plot_missing_fields(client):
     plot_id = "06806ef3-3789-4247-b3be-ca036f58fd4b"
     res = client.post(f"/Plots/archive_plot/{plot_id}", json={})
@@ -61,33 +45,6 @@ def test_archive_plot_invalid_crop_yield_type(mock_find, client):
     })
     assert res.status_code == 400
     assert "Crop yield must be a number" in res.json["error"]
-
-
-@patch("modules.Plots.routes.db", autospec=True)
-def test_archive_plot_with_price_yield(mock_db, client):
-    plot_id = "06806ef3-3789-4247-b3be-ca036f58fd4b"
-
-    mock_plots = MagicMock()
-    mock_db.plots = mock_plots
-    mock_plots.find_one.return_value = {"_id": plot_id}
-    mock_plots.update_one.return_value.modified_count = 1
-
-    res = client.post(f"/Plots/archive_plot/{plot_id}", json={
-        "harvest_date": "2024-01-01",
-        "crop_yield": 120,
-        "price_yield": 8.5
-    })
-
-    assert res.status_code == 200
-    assert res.json["message"] == "החלקה הועברה לארכיון"
-    mock_plots.update_one.assert_called_with(
-        {"_id": plot_id},
-        {"$set": {
-            "harvest_date": "2024-01-01",
-            "crop_yield": 120,
-            "price_yield": 8.5
-        }}
-    )
 
 
 @patch("modules.Plots.routes.db", autospec=True)

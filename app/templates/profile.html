@@ -120,176 +120,165 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/main.js"></script>
     <script>
-        function showAlert(title, message, options = {}) {
-            const { onClose = null, refreshPage = false, restoreForm = false, formId = null } = options;
-            const alertBox = document.getElementById("customAlert");
-            alertBox.querySelector(".alert-title").textContent = title;
-            alertBox.querySelector(".alert-message").textContent = message;
-            alertBox.style.display = "block";
-            alertBox.classList.add("fade-in");
+    // ===== Custom Alert Box =====
+    function showAlert(title, message, options = {}) {
+        const { onClose = null, refreshPage = false, restoreForm = false, formId = null } = options;
+        const alertBox = document.getElementById("customAlert");
+        alertBox.querySelector(".alert-title").textContent = title;
+        alertBox.querySelector(".alert-message").textContent = message;
+        alertBox.style.display = "block";
+        alertBox.classList.add("fade-in");
 
-            const closeButton = alertBox.querySelector(".alert-close");
-            closeButton.onclick = () => {
-                alertBox.classList.remove("fade-in");
-                alertBox.style.display = "none";
-
-                if (refreshPage) {
-                    location.reload(); // Refresh the page for success case
-                }
-
-                if (restoreForm && formId) {
-                    const form = document.getElementById(formId);
-                    if (form) {
-                        form.reset(); // Reset the form for the failure case
-                    }
-                }
-
-                if (typeof onClose === "function") {
-                    onClose(); // Execute any additional logic passed via options
-                }
-            };
-        }
-
-        function closeAlert() {
-            const alertBox = document.getElementById("customAlert");
+        const closeButton = alertBox.querySelector(".alert-close");
+        closeButton.onclick = () => {
+            alertBox.classList.remove("fade-in");
             alertBox.style.display = "none";
-        }
 
-        const validateNameInput = (input) => {
-            input.addEventListener("input", (event) => {
-                const value = event.target.value;
-                const validValue = value.replace(/[^a-zA-Zא-ת\s]/g, "");
-                if (value !== validValue) {
-                    event.target.value = validValue;
-                }
-
-                if (validValue === "") {
-                    input.setCustomValidity("נא הזן שם המכיל רק אותיות");
-                } else {
-                    input.setCustomValidity("");
-                }
-            });
+            if (refreshPage) location.reload();
+            if (restoreForm && formId) {
+                const form = document.getElementById(formId);
+                if (form) form.reset();
+            }
+            if (typeof onClose === "function") onClose();
         };
+    }
 
-        const validateEmailInput = (input) => {
-            input.addEventListener("input", (event) => {
-                const value = event.target.value;
-                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    function closeAlert() {
+        document.getElementById("customAlert").style.display = "none";
+    }
 
-                if (!emailPattern.test(value)) {
-                    input.setCustomValidity("כתובת האימייל אינה תקינה. יש לכלול את הסימן @ ואת הסיומת (לדוגמה: name@example.com).");
-                } else {
-                    input.setCustomValidity("");
-                }
-            });
-        };
+    // ===== Name & Email Validation =====
+    const validateNameInput = (input) => {
+        input.addEventListener("input", (event) => {
+            const value = event.target.value;
+            const validValue = value.replace(/[^a-zA-Zא-ת\s]/g, "");
+            if (value !== validValue) event.target.value = validValue;
 
+            input.setCustomValidity(validValue === "" ? "נא הזן שם המכיל רק אותיות" : "");
+        });
+    };
+
+    const validateEmailInput = (input) => {
+        input.addEventListener("input", (event) => {
+            const value = event.target.value;
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            input.setCustomValidity(emailPattern.test(value) ? "" : "כתובת האימייל אינה תקינה. יש לכלול את הסימן @ ואת הסיומת.");
+        });
+    };
+
+    // ===== DOMContentLoaded Initialization =====
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Field validation
         validateNameInput(document.getElementById("firstName"));
         validateNameInput(document.getElementById("lastName"));
-
         validateEmailInput(document.getElementById("email"));
 
+        // Load cities if user is manager
+        const userRole = "{{ user.role }}";
+        const userLocation = "{{ user.location }}";
 
-        function changePassword() {
-            window.location.href = '/users/change_password';
-        }
-
-        document.addEventListener("DOMContentLoaded", async () => {
-            const userRole = "{{ user.role }}"; // תפקיד המשתמש מהשרת
-            const userLocation = "{{ user.location }}"; // המיקום הנוכחי של המשתמש
-
-            if (userRole === "manager") {
-                const locationField = document.getElementById("location_field");
-                locationField.style.display = "block";
-
-                try {
-                    const response = await fetch('/users/get_cities');
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch cities: ${response.status}`);
-                    }
-
-                    const cities = await response.json();
-                    const citiesList = document.getElementById('cities_list');
-
-                    citiesList.innerHTML = '';
-                    cities.forEach(city => {
-                        const option = document.createElement('option');
-                        option.value = city; // שם העיר כערך
-                        citiesList.appendChild(option);
-                    });
-
-                    const locationInput = document.getElementById('location');
-                    locationInput.value = userLocation;
-
-                    locationInput.addEventListener('input', function () {
-                        const searchTerm = this.value.trim().toLowerCase();
-                        const filteredCities = cities.filter(city =>
-                            city.toLowerCase().startsWith(searchTerm)
-                        );
-
-                        citiesList.innerHTML = '';
-                        filteredCities.forEach(city => {
-                            const option = document.createElement('option');
-                            option.value = city;
-                            citiesList.appendChild(option);
-                        });
-                    });
-                } catch (error) {
-                    console.error("Error loading cities:", error.message);
-                    showAlert("שגיאה", "שגיאה בטעינת רשימת הערים.");
-                }
-            }
-        });
-
-
-        document.addEventListener("DOMContentLoaded", async function () {
-            const shortWeatherDiv = document.getElementById("weather-info-short");
+        if (userRole === "manager") {
+            const locationField = document.getElementById("location_field");
+            locationField.style.display = "block";
 
             try {
-                const response = await fetch("/weather");
-                if (!response.ok) {
-                    throw new Error(`שגיאה בטעינת מזג האוויר: ${response.status}`);
-                }
+                const response = await fetch('/users/get_cities');
+                if (!response.ok) throw new Error(`Failed to fetch cities: ${response.status}`);
 
-                const data = await response.json();
+                const cities = await response.json();
+                const citiesList = document.getElementById('cities_list');
 
-                // עדכון התצוגה הקצרה בסרגל הכלים
-                shortWeatherDiv.innerHTML = `
-                    <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
-                    <strong>${data.city}</strong> ${data.temperature}°C
-                `;
-            } catch (error) {
-                console.error("שגיאה בטעינת נתוני מזג האוויר:", error);
-                shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
-            }
-        });
-
-        document.getElementById("changePasswordForm").addEventListener("submit", async function (e) {
-            e.preventDefault();
-            const newPassword = document.getElementById("newPassword").value;
-
-            try {
-                const response = await fetch("/users/update_password", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ password: newPassword })
+                citiesList.innerHTML = '';
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    citiesList.appendChild(option);
                 });
 
-                const result = await response.json();
-                if (response.ok) {
-                    showAlert("הצלחה", result.message, { refreshPage: false });
-                    document.getElementById("changePasswordForm").reset();
-                    const modal = bootstrap.Modal.getInstance(document.getElementById("changePasswordModal"));
-                    modal.hide();
-                } else {
-                    showAlert("שגיאה", result.message);
-                }
-            } catch (error) {
-                showAlert("שגיאה", "אירעה תקלה במהלך עדכון הסיסמה.");
-            }
-        });
+                const locationInput = document.getElementById('location');
+                locationInput.value = userLocation;
 
-    </script>
+                locationInput.addEventListener('input', function () {
+                    const searchTerm = this.value.trim().toLowerCase();
+                    const filteredCities = cities.filter(city => city.toLowerCase().startsWith(searchTerm));
+                    citiesList.innerHTML = '';
+                    filteredCities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city;
+                        citiesList.appendChild(option);
+                    });
+                });
+            } catch (error) {
+                console.error("Error loading cities:", error.message);
+                showAlert("שגיאה", "שגיאה בטעינת רשימת הערים.");
+            }
+        }
+
+        // Load weather info
+        const shortWeatherDiv = document.getElementById("weather-info-short");
+        try {
+            const response = await fetch("/weather");
+            if (!response.ok) throw new Error(`Weather fetch error: ${response.status}`);
+            const data = await response.json();
+
+            shortWeatherDiv.innerHTML = `
+                <img src="${data.weather_icon}" alt="Weather Icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                <strong>${data.city}</strong> ${data.temperature}°C
+            `;
+        } catch (error) {
+            console.error("Weather load error:", error);
+            shortWeatherDiv.innerHTML = `<p>שגיאה בטעינת נתוני מזג האוויר</p>`;
+        }
+
+        // Load notification badge
+        const badge = document.getElementById("notificationBadge");
+        if (badge) {
+            try {
+                const res = await fetch("/users/get_notifications");
+                const data = await res.json();
+                if (data.new_notifications_count > 0) {
+                    badge.style.display = "flex";
+                    badge.textContent = data.new_notifications_count;
+                } else {
+                    badge.style.display = "none";
+                }
+            } catch (err) {
+                console.error("Notification fetch error:", err);
+            }
+        }
+    });
+
+    // ===== Password Change Handler =====
+    document.getElementById("changePasswordForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const newPassword = document.getElementById("newPassword").value;
+
+        try {
+            const response = await fetch("/users/update_password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: newPassword })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                showAlert("הצלחה", result.message);
+                document.getElementById("changePasswordForm").reset();
+                const modal = bootstrap.Modal.getInstance(document.getElementById("changePasswordModal"));
+                modal.hide();
+            } else {
+                showAlert("שגיאה", result.message);
+            }
+        } catch (error) {
+            showAlert("שגיאה", "אירעה תקלה במהלך עדכון הסיסמה.");
+        }
+    });
+
+    function changePassword() {
+        window.location.href = '/users/change_password';
+    }
+</script>
+
 </body>
 
 </html>

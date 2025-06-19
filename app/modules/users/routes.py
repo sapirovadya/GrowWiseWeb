@@ -499,7 +499,7 @@ def add_vehicle_notifications():
 def add_month_end_notification(email):
     try:
 
-        today = datetime(2025, 3, 31)
+        today = datetime.today()
         tomorrow = today + timedelta(days=1)
         if tomorrow.month != today.month:
             existing = db.notifications.find_one({
@@ -833,4 +833,32 @@ def update_password():
         return jsonify({"message": "אירעה שגיאה בעת עדכון הסיסמה."}), 500
 
 
+@users_bp_main.route("/send_contact", methods=["POST"])
+def send_contact():
+    from GrowWise import mail
+
+    try:
+        name = request.form.get("name")
+        email = request.form.get("email")
+        subject = request.form.get("subject")
+        message_body = request.form.get("message")
+
+        msg = Message(
+            subject=f"צור קשר - {subject}",
+            recipients=["GrowWiseWeb@gmail.com"],
+            body=f"""
+התקבלה הודעה חדשה מ־{name} ({email}):
+
+נושא ההודעה: {subject}
+
+תוכן ההודעה:
+{message_body}
+"""
+        )
+
+        mail.send(msg)
+        return jsonify({"success": True, "message": "ההודעה נשלחה בהצלחה!"})
+    except Exception as e:
+        print(f"שגיאה בשליחת ההודעה: {e}")
+        return jsonify({"success": False, "message": "שליחת ההודעה נכשלה. נסה שוב מאוחר יותר."})
 

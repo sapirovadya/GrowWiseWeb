@@ -97,12 +97,33 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
-                    <button type="button" class="btn-apply-recommendation" onclick="applyRecommendation()">בצע
-                        המלצה</button>
+                    <button type="button" class="btn-apply-recommendation" onclick="applyRecommendation()">בצע המלצה</button>
+
+
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal בחירת סוג מים -->
+    <div class="modal fade" id="waterTypeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content p-4">
+        <div class="modal-header">
+            <h5 class="modal-title">בחר סוג מים לכל חלקה</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
+        </div>
+        <div class="modal-body" id="waterTypeOptions">
+            <!-- בחירות סוג מים יוכנסו כאן -->
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-success" onclick="confirmWaterSelection()">אשר ועדכן</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
 
     <!-- Help Modal -->
     <div id="helpModal" class="modal grow" style="display:none;">
@@ -122,6 +143,8 @@
             </div>
         </div>
     </div>
+
+
     <!-- Alert Box -->
     <div id="customAlert" class="alert-box" style="display:none;">
         <h5 class="alert-title">כותרת</h5>

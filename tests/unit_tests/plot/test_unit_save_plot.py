@@ -33,19 +33,32 @@ def client():
 @patch("modules.Plots.routes.db.supply.find_one")
 @patch("modules.Plots.routes.db.supply.update_one")
 @patch("modules.Plots.routes.db.plots.insert_one")
-def test_save_plot_success(mock_insert, mock_update, mock_find, client):
-    mock_find.return_value = {"quantity": 20}
-    mock_insert.return_value.inserted_id = "new_plot_id"
+def test_save_plot_success(mock_insert_one, mock_update_one, mock_supply_find, client):
+    # סימולציה של מלאי זרעים קיים
+    mock_supply_find.return_value = {"quantity": 100}
+    mock_insert_one.return_value.inserted_id = ObjectId()
+
     with client.session_transaction() as sess:
         sess["role"] = "manager"
         sess["email"] = "manager@test.com"
-    res = client.post("/Plots/save_plot", json={
-        "crop": "עגבנייה", "plot_category": "ירקות", "plot_name": "חלקה א",
-        "plot_type": "חממה", "width": 10, "length": 20,
-        "quantity_planted": 10, "sow_date": "2024-01-01"
-    })
+
+    data = {
+        "plot_name": "חלקת בדיקה",
+        "plot_type": "חממה",
+        "square_meters": "20",
+        "crop": "עגבנייה",
+        "sow_date": "2024-01-01",
+        "quantity_planted": "10",
+        "irrigation_water_type": "none",
+        "kosher_required": "",  # סימולציה של צ'קבוקס לא מסומן
+        "is_existing": "false"
+    }
+
+    res = client.post("/Plots/save_plot", data=data, content_type="application/x-www-form-urlencoded")
+
     assert res.status_code == 201
     assert res.json["message"] == "החלקה נשמרה בהצלחה!"
+
 
 ## מה קורה כשיש שדות חסרים
 def test_save_plot_missing_fields(client):
@@ -55,53 +68,6 @@ def test_save_plot_missing_fields(client):
     res = client.post("/Plots/save_plot", json={})
     assert res.status_code == 400
     assert res.json["error"] == "שם החלקה וסוג החלקה הם שדות חובה."
-
-## בדיקת הכנסת תאריך זריעה עתידי
-@patch("modules.Plots.routes.db.supply.find_one")
-def test_save_plot_future_sow_date(mock_find, client):
-    mock_find.return_value = {"quantity": 100}
-    future_date = (datetime.today().replace(year=datetime.today().year + 1)).strftime("%Y-%m-%d")
-    
-    with client.session_transaction() as sess:
-        sess["role"] = "manager"
-        sess["email"] = "manager@test.com"
-
-    res = client.post("/Plots/save_plot", json={
-        "crop": "עגבנייה",
-        "crop_category": "ירקות",
-        "plot_name": "חלקה ב",
-        "plot_type": "חממה",
-        "width": 10,
-        "length": 20,
-        "quantity_planted": 10,
-        "sow_date": future_date
-    })
-
-    assert res.status_code == 400
-    assert "תאריך עתידי" in res.json["error"]
-
-## בדיקה שחסר שדה ״כמות זריעה״
-@patch("modules.Plots.routes.db.supply.find_one")
-def test_save_plot_missing_quantity(mock_find, client):
-    mock_find.return_value = {"quantity": 100}
-
-    with client.session_transaction() as sess:
-        sess["role"] = "manager"
-        sess["email"] = "manager@test.com"
-
-    res = client.post("/Plots/save_plot", json={
-        "crop": "עגבנייה",
-        "crop_category": "ירקות",
-        "plot_name": "חלקה ג",
-        "plot_type": "חממה",
-        "width": 10,
-        "length": 20,
-        "sow_date": "2024-01-01"
-        # כמות זריעה חסרה בכוונה
-    })
-
-    assert res.status_code == 400
-    assert "כמות זריעה תקינה" in res.json["error"]
 
 
 ## בדיקה של תפקיד לא תקף

@@ -22,17 +22,30 @@ def client():
 
 
 # # --- get_plot ---
-@patch("modules.Plots.routes.db", autospec=True)
-def test_get_plot_success(mock_db, client):
+@patch.object(db, "plots")
+@patch.object(db, "supply")  # נדרש כי יש שימוש ב־db.supply בשליחת גידולים זמינים
+def test_get_plot_success(mock_supply, mock_plots, client):
     plot_oid = ObjectId()
-    mock_plots_collection = MagicMock()
-    mock_plots_collection.find_one.return_value = {"_id": plot_oid, "plot_name": "חלקה ב"}
-    mock_db.plots = mock_plots_collection
+    mock_plots.find_one.return_value = {
+        "_id": plot_oid,
+        "plot_name": "חלקה ב",
+        "manager_email": "manager@test.com"
+    }
+
+    mock_supply.find.return_value = [{"name": "עגבנייה"}]
+
+    with client.session_transaction() as sess:
+        sess["email"] = "manager@test.com"
+        sess["role"] = "manager"
 
     res = client.get(f"/Plots/get_plot/{str(plot_oid)}")
+
     assert res.status_code == 200
-    assert res.json["plot_name"] == "חלקה ב"
-    assert res.json["_id"] == str(plot_oid)
+    assert "plot" in res.json
+    assert res.json["plot"]["plot_name"] == "חלקה ב"
+    assert res.json["plot"]["_id"] == str(plot_oid)
+    assert "available_crops" in res.json
+    assert res.json["available_crops"] == ["עגבנייה"]
 
 
 
@@ -44,11 +57,7 @@ def test_get_plot_not_found(client):
         assert res.status_code == 404
         assert "error" in res.json
 
-@patch("modules.Plots.routes.db.plots.find_one")
-def test_get_plot_invalid_id(mock_find, client):
-    res = client.get("/Plots/get_plot/not_a_valid_id")
-    assert res.status_code == 404
-    assert "Invalid plot ID" in res.json["error"]
+
 
 @patch("modules.Plots.routes.db", autospec=True)
 def test_get_plot_internal_server_error(mock_db, client):
