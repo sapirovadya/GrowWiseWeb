@@ -1,5 +1,18 @@
 //social_feed
 $(document).ready(function () {
+    function formatDateTime(input) {
+        const date = new Date(input);
+        if (isNaN(date)) return input;
+
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = String(date.getFullYear()).slice(2);
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `${hours}:${minutes} ${day}/${month}/${year}`;
+    }
+
     function fetchPosts() {
 
         const loggedInUserEmail = $("#postsContainer").data("user-email"); // קבלת המייל של המשתמש המחובר
@@ -19,7 +32,7 @@ $(document).ready(function () {
                         return `
                         <div class="comment" data-comment-id="${comment.id}" data-post-id="${post.id}">
                             ${isUserComment ? '<button class="delete-comment-btn" data-comment-id="' + comment.id + '" data-post-id="' + post.id + '">X</button>' : ""}
-                            <span class="comment-date">${comment.created_at}</span>
+                            <span class="comment-date">${formatDateTime(comment.created_at)}</span>
                             <strong class="commenter-name user-info" data-email="${comment.commenter_email}" style="cursor:pointer;">
                                 ${comment.commenter_name}
                             </strong>
@@ -49,7 +62,7 @@ $(document).ready(function () {
                         <h5 class="post-author user-info" data-email="${post.publisher_email}" style="cursor:pointer;">
                             ${post.publisher_name}
                         </h5>
-                        <span class="post-date">${post.created_at}</span>
+                        <span class="post-date">${formatDateTime(post.created_at)}</span>
                     </div>
                     <p class="post-content">${post.content}</p>
                     <button class="btn btn-link toggle-comment">תגובה</button>

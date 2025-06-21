@@ -66,7 +66,7 @@
                         <td>{{ supply.quantity }}</td>
                         <td>
                             <div class="btn-group-mobile">
-
+                                {% if session['role'] == "manager" or session['role'] == "co_manager" %}
                                 <button class="edit-btn" style="margin-left: 7px;"
                                     onclick="editSupply('{{ supply.name }}', '{{ supply.quantity }}')">
                                     <i class="fas fa-credit-card"></i> קנייה
@@ -75,6 +75,7 @@
                                     onclick="openSaleModal('{{ supply.name }}')">
                                     <i class="fas fa-hand-holding-usd"></i> מכירה
                                 </button>
+                                {% endif %}
                                 <button class="edit-btn"
                                     onclick="openUpdateInventoryModal('{{ supply.name }}', 'מוצר כללי')">
                                     <i class="fas fa-edit"></i> שינוי מלאי

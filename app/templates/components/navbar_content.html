@@ -51,6 +51,9 @@ session['role'] == "employee"%} <div class="nav-item dropdown">
             חלקות</a>
 
         {% if session['role'] == "employee" %}
+        <a href="{{ url_for('supply_bp.supply_inventory') }}" class="dropdown-item">מלאי
+            ואספקה</a>
+        <a href='{{ url_for("vehicles_bp.vehicles_management_page") }}' class="dropdown-item">כלי רכב</a>
         <a href="{{ url_for('attendance_bp.report_attendance_page') }}" class="dropdown-item">דיווח נוכחות</a>
         <a href="{{ url_for('manager_bp.get_employees_list') }}" class="dropdown-item">המשימות שלי</a>
 
@@ -61,6 +64,7 @@ session['role'] == "employee"%} <div class="nav-item dropdown">
         <a href="{{url_for('attendance_bp.attendance_manager_page')}}" class="dropdown-item">נוכחות עובדים</a>
         <a href="{{ url_for('supply_bp.supply_inventory') }}" class="dropdown-item">מלאי
             ואספקה</a>
+        <a href='{{ url_for("vehicles_bp.vehicles_management_page") }}' class="dropdown-item">כלי רכב</a>
         <a href="{{ url_for('manager_bp.expense_page') }}" class="dropdown-item">מחשבון
             הוצאות</a>
         <a href='{{ url_for("optimal_bp.optimal_management_page") }}' class="dropdown-item">

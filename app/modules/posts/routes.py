@@ -57,7 +57,7 @@ def add_comment():
         "commenter_name": commenter_name,
         "commenter_email": commenter_email,  
         "content": data["content"],
-        "created_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        "created_at": datetime.utcnow().strftime("%d/%m/%y %H:%M")
     }
 
     result = posts_collection.update_one(

@@ -94,10 +94,15 @@ def add_supply():
 def get_quantity():
     product_name = request.args.get("name")
     category = request.args.get("category")
-    email = session.get("email") or session.get("manager_email")
-
+    
     if not product_name or not category:
         return jsonify({"error": "שם מוצר או קטגוריה חסרים"}), 400
+
+    role = session.get("role")
+    if role == "manager":
+        email = session.get("email")
+    else:
+        email = session.get("manager_email")
 
     supply_entry = supply_collection.find_one({
         "email": email,
@@ -244,7 +249,11 @@ def update_inventory_quantity():
     if not name or new_quantity < 0:
         return jsonify({"error": "ערך כמות לא תקין"}), 400
 
-    email = session.get("email") if session.get("role") == "manager" else session.get("manager_email")
+    role = session.get("role")
+    if role == "manager":
+        email = session.get("email")
+    else:
+        email = session.get("manager_email")
 
     result = supply_collection.update_one(
         {"email": email, "name": name},
