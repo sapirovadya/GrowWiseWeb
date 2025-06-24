@@ -325,7 +325,7 @@
     </div>
 
     <!-- Modal - המלצת השקיה -->
-    <div id="irrigationRecommendationModal" class="modal">
+    <div id="irrigationRecommendationModal" class="modal grow">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -572,6 +572,7 @@
         //תחזית גדילה
         document.getElementById("growthForecastButton").addEventListener("click", async () => {
             const modal = document.getElementById("growthForecastModal");
+            modal.querySelector(".modal-title").textContent = "תחזית גדילה";
             const forecastText = document.getElementById("growthForecastText");
 
             // הצגת הודעת טעינה

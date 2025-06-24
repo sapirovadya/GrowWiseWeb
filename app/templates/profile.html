@@ -277,6 +277,26 @@
     function changePassword() {
         window.location.href = '/users/change_password';
     }
+
+    document.getElementById("newPassword").addEventListener("input", function () {
+        const input = this;
+        const password = input.value;
+
+        const cleanPassword = password.replace(/[\u0590-\u05FF]/g, "");
+        if (password !== cleanPassword) {
+            input.value = cleanPassword;
+        }
+
+        const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/;
+
+        if (!pattern.test(cleanPassword)) {
+            input.setCustomValidity("הסיסמה חייבת להיות באנגלית ולכלול לפחות 8 תווים, אות קטנה, אות גדולה ותו מיוחד.");
+        } else {
+            input.setCustomValidity("");
+        }
+    });
+
+    
 </script>
 
 </body>

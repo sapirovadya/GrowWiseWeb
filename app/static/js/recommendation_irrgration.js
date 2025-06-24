@@ -10,9 +10,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     irrigationButton.addEventListener("click", async function () {
-        const modal = document.getElementById("growthForecastModal");
-        const forecastTitle = document.querySelector("#growthForecastModal .modal-title");
-        const recommendationText = document.getElementById("growthForecastText");
+        const modal = document.getElementById("irrigationRecommendationModal");
+        const forecastTitle = modal.querySelector(".modal-title");
+        const recommendationText = document.getElementById("irrigationRecommendationText");
+
 
         forecastTitle.textContent = "המלצת השקיה";
         recommendationText.innerHTML = "<p>טוען המלצת השקיה...</p>";
@@ -54,5 +55,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+function closeIrrigationModal() {
+    const modal = document.getElementById("irrigationRecommendationModal");
+    modal.style.display = "none";
+}
 
 

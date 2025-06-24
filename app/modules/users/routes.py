@@ -510,7 +510,7 @@ def add_month_end_notification(email):
         if tomorrow.month != today.month:
             existing = db.notifications.find_one({
                 "email": email,
-                "content": "יש לעבור על דיווח נוכחות עובדים",
+                "content": "לתשומת ליבך – סוף החודש הגיע. נא לבדוק ולעדכן את דיווחי הנוכחות של העובדים במערכת",
                 "created_at": {"$gte": today.replace(hour=0, minute=0, second=0), "$lt": today.replace(hour=23, minute=59, second=59)}
             })
             if not existing:
@@ -560,9 +560,10 @@ def get_notifications():
         elif role == "employee":
             add_employee_notifications(email)
 
-        add_vehicle_notifications()
-        add_month_end_notification(email)
-        add_vehicle_management_notification(email)
+        if role in ["manager", "co_manager"]:
+            add_month_end_notification(email)
+            add_vehicle_notifications()
+            add_vehicle_management_notification(email)
         
 
         db_notifications = db.notifications.find({"email": email}).sort("created_at", -1)

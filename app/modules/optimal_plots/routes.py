@@ -225,7 +225,8 @@ def update_plots():
             crop = upd.get("crop")
             raw_quantity = upd.get("quantity_planted", "")
             irrigation_water_type = upd.get("irrigation_water_type")
-
+            kosher_required = upd.get("kosher_required", False)
+            
             if not plot_id_str or not crop:
                 skipped_plots.append("Unknown Plot")
                 continue
@@ -281,7 +282,8 @@ def update_plots():
                     "crop_category": crop_category,
                     "quantity_planted": quantity_value,
                     "sow_date": datetime.now().strftime("%d/%m/%Y"),
-                    "irrigation_water_type": irrigation_water_type
+                    "irrigation_water_type": irrigation_water_type,
+                    "kosher_required": kosher_required
                 }}
             )
 

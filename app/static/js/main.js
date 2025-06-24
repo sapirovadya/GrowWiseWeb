@@ -1157,12 +1157,20 @@ function openWaterTypeModal(validPlots) {
         div.classList.add("mb-3");
         div.innerHTML = `
             <label><strong>${plot.plot_name}</strong></label><br>
-            <select class="form-select water-select" data-id="${plot.plot_id}">
+            <select class="form-select water-select mb-2" data-id="${plot.plot_id}">
                 <option value="">בחר סוג מים</option>
                 <option value="מים שפירים">מים שפירים</option>
                 <option value="מים מושבים">מים מושבים</option>
                 <option value="משולב">משולב</option>
             </select>
+
+            <div class="form-check mb-2">
+                <input class="form-check-input kosher-required-checkbox" type="checkbox" 
+                    id="kosherRequired_${plot.plot_id}" data-id="${plot.plot_id}">
+                <label class="form-check-label" for="kosherRequired_${plot.plot_id}">
+                    דרוש אישור כשרות?
+                </label>
+            </div>
         `;
         container.appendChild(div);
     });
@@ -1171,30 +1179,37 @@ function openWaterTypeModal(validPlots) {
     bsModal.show();
 }
 
+
+
 function confirmWaterSelection() {
     const selects = document.querySelectorAll(".water-select");
     const updates = [];
 
     for (let sel of selects) {
         const waterType = sel.value;
+        const plotId = sel.dataset.id;
+
         if (!waterType) {
             showAlert("שגיאה", "יש לבחור סוג מים לכל חלקה", true);
             return;
         }
 
-        const row = document.querySelector(`tr[data-id="${sel.dataset.id}"]`);
+        const row = document.querySelector(`tr[data-id="${plotId}"]`);
         const cells = row.querySelectorAll("td");
 
+        const kosherCheckbox = document.querySelector(`.kosher-required-checkbox[data-id='${plotId}']`);
+        const kosherRequired = kosherCheckbox?.checked || false;
+
         updates.push({
-            plot_id: sel.dataset.id,
+            plot_id: plotId,
             plot_name: cells[0].innerText.trim(),
             crop: cells[1].innerText.trim(),
             quantity_planted: cells[2].innerText.trim(),
-             irrigation_water_type: waterType
+            irrigation_water_type: waterType,
+            kosher_required: kosherRequired
         });
     }
 
-  
     fetch("/optimal/update_plots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1204,12 +1219,21 @@ function confirmWaterSelection() {
     .then(data => {
         if (data.success) {
             showAlert("בוצע בהצלחה", "החלקות עודכנו לפי ההמלצה", false);
+            const modal = bootstrap.Modal.getInstance(document.getElementById("waterTypeModal"));
+            if (modal) modal.hide();
             setTimeout(() => location.reload(), 1000);
         } else {
-            showAlert("שגיאה", data.error || "קרתה שגיאה בעדכון", true);
+            showAlert("שגיאה", data.message || "אירעה שגיאה בעדכון החלקות", true);
         }
+    })
+    .catch(error => {
+        console.error("שגיאה בביצוע השליחה:", error);
+        showAlert("שגיאה", "אירעה שגיאה בעת שליחת הנתונים לשרת", true);
     });
 }
+
+
+
 
 
 

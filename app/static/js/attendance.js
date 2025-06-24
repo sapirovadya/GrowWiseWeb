@@ -79,6 +79,13 @@ function loadManagerAttendanceRecords() {
                 tableBody.innerHTML = "<tr><td colspan='7'>אין נתונים זמינים</td></tr>";
                 return;
             }
+
+            data.attendance_records.sort((a, b) => {
+                const dateA = parseHebrewDate(a.check_in);
+                const dateB = parseHebrewDate(b.check_in);
+                return dateA - dateB;
+            });
+
             data.attendance_records.forEach(record => {
                 const checkInTime = (record.check_in && !isNaN(new Date(record.check_in).getTime()))
                     ? new Date(record.check_in).toISOString().slice(0, 16)
@@ -140,6 +147,17 @@ function submitManualAttendance() {
     const employeeEmail = document.getElementById("employeeSelect").value;
     const checkInTime = document.getElementById("manualCheckIn").value;
     const checkOutTime = document.getElementById("manualCheckOut").value;
+    const inTime = new Date(checkInTime);
+    const outTime = new Date(checkOutTime);
+
+    if (outTime <= inTime) {
+        showAlert("שגיאה", "שעת היציאה חייבת להיות לאחר שעת הכניסה.", {
+            restoreForm: true,
+            formId: "attendanceForm",
+            modalId: "attendanceModal"
+        });
+        return;
+    }
 
 
     if (!employeeEmail || !checkInTime || !checkOutTime) {
@@ -209,6 +227,17 @@ function saveAttendanceChanges() {
     let id = document.getElementById('editAttendanceId').value;
     let checkIn = document.getElementById('editCheckIn').value;
     let checkOut = document.getElementById('editCheckOut').value;
+    const inTime = new Date(checkIn);
+    const outTime = new Date(checkOut);
+
+    if (outTime <= inTime) {
+        showAlert("שגיאה", "שעת היציאה חייבת להיות לאחר שעת הכניסה.", {
+            restoreForm: true,
+            formId: "editAttendanceForm",
+            modalId: "editAttendanceModal"
+        });
+        return;
+    }
 
     if (!id) {
         showAlert("שגיאה", "ה-ID לא זוהה.", { restoreForm: false });
@@ -254,4 +283,12 @@ function filterAttendanceRecords() {
             rows[i].style.display = "none";
         }
     }
+}
+
+
+function parseHebrewDate(dateStr) {
+    const [datePart, timePart] = dateStr.split(" ");
+    const [day, month, year] = datePart.split("/").map(Number);
+    const [hour, minute] = timePart.split(":").map(Number);
+    return new Date(year, month - 1, day, hour, minute); // חודש ב-JS מתחיל מ-0
 }
