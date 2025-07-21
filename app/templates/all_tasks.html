@@ -21,6 +21,7 @@
     <!-- CSS Libraries -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
@@ -77,29 +78,36 @@
 
             <button type="button" class="btn btn-sm btn-primary filter" onclick="applyTaskFilter()">סנן</button>
         </form>
-        <div class="table-container">
-            <table class="table table-bordered task-table">
-                <thead>
-                    <tr>
-                        <th>שם העובד</th>
-                        <th>שם המשימה</th>
-                        <th>המשימה</th>
-                        <th>תאריך אחרון למשימה</th>
-                        <th>סטטוס</th>
-                        <th class="action-header" style="display: none;">פעולה</th>
-                    </tr>
-                </thead>
-                <tbody id="taskTableBody">
-                    <!-- שורות הטבלה ייטענו דינמית -->
-                </tbody>
-            </table>
-        </div>
+        <div id="calendar" style="margin-top: 30px;"></div>
     </div>
 
     <div id="customAlert" class="alert-box" style="display:none;">
         <h5 class="alert-title">כותרת</h5>
         <p class="alert-message">הודעה</p>
         <button class="alert-close btn btn-primary" onclick="closeAlert()">סגור</button>
+    </div>
+
+    <div class="modal" id="taskDetailModal" tabindex="-1" style="display: none;">
+        <div class="modal-dialog" style="max-width: 700px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskModalTitle">פרטי משימה</h5>
+                    <button type="button" class="btn-close" onclick="closeTaskDetailModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="taskModalContent" style="text-align: right; white-space: pre-wrap; width: 100%;"></p>
+                    <label for="statusSelectModal">סטטוס המשימה:</label>
+                    <select id="statusSelectModal" class="form-control">
+                        <option value="in_progress">בתהליך</option>
+                        <option value="done">בוצע</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeTaskDetailModal()">סגור</button>
+                    <button type="button" class="btn btn-primary" id="updateStatusBtn">עדכון</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Libraries -->
@@ -111,6 +119,7 @@
     <!-- טעינת Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
     <script src="/static/js/main.js"></script>
     <script src="/static/js/team_task.js"></script>

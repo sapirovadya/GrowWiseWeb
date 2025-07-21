@@ -116,7 +116,6 @@ fetch('/task/alltasks')
             taskTableBody.appendChild(row);
         });
 
-        // הצגת עמודת פעולה רק אם צריך
         if (hasApproveButtons) {
             actionHeader.style.display = 'table-cell';
         } else {
@@ -145,16 +144,75 @@ fetch('/task/alltasks')
             });
         });
     });
+let selectedTask = null;
+let calendar = null;
+
+document.addEventListener("DOMContentLoaded", async function () {
+    const calendarEl = document.getElementById('calendar');
+    const response = await fetch("/task/alltasks");
+    const tasks = await response.json();
+
+    const events = tasks.map(task => ({
+        id: task._id,
+        title: task.task_name + " - " + task.employee_name,
+        start: task.due_date,
+        extendedProps: {
+            content: task.task_content,
+            status: task.status
+        },
+        allDay: true,
+        backgroundColor: task.status === "done" ? "#6c757d" : "#28a745",
+    }));
+
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'he',
+        direction: 'rtl',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+        },
+        events: events,
+        eventClick: function (info) {
+            const task = info.event;
+            selectedTask = task;
+
+            document.getElementById("taskModalTitle").innerText = task.title;
+            document.getElementById("taskModalContent").innerText = task.extendedProps.content;
+
+            const select = document.getElementById("statusSelectModal");
+            const updateBtn = document.getElementById("updateStatusBtn");
+
+            select.value = task.extendedProps.status;
+
+            if (task.extendedProps.status === "done") {
+                select.disabled = true;
+                updateBtn.style.display = "none";
+            } else {
+                select.disabled = false;
+                updateBtn.style.display = "inline-block";
+            }
+
+            document.getElementById("taskDetailModal").style.display = "block";
+        }
+    });
+
+    calendar.render();
+});
+
 
 function applyTaskFilter() {
     const month = document.getElementById("monthSelect").value;
     const year = document.getElementById("yearSelect").value;
+
+    // עדכון תצוגת הטבלה (כמו קודם)
     const rows = document.querySelectorAll("#taskTableBody tr");
 
     rows.forEach(row => {
-        const dateCell = row.children[3]; // תא של תאריך אחרון למשימה
+        const dateCell = row.children[3];
         const dateText = dateCell ? dateCell.textContent.trim() : "";
-
         let show = true;
 
         if (month && !dateText.includes(`-${month}-`)) {
@@ -167,4 +225,60 @@ function applyTaskFilter() {
 
         row.style.display = show ? "" : "none";
     });
+
+    // העברת לוח השנה לחודש/שנה שנבחרו
+    if (month && year && calendar) {
+        const formattedMonth = month.padStart(2, '0');
+        const gotoDate = `${year}-${formattedMonth}-01`;
+        calendar.gotoDate(gotoDate);
+    }
 }
+
+document.getElementById("updateStatusBtn").addEventListener("click", function () {
+    const newStatus = document.getElementById("statusSelectModal").value;
+
+    if (!selectedTask) {
+        alert("שגיאה: לא נמצאה משימה נבחרת.");
+        return;
+    }
+
+    if (newStatus === selectedTask.extendedProps.status) {
+        closeTaskDetailModal();
+        return;
+    }
+
+    fetch("/task/update_status", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            id: selectedTask.id,
+            status: newStatus
+        })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                selectedTask.extendedProps.status = newStatus;
+                selectedTask.setProp("backgroundColor", newStatus === "done" ? "#6c757d" : "#28a745");
+                closeTaskDetailModal();
+                location.reload();
+            } else {
+                alert("שגיאה בעדכון הסטטוס: " + (data.error || ""));
+            }
+        })
+        .catch(err => {
+            alert("שגיאה בבקשה לשרת");
+            console.error(err);
+        });
+});
+
+function closeTaskDetailModal() {
+    document.getElementById("taskDetailModal").style.display = "none";
+    selectedTask = null;
+
+    document.getElementById("statusSelectModal").disabled = false;
+    document.getElementById("updateStatusBtn").style.display = "inline-block";
+}
+
