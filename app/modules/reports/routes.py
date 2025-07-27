@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta
 import json
 import io
 import base64
-# from weasyprint import HTML
+from weasyprint import HTML
 import matplotlib
 matplotlib.use('Agg')
 matplotlib.rcParams['font.family'] = 'Arial'
