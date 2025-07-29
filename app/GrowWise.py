@@ -116,26 +116,6 @@ def update_crops_data():
         print(f"Error occurred while updating crops: {str(e)}")
 
 
-def update_crops_data():
-    collection = app.db["crops_options"]
-
-    try:
-        # קריאת הקובץ
-        with open("app/static/data/crops_data.json", "r", encoding="utf-8") as file:
-            crops_data = json.load(file)
-
-        # מחיקת הנתונים הקיימים
-        deleted_count = collection.delete_many({}).deleted_count
-        print(f"{deleted_count} documents deleted from MongoDB.")
-
-        # הוספת הנתונים המעודכנים
-        for category in crops_data:
-            collection.insert_one(category)
-        print("New data loaded successfully into MongoDB!")
-    except Exception as e:
-        print(f"Error occurred while updating crops: {str(e)}")
-
-
 def update_israel_cities():
     collection = app.db["israel_cities"]  # שם האוסף לערים בישראל
 
